@@ -8,9 +8,12 @@
 #include "..\Resources\WeaponIcon.h"
 #include "..\Resources\Font.h"
 #include "..\Resources\Language.h"
+#include "..\Resources\IconsFontAwesome.h"
+#include "..\Resources\resource.h"
 
 namespace OSImGui
 {
+    ImFont* TitleFont = nullptr;
     bool OSImGui_Base::InitImGui(ID3D11Device* device, ID3D11DeviceContext* device_context)
     {
         ImGui::CreateContext();
@@ -24,15 +27,76 @@ namespace OSImGui
 
         ImFont* arialFont = fontAtlas->AddFontFromMemoryTTF((void*)MainFont, sizeof(MainFont), 20.0f, &arialConfig, fontAtlas->GetGlyphRangesDefault());
         
-        ImFontConfig iconConfig;
-        iconConfig.MergeMode = true;
-        iconConfig.PixelSnapH = true;
-        iconConfig.OversampleH = 3;
-        iconConfig.OversampleV = 3;
-        iconConfig.FontDataOwnedByAtlas = false;
+        // Mesclar a fonte FontAwesome na fonte padrão para uso de ícones nas labels
+        // A fonte é embutida como recurso RCDATA (IDR_FONT_AWESOME_SOLID) em Resources/Resource.rc
+        HMODULE hModule = GetModuleHandleW(nullptr);
+        HRSRC hRes = FindResourceW(hModule, MAKEINTRESOURCEW(IDR_FONT_AWESOME_SOLID), RT_RCDATA);
+        bool faMerged = false;
+        if (hRes)
+        {
+            HGLOBAL hData = LoadResource(hModule, hRes);
+            if (hData)
+            {
+                void* pData = LockResource(hData);
+                DWORD dataSize = SizeofResource(hModule, hRes);
+                if (pData && dataSize > 0)
+                {
+                    ImFontConfig faConfig;
+                    faConfig.MergeMode = true;
+                    faConfig.PixelSnapH = true;
+                    faConfig.OversampleH = 3;
+                    faConfig.OversampleV = 3;
+                    faConfig.FontDataOwnedByAtlas = false; // dados pertencem ao recurso
+                    faConfig.GlyphMinAdvanceX = 15.0f; // largura mínima para ícones (mais compacto)
+                    faConfig.GlyphOffset = ImVec2(0.0f, 1.0f); // leve ajuste vertical para centralizar
 
+                    static const ImWchar fa_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+                    if (fontAtlas->AddFontFromMemoryTTF(pData, (int)dataSize, 18.0f, &faConfig, fa_ranges))
+                        faMerged = true;
+                }
+            }
+        }
+        // Fallback: tentar carregar o TTF do disco caso o recurso não esteja acessível no binário
+        if (!faMerged)
+        {
+            ImFontConfig faConfig;
+            faConfig.MergeMode = true;
+            faConfig.PixelSnapH = true;
+            faConfig.OversampleH = 3;
+            faConfig.OversampleV = 3;
+            faConfig.GlyphMinAdvanceX = 15.0f;
+            faConfig.GlyphOffset = ImVec2(0.0f, 1.0f);
+
+            static const ImWchar fa_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+            // Tentativas comuns de caminho relativo durante desenvolvimento
+            const char* faPaths[] = {
+                "Resources/fa-solid-900.ttf",
+                "Saturn-UM/Resources/fa-solid-900.ttf",
+                "../Saturn-UM/Resources/fa-solid-900.ttf"
+            };
+            for (const char* p : faPaths)
+            {
+                if (fontAtlas->AddFontFromFileTTF(p, 18.0f, &faConfig, fa_ranges))
+                {
+                    faMerged = true;
+                    break;
+                }
+            }
+        }
+
+        // Fonte maior para títulos, evita blur ao ampliar (adicionada após mesclar FontAwesome na fonte padrão)
+        ImFontConfig arialTitleConfig;
+        arialTitleConfig.FontDataOwnedByAtlas = false;
+        arialTitleConfig.OversampleH = 3;
+        arialTitleConfig.OversampleV = 3;
+        arialTitleConfig.PixelSnapH = true;
+        TitleFont = fontAtlas->AddFontFromMemoryTTF((void*)MainFont, sizeof(MainFont), 34.0f, &arialTitleConfig, fontAtlas->GetGlyphRangesDefault());
+
+        // Carrega ícones internos (CS icons) em uma fonte separada (não mesclada)
         ImFont* WeaponIconFont = fontAtlas->AddFontFromMemoryTTF((void*)cs_icon, sizeof(cs_icon), 20.0f);
 
+        // Garantir que a textura de fontes seja construída com os glyphs mesclados
+        fontAtlas->Build();
         io.Fonts = fontAtlas;
         io.FontDefault = arialFont;
 
@@ -46,10 +110,10 @@ namespace OSImGui
         style.ScrollbarRounding = 4.0f;
         style.WindowBorderSize = 1.0f;
         style.FrameBorderSize = 1.0f;
-        style.ItemSpacing = ImVec2(6.0f, 4.0f);
-        style.ItemInnerSpacing = ImVec2(4.0f, 4.0f);
-        style.FramePadding = ImVec2(6.0f, 5.0f);
-        style.WindowPadding = ImVec2(10.0f, 8.0f);
+        style.ItemSpacing = ImVec2(5.0f, 3.0f);
+        style.ItemInnerSpacing = ImVec2(4.0f, 3.0f);
+        style.FramePadding = ImVec2(5.0f, 3.0f);
+        style.WindowPadding = ImVec2(8.0f, 6.0f);
 
         style.Colors[ImGuiCol_WindowBg]        = ImVec4(0.08f, 0.09f, 0.10f, 1.00f);
         style.Colors[ImGuiCol_ChildBg]         = ImVec4(0.09f, 0.10f, 0.12f, 1.00f);

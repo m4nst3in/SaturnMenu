@@ -12,6 +12,9 @@
 #include "..\Resources\Language.h"
 #include "..\Resources\Images.h"
 #include "../Helpers/KeyManager.h"
+#include "..\OS-ImGui\OS-ImGui_Base.h"
+// Ícones FontAwesome nas labels
+#include "..\Resources\IconsFontAwesome.h"
 
 #include "../Features/ESP.h"
 
@@ -137,6 +140,36 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
     ImGui::TextDisabled(title);
     ImGui::Separator();
 }
+    // Texto com degradê letra a letra (para títulos decorativos)
+    inline void GradientText(const char* text, ImVec4 startColor, ImVec4 endColor, float font_size_override = 0.0f, ImFont* font_override = nullptr)
+    {
+        ImDrawList* draw = ImGui::GetWindowDrawList();
+        ImFont* font = font_override ? font_override : ImGui::GetFont();
+        float base_size = ImGui::GetFontSize();
+        float font_size = font_size_override > 0.0f ? font_size_override : (font_override ? font->FontSize : base_size);
+        ImVec2 p = ImGui::GetCursorScreenPos();
+        // Centraliza verticalmente no frame
+        p.y += (ImGui::GetFrameHeight() - font_size) * 0.5f;
+
+        int len = (int)strlen(text);
+        float scale = font_size / base_size;
+        for (int i = 0; i < len; ++i)
+        {
+            float t = len > 1 ? (float)i / (float)(len - 1) : 0.0f;
+            ImVec4 c;
+            c.x = startColor.x + (endColor.x - startColor.x) * t;
+            c.y = startColor.y + (endColor.y - startColor.y) * t;
+            c.z = startColor.z + (endColor.z - startColor.z) * t;
+            c.w = startColor.w + (endColor.w - startColor.w) * t;
+
+            char ch[2] = { text[i], '\0' };
+            draw->AddText(font, font_size, p, ImGui::ColorConvertFloat4ToU32(c), ch);
+            p.x += ImGui::CalcTextSize(ch).x * scale;
+        }
+        // Move o cursor horizontalmente conforme o texto renderizado
+        ImVec2 adv = ImGui::CalcTextSize(text);
+        ImGui::Dummy(ImVec2(adv.x * scale, font_size));
+    }
     inline void EndSection()
 	{
 		ImGui::EndChild();
@@ -151,12 +184,19 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 		if (Tip && ImGui::IsItemHovered())
 			ImGui::SetTooltip(Tip);
 		ImGui::SameLine();
-		// Alinhar verticalmente a checkbox com o texto
+		// Alinhar verticalmente os controles à altura do texto
 		ImGui::SetCursorPosY(CurrentCursorY);
 		if (ColorEditor) {
-			AlignRight(ContentWidth + ImGui::GetFrameHeight() +7);
-			ImGui::ColorEdit4(lable, col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreview);
+			// Alinhar cor + checkbox como bloco à direita com largura conhecida
+			float fh = ImGui::GetFrameHeight();
+			float spacing = ImGui::GetStyle().ItemSpacing.x;
+			float totalWidth = fh + spacing + fh; // color preview + spacing + checkbox
+			AlignRight(totalWidth);
+			ImGui::SetCursorPosY(CurrentCursorY);
+			ImGui::SetNextItemWidth(fh);
+			ImGui::ColorEdit4(lable, col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreview);
 			ImGui::SameLine();
+			ImGui::SetCursorPosY(CurrentCursorY);
 		}
 		else {
 			// Alinhamento horizontal consistente: usar largura exata da checkbox
@@ -251,32 +291,32 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 		ImGui::Begin("Saturn", nullptr, Flags);
 			{
 				// Topo com abas horizontais (sem categorias aninhadas)
-				ImGui::BeginChild("TopTabs", ImVec2(0, ImGui::GetFrameHeight()*2.0f), false, ImGuiWindowFlags_NoScrollbar);
-				{
-					ImGui::Image(ImageID, ImVec2(24.f, 24.f));
-					ImGui::SameLine(0.f, 8.f);
-					ImGui::Text("Saturn");
-					ImGui::SameLine();
-					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.f);
-					if (ImGui::BeginTabBar("MainTabs", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_FittingPolicyScroll))
-					{
-						if (ImGui::BeginTabItem("Legit")) { MenuConfig::WCS.MenuPage = 0; ImGui::EndTabItem(); }
-						if (ImGui::BeginTabItem("Visual")) { MenuConfig::WCS.MenuPage = 1; ImGui::EndTabItem(); }
-						if (ImGui::BeginTabItem("Misc"))  { MenuConfig::WCS.MenuPage = 2; ImGui::EndTabItem(); }
-                        // Config tab removida temporariamente
-						ImGui::EndTabBar();
-					}
-				}
-				ImGui::EndChild();
-
-				// Área de conteúdo abaixo das abas
-				ImGui::BeginChild("Page", ImVec2(0, 0), false, ImGuiWindowFlags_NoScrollbar);
+		ImGui::BeginChild("TopTabs", ImVec2(0, ImGui::GetFrameHeight()*1.8f), false, ImGuiWindowFlags_NoScrollbar);
 			{
-				// Layout por página
-				if (MenuConfig::WCS.MenuPage == 1)
-				{
-					ImGui::Columns(2, nullptr, false);
-					ImGui::SetCursorPos(ImVec2(15.f, 24.f));
+				// Título "Saturn" com degradê e fonte grande nativa (sem blur)
+				ImVec4 start = ImVec4(0.45f, 0.75f, 1.00f, 1.00f);
+				ImVec4 end   = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+				GradientText("Saturn", start, end, OSImGui::TitleFont ? OSImGui::TitleFont->FontSize : ImGui::GetFontSize() * 1.9f, OSImGui::TitleFont);
+				ImGui::SameLine(0.f, 18.f);
+				if (ImGui::BeginTabBar("MainTabs", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_FittingPolicyScroll))
+                    {
+                if (ImGui::BeginTabItem(ICON_FA_CROSSHAIRS "  Legit")) { MenuConfig::WCS.MenuPage = 0; ImGui::EndTabItem(); }
+                if (ImGui::BeginTabItem(ICON_FA_EYE        "  Visual")) { MenuConfig::WCS.MenuPage = 1; ImGui::EndTabItem(); }
+                if (ImGui::BeginTabItem(ICON_FA_WRENCH     "  Misc"))  { MenuConfig::WCS.MenuPage = 2; ImGui::EndTabItem(); }
+                        // Config tab removida temporariamente
+                        ImGui::EndTabBar();
+                    }
+			}
+			ImGui::EndChild();
+
+			// Área de conteúdo abaixo das abas
+			ImGui::BeginChild("Page", ImVec2(0, 0), false, ImGuiWindowFlags_NoScrollbar);
+		{
+			// Layout por página
+			if (MenuConfig::WCS.MenuPage == 1)
+			{
+				ImGui::Columns(2, nullptr, false);
+				ImGui::SetCursorPos(ImVec2(12.f, 10.f));
 					static const float MinRounding = 0.f, MaxRouding = 5.f;
 					static const float MinFovFactor = 0.f, MaxFovFactor = 1.f;
 
@@ -343,18 +383,19 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 					}
 					EndSection();
 
-					ImGui::NextColumn();
-					ImGui::SetCursorPosY(24.f);
-					BeginSection("ESP Preview", ImVec2(ImGui::GetColumnWidth(), 0));
-					{
-						ESP::RenderPreview({ ImGui::GetColumnWidth(), ImGui::GetCursorPosY() });
-						ImGui::Dummy({ 0.f, ImGui::GetFrameHeight() * 9 });
-					}
-					EndSection();
+				ImGui::NextColumn();
+				ImGui::SetCursorPosY(10.f);
+				BeginSection("ESP Preview", ImVec2(ImGui::GetColumnWidth(), 0));
+				{
+					ESP::RenderPreview({ ImGui::GetColumnWidth(), ImGui::GetCursorPosY() });
+					ImGui::Dummy({ 0.f, ImGui::GetFrameHeight() * 3 });
+				}
+				EndSection();
 
-					ImGui::Spacing();
-					BeginSection("External Radar", ImVec2(ImGui::GetColumnWidth(), 0));
-					{
+				// Espaço reduzido entre seções
+				ImGui::Spacing();
+				BeginSection("External Radar", ImVec2(ImGui::GetColumnWidth(), 0));
+				{
 						static const float RadarPointSizeProportionMin = 0.2f, RadarPointSizeProportionMax = 2.f;
 						static const float ProportionMin = 500.f, ProportionMax = 15000.f;
 						static const float RadarRangeMin = 100.f, RadarRangeMax = 300.f;
@@ -410,10 +451,10 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 					//ImGui::Columns(1);
 				}
 				
-				if (MenuConfig::WCS.MenuPage == 0)
-				{
-					ImGui::Columns(2, nullptr, false);
-					ImGui::SetCursorPos(ImVec2(15.f, 24.f));
+			if (MenuConfig::WCS.MenuPage == 0)
+			{
+				ImGui::Columns(2, nullptr, false);
+				ImGui::SetCursorPos(ImVec2(12.f, 10.f));
 
 					BeginSection("Aimbot - Settings", ImVec2(ImGui::GetColumnWidth(), 0));
 					{
@@ -454,10 +495,10 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 					}
 					EndSection();
 
-					// Coluna direita
-					ImGui::NextColumn();
-					ImGui::SetCursorPosY(24.f);
-					BeginSection("Triggerbot", ImVec2(ImGui::GetColumnWidth(), 0));
+				// Coluna direita
+				ImGui::NextColumn();
+				ImGui::SetCursorPosY(10.f);
+				BeginSection("Triggerbot", ImVec2(ImGui::GetColumnWidth(), 0));
 					{
 						static const int DelayMin = 0, DelayMax = 300;
 						static const int DurationMin = 0, DurationMax = 1000;

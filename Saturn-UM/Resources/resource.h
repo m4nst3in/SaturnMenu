@@ -12,3 +12,6 @@
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
+
+// Recurso adicional: FontAwesome (fa-solid-900.ttf)
+#define IDR_FONT_AWESOME_SOLID          102

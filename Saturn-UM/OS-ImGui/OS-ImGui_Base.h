@@ -3,6 +3,7 @@
 #include "OS-ImGui_Struct.h"
 #include "OS-ImGui_Exception.h"
 #include <Windows.h>
+#include "imgui/imgui.h"
 #include <d3d11.h>
 #include <dxgi.h>
 #include <dwmapi.h>
@@ -16,6 +17,8 @@
 
 namespace OSImGui
 {
+    // Fonte grande para títulos (exposta para uso no GUI)
+    extern ImFont* TitleFont;
 	class D3DDevice
 	{
 	public:
