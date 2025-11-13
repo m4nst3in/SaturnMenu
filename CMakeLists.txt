@@ -105,7 +105,7 @@ set(DRAGONBURN_HEADERS
     Features/Misc.h
     Features/Radar.h
     Features/RCS.h
-    Features/SoundESP.h
+    
     Features/SpectatorList.h
     Features/TriggerBot.h
     
@@ -365,7 +365,7 @@ source_group("DragonBurn\\Features" FILES
     Features/Misc.h
     Features/Radar.h
     Features/RCS.h
-    Features/SoundESP.h
+    
     Features/SpectatorList.h
     Features/TriggerBot.h
 )

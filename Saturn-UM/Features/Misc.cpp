@@ -61,24 +61,14 @@ namespace Misc
 		ImGui::End();
 	}
 
-	void HitSound() noexcept
-	{
-		switch (MiscCFG::HitSound)
-		{
-		case 1:
-			PlaySoundA(reinterpret_cast<char*>(neverlose_sound), NULL, SND_ASYNC | SND_MEMORY);
-			break;
-		case 2:
-			PlaySoundA(reinterpret_cast<char*>(skeet_sound), NULL, SND_ASYNC | SND_MEMORY);
-			break;
-		default:
-			break;
-		}
-	}
+    void HitSound() noexcept
+    {
+        // removed
+    }
 
 	void HitManager(CEntity& LocalPlayer, int& PreviousTotalHits) noexcept
 	{
-		if ((!MiscCFG::HitSound && !MiscCFG::HitMarker) || LocalPlayer.Controller.TeamID == 0 || MenuConfig::ShowMenu || !LocalPlayer.IsAlive())
+        if ((!MiscCFG::HitMarker) || LocalPlayer.Controller.TeamID == 0 || MenuConfig::ShowMenu || !LocalPlayer.IsAlive())
 			return;
 
 		uintptr_t pBulletServices;
@@ -93,10 +83,7 @@ namespace Misc
 			}
 			else
 			{
-				if (MiscCFG::HitSound)
-				{
-					HitSound();
-				}
+                
 				if (MiscCFG::HitMarker)
 				{
 					hitMarker = HitMarker(255.f, std::chrono::steady_clock::now());

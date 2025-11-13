@@ -12,3 +12,5 @@
 #define ICON_FA_EYE        "\xef\x81\xae"
 // U+F0AD: wrench (clássico). Se quiser 'tools', use U+F7D9.
 #define ICON_FA_WRENCH     "\xef\x82\xad"
+// U+F11C: keyboard
+#define ICON_FA_KEYBOARD   "\xef\x84\x9c"

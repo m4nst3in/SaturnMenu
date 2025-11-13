@@ -104,8 +104,7 @@ void AimControl::AimBot(const CEntity& Local, Vec3 LocalPos,std::vector<Vec3>& A
     if (!TriggerBot::CheckWeapon(curWeapon))
         return;
 
-    if (onlyAuto && !CheckAutoMode(curWeapon))
-        return;
+    
 
     if (Local.Pawn.ShotsFired <= AimBullet - 1 && AimBullet != 0)
     {
@@ -124,8 +123,7 @@ void AimControl::AimBot(const CEntity& Local, Vec3 LocalPos,std::vector<Vec3>& A
         }
     }
 
-    if (!IgnoreFlash && Local.Pawn.FlashDuration > 0.f)
-        return;
+    
 
     const int ListSize = AimPosList.size();
     if (ListSize == 0) {

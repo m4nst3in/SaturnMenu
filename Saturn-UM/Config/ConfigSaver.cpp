@@ -32,28 +32,25 @@ namespace MyConfigSaver
         ConfigData["ESP"]["BoneESP"]=               ESPConfig::ShowBoneESP;
         ConfigData["ESP"]["BoxESP"]=                ESPConfig::ShowBoxESP;
         ConfigData["ESP"]["BoxType"]=               ESPConfig::BoxType;
-        ConfigData["ESP"]["SnapLine"]=              ESPConfig::ShowLineToEnemy;
-        ConfigData["ESP"]["LinePos"]=               ESPConfig::LinePos;
+        
         ConfigData["ESP"]["HealthBar"]=             ESPConfig::ShowHealthBar;
         ConfigData["ESP"]["AmmoBar"]=               ESPConfig::AmmoBar;
         ConfigData["ESP"]["WeaponESP"]=             ESPConfig::ShowWeaponESP;
-        ConfigData["ESP"]["EyeRay"]=                ESPConfig::ShowEyeRay;
+        
         ConfigData["ESP"]["PlayerName"]=            ESPConfig::ShowPlayerName;
         ConfigData["ESP"]["DistanceESP"]=           ESPConfig::ShowDistance;
-        ConfigData["ESP"]["HealthNum"]=             ESPConfig::ShowHealthNum;
-        ConfigData["ESP"]["HeadBox"]=               ESPConfig::ShowHeadBox;
+        
+        
         ConfigData["ESP"]["Preview"]=               ESPConfig::ShowPreview;
         ConfigData["ESP"]["VisCheck"]=              ESPConfig::VisibleCheck;
-        ConfigData["ESP"]["FilledBox"]=             ESPConfig::FilledBox;
-        ConfigData["ESP"]["FilledVisBox"]=          ESPConfig::FilledVisBox;
-        ConfigData["ESP"]["MultiColor"]=            ESPConfig::MultiColor;
+        
         ConfigData["ESP"]["OutLine"]=               ESPConfig::OutLine;
-        ConfigData["ESP"]["BoxRounding"]=           ESPConfig::BoxRounding;
+        
         ConfigData["ESP"]["ShowScoped"]=            ESPConfig::ShowIsScoped;
         ConfigData["ESP"]["ShowBlind"]=             ESPConfig::ShowIsBlind;
-        ConfigData["ESP"]["DisableFlashed"] =       ESPConfig::FlashCheck;
+        
         ConfigData["ESP"]["ArmorBar"]=              ESPConfig::ArmorBar;
-        ConfigData["ESP"]["ArmorNum"]=              ESPConfig::ShowArmorNum;
+        
 
         ConfigData["ESP"]["BoneColor"]["r"]=        ESPConfig::BoneColor.Value.x;
         ConfigData["ESP"]["BoneColor"]["g"]=        ESPConfig::BoneColor.Value.y;
@@ -65,40 +62,18 @@ namespace MyConfigSaver
         ConfigData["ESP"]["BoxColor"]["b"]=         ESPConfig::BoxColor.Value.z;
         ConfigData["ESP"]["BoxColor"]["a"]=         ESPConfig::BoxColor.Value.w;
 
-        ConfigData["ESP"]["SnapLineColor"]["r"]=    ESPConfig::LineToEnemyColor.Value.x;
-        ConfigData["ESP"]["SnapLineColor"]["g"]=    ESPConfig::LineToEnemyColor.Value.y;
-        ConfigData["ESP"]["SnapLineColor"]["b"]=    ESPConfig::LineToEnemyColor.Value.z;
-        ConfigData["ESP"]["SnapLineColor"]["a"]=    ESPConfig::LineToEnemyColor.Value.w;
+        
 
-        ConfigData["ESP"]["EyeRayColor"]["r"]=      ESPConfig::EyeRayColor.Value.x;
-        ConfigData["ESP"]["EyeRayColor"]["g"]=      ESPConfig::EyeRayColor.Value.y;
-        ConfigData["ESP"]["EyeRayColor"]["b"]=      ESPConfig::EyeRayColor.Value.z;
-        ConfigData["ESP"]["EyeRayColor"]["a"]=      ESPConfig::EyeRayColor.Value.w;
+        
 
-        ConfigData["ESP"]["HeadBoxColor"]["r"]=     ESPConfig::HeadBoxColor.Value.x;
-        ConfigData["ESP"]["HeadBoxColor"]["g"]=     ESPConfig::HeadBoxColor.Value.y;
-        ConfigData["ESP"]["HeadBoxColor"]["b"]=     ESPConfig::HeadBoxColor.Value.z;
-        ConfigData["ESP"]["HeadBoxColor"]["a"]=     ESPConfig::HeadBoxColor.Value.w;
+        
         
         ConfigData["ESP"]["VisibleColor"]["r"]=     ESPConfig::VisibleColor.Value.x;
         ConfigData["ESP"]["VisibleColor"]["g"]=     ESPConfig::VisibleColor.Value.y;
         ConfigData["ESP"]["VisibleColor"]["b"]=     ESPConfig::VisibleColor.Value.z;
         ConfigData["ESP"]["VisibleColor"]["a"]=     ESPConfig::VisibleColor.Value.w;
 
-        ConfigData["ESP"]["FilledColor"]["r"]=      ESPConfig::FilledColor.Value.x;
-        ConfigData["ESP"]["FilledColor"]["g"]=      ESPConfig::FilledColor.Value.y;
-        ConfigData["ESP"]["FilledColor"]["b"]=      ESPConfig::FilledColor.Value.z;
-        ConfigData["ESP"]["FilledColor"]["a"]=      ESPConfig::FilledColor.Value.w;
-
-        ConfigData["ESP"]["FilledColor2"]["r"]=     ESPConfig::FilledColor2.Value.x;
-        ConfigData["ESP"]["FilledColor2"]["g"]=     ESPConfig::FilledColor2.Value.y;
-        ConfigData["ESP"]["FilledColor2"]["b"]=     ESPConfig::FilledColor2.Value.z;
-        ConfigData["ESP"]["FilledColor2"]["a"]=     ESPConfig::FilledColor2.Value.w;
-
-        ConfigData["ESP"]["FilledVisColor"]["r"]=   ESPConfig::BoxFilledVisColor.Value.x;
-        ConfigData["ESP"]["FilledVisColor"]["g"]=   ESPConfig::BoxFilledVisColor.Value.y;
-        ConfigData["ESP"]["FilledVisColor"]["b"]=   ESPConfig::BoxFilledVisColor.Value.z;
-        ConfigData["ESP"]["FilledVisColor"]["a"]=   ESPConfig::BoxFilledVisColor.Value.w;
+        
 
         ConfigData["ESP"]["OutOfFOVArrow"]=         ESPConfig::ShowOutOfFOVArrow;
         ConfigData["ESP"]["OutOfFOVRadius"]=        ESPConfig::OutOfFOVRadiusFactor;
@@ -107,11 +82,7 @@ namespace MyConfigSaver
         ConfigData["ESP"]["OutOfFOVColor"]["b"]=    ESPConfig::OutOfFOVArrowColor.Value.z;
         ConfigData["ESP"]["OutOfFOVColor"]["a"]=    ESPConfig::OutOfFOVArrowColor.Value.w;
 
-        ConfigData["ESP"]["EnemySound"] = ESPConfig::EnemySound;
-        ConfigData["ESP"]["EnemySoundColor"]["r"] = ESPConfig::EnemySoundColor.Value.x;
-        ConfigData["ESP"]["EnemySoundColor"]["g"] = ESPConfig::EnemySoundColor.Value.y;
-        ConfigData["ESP"]["EnemySoundColor"]["b"] = ESPConfig::EnemySoundColor.Value.z;
-        ConfigData["ESP"]["EnemySoundColor"]["a"] = ESPConfig::EnemySoundColor.Value.w;
+        
 
 
         //ConfigData["Crosshairs"]["Enable"]=        CrosshairsCFG::ShowCrossHair;
@@ -172,10 +143,8 @@ namespace MyConfigSaver
         ConfigData["Aimbot"]["Smooth"]=           AimControl::Smooth;
         ConfigData["Aimbot"]["Hitboxes"]=         AimControl::HitboxList;
         ConfigData["Aimbot"]["VisibleCheck"]=     LegitBotConfig::VisibleCheck;
-        ConfigData["Aimbot"]["IgnoreFlash"]=      AimControl::IgnoreFlash;
         ConfigData["Aimbot"]["HumanizeVar"]=      AimControl::HumanizeVar;
         ConfigData["Aimbot"]["ScopeOnly"]=        AimControl::ScopeOnly;
-        ConfigData["Aimbot"]["OnlyAuto"] =        AimControl::onlyAuto;
 
         ConfigData["Aimbot"]["CircleColor"]["r"]= LegitBotConfig::FovCircleColor.Value.x;
         ConfigData["Aimbot"]["CircleColor"]["g"]= LegitBotConfig::FovCircleColor.Value.y;
@@ -196,7 +165,6 @@ namespace MyConfigSaver
         ConfigData["Triggerbot"]["Delay"]=        TriggerBot::TriggerDelay;
         ConfigData["Triggerbot"]["FakeShot"]=     TriggerBot::ShotDuration;
         ConfigData["Triggerbot"]["ScopeOnly"]=    TriggerBot::ScopeOnly;
-        ConfigData["Triggerbot"]["IgnoreFlash"]=  TriggerBot::IgnoreFlash;
         ConfigData["Triggerbot"]["StopedOnly"] = TriggerBot::StopedOnly;
         ConfigData["Triggerbot"]["TTDtimeout"] = TriggerBot::TTDtimeout;
         ConfigData["Triggerbot"]["AutoMode"]=     LegitBotConfig::TriggerAlways;
@@ -207,7 +175,6 @@ namespace MyConfigSaver
 
         ConfigData["Misc"]["WorkInSpec"]=       MenuConfig::WorkInSpec;
         ConfigData["Misc"]["Watermark"]=        MiscCFG::WaterMark;
-        ConfigData["Misc"]["HitSounds"]=        MiscCFG::HitSound;
         ConfigData["Misc"]["HitMarker"]=        MiscCFG::HitMarker;
 
         ConfigData["Misc"]["BombTimer"]=        MiscCFG::bmbTimer;
@@ -219,11 +186,6 @@ namespace MyConfigSaver
         ConfigData["Misc"]["Bhop"]=             MiscCFG::BunnyHop;
         ConfigData["Misc"]["SpecList"]=         MiscCFG::SpecList;
 
-        ConfigData["Misc"]["SniperCrosshair"] = MiscCFG::SniperCrosshair;
-        ConfigData["Misc"]["SniperCrosshairColor"]["r"] = MiscCFG::SniperCrosshairColor.Value.x;
-        ConfigData["Misc"]["SniperCrosshairColor"]["g"] = MiscCFG::SniperCrosshairColor.Value.y;
-        ConfigData["Misc"]["SniperCrosshairColor"]["b"] = MiscCFG::SniperCrosshairColor.Value.z;
-        ConfigData["Misc"]["SniperCrosshairColor"]["a"] = MiscCFG::SniperCrosshairColor.Value.w;
 
         ConfigData["Misc"]["AutoAccept"] = MiscCFG::AutoAccept;
 
@@ -266,33 +228,29 @@ namespace MyConfigSaver
 
         if (ConfigData.contains("ESP"))
         {
-            ESPConfig::HotKey = ReadData(ConfigData["ESP"], { "Hotkey" }, VK_F6);
+            ESPConfig::HotKey = ReadData(ConfigData["ESP"], { "Hotkey" }, VK_RMENU);
             ESPConfig::ESPenabled = ReadData(ConfigData["ESP"], { "Enable" }, false);
             ESPConfig::ShowBoneESP = ReadData(ConfigData["ESP"], { "BoneESP" }, false);
             ESPConfig::ShowBoxESP = ReadData(ConfigData["ESP"],{"BoxESP"}, false);
             ESPConfig::BoxType = ReadData(ConfigData["ESP"], { "BoxType" }, 0);
-            ESPConfig::ShowLineToEnemy = ReadData(ConfigData["ESP"], { "SnapLine" }, false);
-            ESPConfig::LinePos = ReadData(ConfigData["ESP"], { "LinePos" }, 0);
+            
             ESPConfig::ShowHealthBar = ReadData(ConfigData["ESP"], { "HealthBar" }, false);
             ESPConfig::AmmoBar = ReadData(ConfigData["ESP"], { "AmmoBar" }, false);
             ESPConfig::ShowWeaponESP = ReadData(ConfigData["ESP"], { "WeaponESP" }, false);
-            ESPConfig::ShowEyeRay = ReadData(ConfigData["ESP"], { "EyeRay" }, false);
+            
             ESPConfig::ShowPlayerName = ReadData(ConfigData["ESP"], { "PlayerName" }, false);
             ESPConfig::ShowDistance = ReadData(ConfigData["ESP"], { "DistanceESP" }, false);
-            ESPConfig::ShowHealthNum = ReadData(ConfigData["ESP"], { "HealthNum" }, false);
-            ESPConfig::ShowHeadBox = ReadData(ConfigData["ESP"], { "HeadBox" }, false);
+            
+            
             ESPConfig::ShowPreview = ReadData(ConfigData["ESP"], { "Preview" }, false);
             ESPConfig::VisibleCheck = ReadData(ConfigData["ESP"], { "VisCheck" }, false);
-            ESPConfig::FilledBox = ReadData(ConfigData["ESP"], { "FilledBox" }, false);
-            ESPConfig::FilledVisBox = ReadData(ConfigData["ESP"], { "FilledVisBox" }, false);
-            ESPConfig::MultiColor = ReadData(ConfigData["ESP"], { "MultiColor" }, false);
+            
             ESPConfig::OutLine = ReadData(ConfigData["ESP"], { "OutLine" }, false);
-            ESPConfig::BoxRounding = ReadData(ConfigData["ESP"], { "BoxRounding" }, 0.f);
+            
             ESPConfig::ShowIsScoped = ReadData(ConfigData["ESP"], { "ShowScoped" }, false);
-            ESPConfig::ShowIsBlind = ReadData(ConfigData["ESP"], { "ShowBlind" }, false);
-            ESPConfig::FlashCheck = ReadData(ConfigData["ESP"], { "DisableFlashed" }, false);
+            
             ESPConfig::ArmorBar = ReadData(ConfigData["ESP"], { "ArmorBar" }, false);
-            ESPConfig::ShowArmorNum = ReadData(ConfigData["ESP"], { "ArmorNum" }, false);
+            
 
             ESPConfig::ShowOutOfFOVArrow = ReadData(ConfigData["ESP"], { "OutOfFOVArrow" }, false);
             ESPConfig::OutOfFOVRadiusFactor = ReadData(ConfigData["ESP"], { "OutOfFOVRadius" }, 0.45f);
@@ -311,15 +269,9 @@ namespace MyConfigSaver
             ESPConfig::BoxColor.Value.z = ReadData(ConfigData["ESP"], { "BoxColor","b" }, 0.f);
             ESPConfig::BoxColor.Value.w = ReadData(ConfigData["ESP"], { "BoxColor","a" }, 255.f);
 
-            ESPConfig::LineToEnemyColor.Value.x = ReadData(ConfigData["ESP"], { "SnapLineColor","r" }, 0.f);
-            ESPConfig::LineToEnemyColor.Value.y = ReadData(ConfigData["ESP"], { "SnapLineColor","g" }, 0.f);
-            ESPConfig::LineToEnemyColor.Value.z = ReadData(ConfigData["ESP"], { "SnapLineColor","b" }, 0.f);
-            ESPConfig::LineToEnemyColor.Value.w = ReadData(ConfigData["ESP"], { "SnapLineColor","a" }, 255.f);
+            
 
-            ESPConfig::HeadBoxColor.Value.x = ReadData(ConfigData["ESP"], { "HeadBoxColor","r" }, 0.f);
-            ESPConfig::HeadBoxColor.Value.y = ReadData(ConfigData["ESP"], { "HeadBoxColor","g" }, 0.f);
-            ESPConfig::HeadBoxColor.Value.z = ReadData(ConfigData["ESP"], { "HeadBoxColor","b" }, 0.f);
-            ESPConfig::HeadBoxColor.Value.w = ReadData(ConfigData["ESP"], { "HeadBoxColor","a" }, 255.f);
+            
 
             ESPConfig::VisibleColor.Value.x = ReadData(ConfigData["ESP"], { "VisibleColor","r" }, 0.f);
             ESPConfig::VisibleColor.Value.y = ReadData(ConfigData["ESP"], { "VisibleColor","g" }, 0.f);
@@ -341,16 +293,9 @@ namespace MyConfigSaver
             ESPConfig::BoxFilledVisColor.Value.z = ReadData(ConfigData["ESP"], { "FilledVisColor","b" }, 0.f);
             ESPConfig::BoxFilledVisColor.Value.w = ReadData(ConfigData["ESP"], { "FilledVisColor","a" }, 255.f);
 
-            ESPConfig::EyeRayColor.Value.x = ReadData(ConfigData["ESP"], { "EyeRayColor","r" }, 0.f);
-            ESPConfig::EyeRayColor.Value.y = ReadData(ConfigData["ESP"], { "EyeRayColor","g" }, 0.f);
-            ESPConfig::EyeRayColor.Value.z = ReadData(ConfigData["ESP"], { "EyeRayColor","b" }, 0.f);
-            ESPConfig::EyeRayColor.Value.w = ReadData(ConfigData["ESP"], { "EyeRayColor","a" }, 255.f);
+            
 
-            ESPConfig::EnemySound = ReadData(ConfigData["ESP"], { "EnemySound" }, false);
-            ESPConfig::EnemySoundColor.Value.x = ReadData(ConfigData["ESP"], { "EnemySoundColor","r" }, 0.f);
-            ESPConfig::EnemySoundColor.Value.y = ReadData(ConfigData["ESP"], { "EnemySoundColor","g" }, 0.f);
-            ESPConfig::EnemySoundColor.Value.z = ReadData(ConfigData["ESP"], { "EnemySoundColor","b" }, 0.f);
-            ESPConfig::EnemySoundColor.Value.w = ReadData(ConfigData["ESP"], { "EnemySoundColor","a" }, 255.f);
+            
 
         }
 
@@ -420,10 +365,10 @@ namespace MyConfigSaver
             AimControl::Smooth = ReadData(ConfigData["Aimbot"],{"Smooth"}, 2.f);
             AimControl::HitboxList = LoadVector(ConfigData["Aimbot"], "Hitboxes", { BONEINDEX::head });
             LegitBotConfig::VisibleCheck = ReadData(ConfigData["Aimbot"],{"VisibleCheck"}, true);
-            AimControl::IgnoreFlash = ReadData(ConfigData["Aimbot"],{"IgnoreFlash"}, false);
+            
             AimControl::HumanizeVar = ReadData(ConfigData["Aimbot"],{"HumanizeVar"}, true);
             AimControl::ScopeOnly = ReadData(ConfigData["Aimbot"],{"ScopeOnly"}, false);
-            AimControl::onlyAuto = ReadData(ConfigData["Aimbot"], { "OnlyAuto" }, false);
+            
             Text::Aimbot::HotKey = KeyMgr::GetKeyName(AimControl::HotKey);
             LegitBotConfig::HitboxUpdated = false;
         }
@@ -443,7 +388,7 @@ namespace MyConfigSaver
             TriggerBot::TriggerDelay = ReadData(ConfigData["Triggerbot"],{"Delay"}, 20);
             TriggerBot::ShotDuration = ReadData(ConfigData["Triggerbot"],{"FakeShot"}, 200);
             TriggerBot::ScopeOnly = ReadData(ConfigData["Triggerbot"],{"ScopeOnly"}, false);
-            TriggerBot::IgnoreFlash = ReadData(ConfigData["Triggerbot"],{"IgnoreFlash"}, false);
+            
             TriggerBot::StopedOnly = ReadData(ConfigData["Triggerbot"], { "StopedOnly" }, false);
             TriggerBot::TTDtimeout = ReadData(ConfigData["Triggerbot"], { "TTDtimeout" }, false);
             LegitBotConfig::TriggerAlways = ReadData(ConfigData["Triggerbot"],{"AutoMode"}, false);
@@ -455,7 +400,7 @@ namespace MyConfigSaver
             
             MenuConfig::WorkInSpec = ReadData(ConfigData["Misc"],{"WorkInSpec"}, false);
             MiscCFG::WaterMark = ReadData(ConfigData["Misc"],{"Watermark"}, false);
-            MiscCFG::HitSound = ReadData(ConfigData["Misc"],{"HitSounds"}, 0);
+            
             MiscCFG::HitMarker = ReadData(ConfigData["Misc"],{"HitMarker"}, false);
             MiscCFG::bmbTimer = ReadData(ConfigData["Misc"],{"BombTimer"}, false);
             MiscCFG::BombTimerCol.Value.x = ReadData(ConfigData["Misc"],{"TimerColor","r"}, 0.f);
@@ -465,11 +410,7 @@ namespace MyConfigSaver
             MiscCFG::BunnyHop = ReadData(ConfigData["Misc"],{"Bhop"}, false);
             
             MiscCFG::SpecList = ReadData(ConfigData["Misc"],{"SpecList"}, false);
-            MiscCFG::SniperCrosshair = ReadData(ConfigData["Misc"], { "SniperCrosshair" }, false);
-            MiscCFG::SniperCrosshairColor.Value.x = ReadData(ConfigData["Misc"], { "SniperCrosshairColor","r" }, 0.f);
-            MiscCFG::SniperCrosshairColor.Value.y = ReadData(ConfigData["Misc"], { "SniperCrosshairColor","g" }, 0.f);
-            MiscCFG::SniperCrosshairColor.Value.z = ReadData(ConfigData["Misc"], { "SniperCrosshairColor","b" }, 0.f);
-            MiscCFG::SniperCrosshairColor.Value.w = ReadData(ConfigData["Misc"], { "SniperCrosshairColor","a" }, 255.f);
+            
 
             MiscCFG::AutoAccept = ReadData(ConfigData["Misc"], { "AutoAccept" }, false);
             

@@ -27,7 +27,7 @@
 #include "../Features/BombTimer.h"
 #include "../Features/SpectatorList.h"
 #include "../Helpers/Logger.h"
-#include "../Features/SoundESP.h"
+
 
 int PreviousTotalHits = 0;
 
@@ -219,9 +219,7 @@ std::vector<EntityResult> Cheats::ProcessEntities(CEntity& localEntity, int& loc
 		if (ESPConfig::ESPenabled && result.isInScreen)
 			result.espRect = ESP::GetBoxRect(entity, ESPConfig::BoxType);
 
-		// sound esp
-		if (ESPConfig::ESPenabled && ESPConfig::EnemySound && result.entity.Controller.Address != localEntity.Controller.Address)
-			SoundESP::ProcessSound(result.entity, localEntity);
+        
 
 		result.isValid = true;
 		results.push_back(result);
@@ -317,8 +315,8 @@ void Cheats::HandleEnts(const std::vector<EntityResult>& entities, CEntity& loca
 				ESP::RenderPlayerESP(localEntity, entity, Rect, localPlayerControllerIndex, entityIndex);
 				Render::DrawDistance(localEntity, entity, Rect);
 
-				// healthbar
-				if(ESPConfig::ShowHealthBar || ESPConfig::ShowHealthNum)
+                // healthbar
+                if(ESPConfig::ShowHealthBar)
 				{
 					ImVec2 HealthBarPos = { Rect.x - 6.f, Rect.y };
 					ImVec2 HealthBarSize = { 4, Rect.w };
@@ -336,9 +334,9 @@ void Cheats::HandleEnts(const std::vector<EntityResult>& entities, CEntity& loca
 						entity.Pawn.Ammo, AmmoBarPos, AmmoBarSize);
 				}
 
-				// armor
-				// It is meaningless to render a empty bar
-				if ((ESPConfig::ArmorBar || ESPConfig::ShowArmorNum) && entity.Pawn.Armor > 0)
+                // armor
+                // It is meaningless to render a empty bar
+                if (ESPConfig::ArmorBar && entity.Pawn.Armor > 0)
 				{
 					bool HasHelmet;
 					ImVec2 ArmorBarPos;
@@ -375,7 +373,7 @@ void Visual(const CEntity& LocalEntity)
 	Render::DrawFov(LocalEntity, LegitBotConfig::FovLineSize, LegitBotConfig::FovLineColor, 1);
 
 
-	RenderCrosshair(ImGui::GetBackgroundDrawList(), LocalEntity);
+        
 }
 
 void Radar(Base_Radar Radar, const CEntity& LocalEntity)
@@ -422,7 +420,7 @@ void MiscFuncs(CEntity& LocalEntity)
 {
     SpecList::SpectatorWindowList(LocalEntity);
     bmb::RenderWindow(LocalEntity.Controller.TeamID);
-    SoundESP::Render();
+    
 
     Misc::HitManager(LocalEntity, PreviousTotalHits);
     Misc::BunnyHop(LocalEntity);

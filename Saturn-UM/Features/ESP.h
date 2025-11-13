@@ -90,39 +90,20 @@ inline void RenderPlayerESP(const CEntity& LocalEntity, const CEntity& Entity, I
 		bool bIsVisible = (Entity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & playerMask);
 		bool bIsVisibleIndex = (Entity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & (DWORD64(1) << Index));
 
-		// Render bones, LOS, and head circle
-		Render::DrawBone(Entity, ESPConfig::BoneColor, 1.3f);
-		Render::ShowLosLine(Entity, 50.0f, ESPConfig::EyeRayColor, 1.3f);
-		Render::DrawHeadCircle(Entity, ESPConfig::HeadBoxColor);
+        // Render bones and head circle
+        Render::DrawBone(Entity, ESPConfig::BoneColor, 1.3f);
 
-		// Draw filled box if enabled
-		if (ESPConfig::FilledBox) {
-			float rounding = ESPConfig::BoxRounding;
-			ImColor flatBoxCol = ESPConfig::FilledColor;
-			ImColor flatBoxCol2 = ESPConfig::FilledColor2;
-			ImColor flatBoxVisCol = ESPConfig::BoxFilledVisColor;
-			if (ESPConfig::FilledVisBox) {
-				Gui.RectangleFilled({ Rect.x, Rect.y }, { Rect.z, Rect.w }, bIsVisible ? flatBoxVisCol : flatBoxCol, rounding);
-			}
-			else {
-				if (ESPConfig::MultiColor) {
-					Gui.RectangleFilledGraident({ Rect.x, Rect.y }, { Rect.z, Rect.w }, ESPConfig::BoxColor, flatBoxCol, flatBoxCol2, rounding);
-				}
-				else {
-					Gui.RectangleFilled({ Rect.x, Rect.y }, { Rect.z, Rect.w }, flatBoxCol, rounding);
-				}
-			}
-		}
+        
 
 		if (ESPConfig::ShowBoxESP) {
 			if (ESPConfig::BoxType == 0) {
-				if (ESPConfig::OutLine)
-					Gui.Rectangle({ Rect.x, Rect.y }, { Rect.z, Rect.w }, ESPConfig::BoxColor & IM_COL32_A_MASK, 3, ESPConfig::BoxRounding);
+                if (ESPConfig::OutLine)
+                    Gui.Rectangle({ Rect.x, Rect.y }, { Rect.z, Rect.w }, ESPConfig::BoxColor & IM_COL32_A_MASK, 3, 0.0f);
 
 				if (bIsVisibleIndex && ESPConfig::VisibleCheck)
-					Gui.Rectangle({ Rect.x, Rect.y }, { Rect.z, Rect.w }, ESPConfig::VisibleColor, 1.3f, ESPConfig::BoxRounding);
+                    Gui.Rectangle({ Rect.x, Rect.y }, { Rect.z, Rect.w }, ESPConfig::VisibleColor, 1.3f, 0.0f);
 				else
-					Gui.Rectangle({ Rect.x, Rect.y }, { Rect.z, Rect.w }, ESPConfig::BoxColor, 1.3f, ESPConfig::BoxRounding);
+                    Gui.Rectangle({ Rect.x, Rect.y }, { Rect.z, Rect.w }, ESPConfig::BoxColor, 1.3f, 0.0f);
 			}
 			else if (ESPConfig::BoxType == 1) {
 				const int outlineThickness = 3;
@@ -264,12 +245,7 @@ inline void DrawPreviewBox(const ImVec2& startPos, const ImVec2& endPos, ImColor
         centerPos.x += rectPos.x;
         centerPos.y += rectPos.y * -1.20f;
 
-        if (ESPConfig::ShowEyeRay) {
-            const ImU32 eyeColor = ESPConfig::EyeRayColor;
-            const ImVec2 lineStart(centerPos.x + 44, centerPos.y + 15);
-            const ImVec2 lineEnd(centerPos.x - 10, centerPos.y + 20);
-            drawList->AddLine(lineStart, lineEnd, eyeColor, 2.0f);
-        }
+        
 
         if (ESPConfig::ShowBoneESP) {
             const ImU32 boneColor = ESPConfig::BoneColor;
@@ -403,7 +379,8 @@ inline void DrawPreviewBox(const ImVec2& startPos, const ImVec2& endPos, ImColor
         }
         if (ESPConfig::ShowDistance) {
             const ImVec2 textPos(centerPos.x + 105, centerPos.y);
-            drawList->AddText(textPos, IM_COL32(0, 98, 98, 255), "108m");
+            ImU32 accent = ImGui::GetColorU32(ImGuiCol_CheckMark);
+            drawList->AddText(textPos, accent, "108m");
         }
         if (ESPConfig::ShowWeaponESP) {
             if (ESPConfig::AmmoBar)

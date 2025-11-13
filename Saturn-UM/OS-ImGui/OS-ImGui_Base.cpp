@@ -184,6 +184,7 @@ namespace OSImGui
         style.ChildRounding = 6.0f;
         style.FrameRounding = 6.0f;
         style.TabRounding = 6.0f;
+        style.TabBorderSize = 0.0f;
         style.GrabRounding = 6.0f;
         style.ScrollbarRounding = 6.0f;
         style.WindowBorderSize = 1.0f;
@@ -220,7 +221,7 @@ namespace OSImGui
         style.Colors[ImGuiCol_Separator]        = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
         style.Colors[ImGuiCol_SeparatorHovered] = accentHover;
         style.Colors[ImGuiCol_SeparatorActive]  = accentActive;
-        style.Colors[ImGuiCol_Tab]              = ImVec4(0.100f, 0.130f, 0.260f, 1.00f);
+        style.Colors[ImGuiCol_Tab]              = ImVec4(0.120f, 0.120f, 0.140f, 1.00f);
         style.Colors[ImGuiCol_TabHovered]       = accentHover;
         style.Colors[ImGuiCol_TabActive]        = accent;
         style.Colors[ImGuiCol_TitleBg]          = ImVec4(0.045f, 0.063f, 0.125f, 1.00f);

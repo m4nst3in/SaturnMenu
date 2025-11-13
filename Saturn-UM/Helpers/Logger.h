@@ -26,7 +26,7 @@ namespace Log
 	inline void Info(std::string ctx) 
 	{
 		SetConsoleTextAttribute(hConsole, 11);
-		std::cout << "[i]";
+		std::cout << "[INFO]";
 
 		SetConsoleTextAttribute(hConsole, 7);
 		std::cout << ctx << '\n';
@@ -35,7 +35,7 @@ namespace Log
 	inline void Warning(std::string ctx, bool pause = false)
 	{
 		SetConsoleTextAttribute(hConsole, 14);
-		std::cout << "[!]";
+		std::cout << "[WARNING]";
 
 		SetConsoleTextAttribute(hConsole, 7);
 		std::cout << ctx << '\n';
@@ -50,7 +50,7 @@ namespace Log
 	inline void Error(std::string ctx, bool fatal = true, bool pause = true)
 	{
 		SetConsoleTextAttribute(hConsole, 12);
-		std::cout << "[X]";
+		std::cout << "[ERROR]";
 
 		SetConsoleTextAttribute(hConsole, 7);
 		std::cout << ctx << '\n';
@@ -68,7 +68,7 @@ namespace Log
 	inline void Fine(std::string ctx)
 	{
 		SetConsoleTextAttribute(hConsole, 2);
-		std::cout << "[+]";
+		std::cout << "[OKAY]";
 
 		SetConsoleTextAttribute(hConsole, 7);
 		std::cout << ctx << '\n';

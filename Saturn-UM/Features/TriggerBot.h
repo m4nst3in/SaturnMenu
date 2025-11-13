@@ -11,13 +11,13 @@ namespace TriggerBot
 	inline int TriggerDelay = 10; // ms
 	inline int ShotDuration = 400; // ms
 	inline bool ScopeOnly = true;
-	inline bool IgnoreFlash = false;
+    
 	inline bool StopedOnly = false;
 	inline bool TTDtimeout = false;
 	inline bool VisibleCheck = true;
 
     // Input configuration
-    inline int HotKey = VK_XBUTTON2;
+    inline int HotKey = VK_XBUTTON1;
 
     // Timing variables
 	inline std::chrono::time_point<std::chrono::system_clock> g_LastShotTime;

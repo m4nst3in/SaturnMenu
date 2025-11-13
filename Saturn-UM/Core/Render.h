@@ -31,7 +31,7 @@ namespace Render
 
 	inline void DrawHealth(int Health, const ImVec2& Pos)
 	{
-		if (!ESPConfig::ShowHealthNum)
+        
 			return;
 
 		char health_str[4];
@@ -208,7 +208,7 @@ namespace Render
 
 	inline void ShowLosLine(const CEntity& Entity, const float Length, ImColor Color, float Thickness)
 	{
-		if (!ESPConfig::ShowEyeRay)
+        
 			return;
 
 		const auto& bonePosList = Entity.GetBone().BonePosList;
@@ -416,7 +416,7 @@ namespace Render
 			HealthBarMap.clear();
 
 		HealthBar& hb = HealthBarMap[Sign];
-		hb.HealthBarV(MaxHealth, CurrentHealth, Pos, Size, ESPConfig::ShowHealthBar,ESPConfig::ShowHealthNum);
+        hb.HealthBarV(MaxHealth, CurrentHealth, Pos, Size, ESPConfig::ShowHealthBar, /*ShowHealthNum removed*/ false);
 	}
 
     inline void DrawAmmoBar(DWORD Sign, float MaxAmmo, float CurrentAmmo, const ImVec2& Pos, const ImVec2& Size)
@@ -435,7 +435,7 @@ namespace Render
 			HealthBarMap.clear();
 
 		HealthBar& hb = HealthBarMap[Sign];
-		hb.ArmorBarV(HasHelmet, MaxArmor, CurrentArmor, Pos, Size, ESPConfig::ArmorBar, ESPConfig::ShowArmorNum);
+        hb.ArmorBarV(HasHelmet, MaxArmor, CurrentArmor, Pos, Size, ESPConfig::ArmorBar, /*ShowArmorNum removed*/ false);
 	}
 
     inline ImVec2 GetScreenCenterImVec2()

@@ -227,22 +227,21 @@ namespace ConfigMenu {
         ImGui::Columns(1);
     }
 
-	void ResetToDefault() {
-		TriggerBot::IgnoreFlash = false;
+    void ResetToDefault() {
+        
 		TriggerBot::StopedOnly = false;
 		TriggerBot::ScopeOnly = true;
-		AimControl::IgnoreFlash = false;
+        
 		AimControl::HumanizeVar = true;
 		AimControl::HumanizationStrength = 5;
 
-		ESPConfig::ArmorBar = false;
-		ESPConfig::ShowArmorNum = false;
+        ESPConfig::ArmorBar = false;
 		ESPConfig::ShowIsScoped = true;
 		ESPConfig::ShowIsBlind = false;
 		ESPConfig::FlashCheck = false;
 		ESPConfig::AmmoBar = false;
 		ESPConfig::OutLine = true;
-		ESPConfig::ShowHealthNum = false;
+        
 		ESPConfig::FilledColor = ImColor(59, 71, 148, 128);
 		ESPConfig::FilledColor2 = ImColor(59, 71, 148, 128);
 		ESPConfig::MultiColor = false;
@@ -267,7 +266,7 @@ namespace ConfigMenu {
 		ESPConfig::ShowBoxESP = true;
 		ESPConfig::ShowHealthBar = true;
 		ESPConfig::ShowWeaponESP = true;
-		ESPConfig::ShowEyeRay = false;
+        
 		ESPConfig::ShowPlayerName = true;
 		ESPConfig::BoxRounding = 5.0f;
 		ESPConfig::OutOfFOVRadiusFactor = 0.45f;
@@ -283,7 +282,7 @@ namespace ConfigMenu {
 		ESPConfig::BoxType = 0;
 		ESPConfig::BoneColor = ImColor(131, 137, 150, 180);
 		ESPConfig::BoxColor = ImColor(59, 71, 148, 180);
-		ESPConfig::EyeRayColor = ImVec4(0, 98, 98, 255);
+        
 
 		MenuConfig::ShowMenu = true;
 		MenuConfig::WorkInSpec = true;
@@ -310,8 +309,7 @@ namespace ConfigMenu {
 
 		MiscCFG::AutoAccept = false;
 
-        ESPConfig::EnemySound = false;
-        ESPConfig::EnemySoundColor = ImColor(255, 255, 255, 255);
+        
 
         MiscCFG::AntiAFKKick = false;
 
@@ -330,7 +328,7 @@ namespace ConfigMenu {
 		LegitBotConfig::RCS = true;
 
 		RCS::RCSScale = ImVec2(1.4f, 1.4f);
-		AimControl::onlyAuto = false;
+        
 		AimControl::ScopeOnly = true;
 		AimControl::AimBullet = 1;
 
@@ -358,10 +356,7 @@ namespace ConfigMenu {
 
 		MiscCFG::WaterMark = true;
 		MiscCFG::BunnyHop = false;
-		MiscCFG::HitSound = 0;
-		MiscCFG::HitMarker = false;
-		MiscCFG::SniperCrosshair = true;
-		MiscCFG::SniperCrosshairColor = ImColor(32, 178, 170, 255);
+        MiscCFG::HitMarker = false;
 
 		ESPConfig::ESPenabled = true;
 		ESPConfig::DrawFov = false;

@@ -5,8 +5,7 @@
 namespace MenuConfig
 {
 	inline std::string name = "Saturn";
-	inline std::string version = "3.6.8.1";
-	inline std::string author = "ByteCorum";
+	inline std::string version = "1.0.0";
 
 	inline std::string path = "";
 	inline std::string docPath = "";
@@ -73,20 +72,20 @@ namespace LegitBotConfig
 
 namespace ESPConfig
 {
-	inline int HotKey = VK_F6;
+    inline int HotKey = VK_RMENU;
 	inline bool ESPenabled = true;
 	inline bool AmmoBar = false;
 	inline bool ShowBoneESP = true;
 	inline bool ShowBoxESP = true;
 	inline bool ShowHealthBar = true;
 	inline bool ShowWeaponESP = true;
-	inline bool ShowEyeRay = false;
+    
 	inline bool ShowPlayerName = true;
 	inline bool DrawFov = false;
 	inline bool ShowDistance = false;
-	inline bool ShowHealthNum = false;
+    
 	inline bool ArmorBar = false;
-	inline bool ShowArmorNum = false;
+    
 	inline bool ShowHeadBox = true;
 	inline bool ShowPreview = true;
 	inline bool VisibleCheck = false;
@@ -107,7 +106,7 @@ namespace ESPConfig
 
 	inline ImColor BoneColor = ImColor(131, 137, 150, 180);
 	inline ImColor BoxColor = ImColor(59, 71, 148, 180);
-	inline ImColor EyeRayColor = ImColor(0, 98, 98, 255);
+    
 	inline ImColor HeadBoxColor = ImColor(131, 137, 150, 180);
 	inline ImColor VisibleColor = ImColor(59, 71, 148, 180);
 	inline ImColor FilledColor = ImColor(59, 71, 148, 128);
@@ -118,8 +117,7 @@ namespace ESPConfig
     inline float OutOfFOVRadiusFactor = 0.45f;
     inline ImColor OutOfFOVArrowColor = ImColor(255, 180, 50, 230);
 
-	inline bool EnemySound = false;
-	inline ImColor EnemySoundColor = ImColor(255, 255, 255, 255);
+    
 }
 
 //namespace CrosshairsCFG
@@ -170,7 +168,7 @@ namespace MiscCFG
 {
     inline bool BunnyHop = false;
     inline bool WaterMark = true;
-    inline bool SniperCrosshair = true;
+    inline bool SniperCrosshair = false; // removed feature
     inline ImColor SniperCrosshairColor = ImColor(32, 178, 170, 255);
     inline int	HitSound = 0;
     inline bool HitMarker = false;

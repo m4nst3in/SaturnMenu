@@ -10,6 +10,7 @@
 #include "..\Config\ConfigSaver.h"
 
 #include "..\Resources\Language.h"
+#include <unordered_map>
 #include "..\Resources\Images.h"
 #include "../Helpers/KeyManager.h"
 #include "..\OS-ImGui\OS-ImGui_Base.h"
@@ -126,8 +127,8 @@ namespace GUI
 
 	// Components Settings
 	// ########################################
-    inline void AlignRight(float ContentWidth)
-	{
+inline void AlignRight(float ContentWidth)
+{
 		// Alinha baseado na largura disponível do conteúdo, mais robusto em diferentes layouts
 		float rightX = ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - ContentWidth;
 		ImGui::SetCursorPosX(rightX);
@@ -136,13 +137,47 @@ namespace GUI
 	// Helpers para estruturar sections (sem dropdown), com borda e título
 inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool bordered = true)
 {
-    ImGui::BeginChild(title, size, bordered, ImGuiWindowFlags_NoScrollbar);
+    ImGui::BeginChild(title, size, false, ImGuiWindowFlags_NoScrollbar);
     // Compactar espaçamentos dentro da section
     ImGuiStyle& st = ImGui::GetStyle();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(st.ItemSpacing.x, 4.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(st.FramePadding.x, 5.0f));
     ImGui::TextDisabled(title);
     ImGui::Separator();
+}
+
+inline const char* TrimLeft(const char* s)
+{
+    while (s && (*s == ' ' || *s == '\t')) ++s;
+    return s;
+}
+inline void GradientText(const char* text, ImVec4 startColor, ImVec4 endColor, float font_size_override, ImFont* font_override);
+inline void BeginSectionWithHeaderActions(const char* title, ImVec2 size, bool bordered, const std::function<void()>& actions)
+{
+    ImGui::BeginChild(title, size, false, ImGuiWindowFlags_NoScrollbar);
+    ImGuiStyle& st = ImGui::GetStyle();
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(st.ItemSpacing.x, 4.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(st.FramePadding.x, 5.0f));
+    ImGui::TextDisabled(title);
+    ImGui::SameLine(0.0f, 6.0f);
+    const float btnW = 54.f, btnH = 22.f;
+    const float iconSize = ImGui::GetFontSize() * 0.85f;
+    const float iconW = ImGui::CalcTextSize(ICON_FA_KEYBOARD).x * (iconSize / ImGui::GetFontSize());
+    AlignRight(btnW + iconW + 4.0f);
+    float yBase = ImGui::GetCursorPosY();
+    ImGui::SetCursorPosY(yBase + (ImGui::GetTextLineHeight() - btnH) * 0.5f + (btnH - iconSize) * 0.5f);
+    {
+        ImDrawList* dl = ImGui::GetWindowDrawList();
+        ImVec2 p = ImGui::GetCursorScreenPos();
+        ImU32 col = ImGui::GetColorU32(ImVec4(0.7f,0.7f,0.7f,1.0f));
+        dl->AddText(ImGui::GetFont(), iconSize, p, col, ICON_FA_KEYBOARD);
+        ImGui::Dummy(ImVec2(iconW, iconSize));
+    }
+    ImGui::SameLine(0.0f, 4.0f);
+    ImGui::SetCursorPosY(yBase + (ImGui::GetTextLineHeight() - btnH) * 0.5f);
+    if (actions) actions();
+    ImGui::Separator();
+    ImGui::SetCursorPosX(ImGui::GetStyle().WindowPadding.x);
 }
     // Texto com degradê letra a letra (para títulos decorativos)
     inline void GradientText(const char* text, ImVec4 startColor, ImVec4 endColor, float font_size_override = 0.0f, ImFont* font_override = nullptr)
@@ -177,40 +212,55 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
     }
     inline void EndSection()
     {
-        // Desenhar linha vertical no lado direito da section
-        ImDrawList* dl = ImGui::GetWindowDrawList();
-        ImVec2 pos = ImGui::GetWindowPos();
-        ImVec2 sz  = ImGui::GetWindowSize();
-        dl->AddLine(ImVec2(pos.x + sz.x - 1.0f, pos.y), ImVec2(pos.x + sz.x - 1.0f, pos.y + sz.y), ImGui::GetColorU32(ImGuiCol_Border), 1.0f);
-
         ImGui::PopStyleVar(2);
         ImGui::EndChild();
     }
-    inline void PutSwitch(const char* string, float CursorX, float ContentWidth, bool* v, bool ColorEditor = false, const char* lable = NULL, float col[4] = NULL, const char* Tip = NULL)
-	{
+inline void PutSwitch(const char* string, float CursorX, float ContentWidth, bool* v, bool ColorEditor = false, const char* lable = NULL, float col[4] = NULL, const char* Tip = NULL)
+{
 		ImGui::PushID(string);
 		float CurrentCursorX = ImGui::GetCursorPosX();
 		float CurrentCursorY = ImGui::GetCursorPosY();
 		ImGui::SetCursorPosX(CurrentCursorX + CursorX);
-		ImGui::TextDisabled(string);
+        ImGui::TextDisabled(TrimLeft(string));
 		if (Tip && ImGui::IsItemHovered())
 			ImGui::SetTooltip(Tip);
 		ImGui::SameLine(0.0f, 6.0f);
 		// Alinhar verticalmente os controles à altura do texto
 		ImGui::SetCursorPosY(CurrentCursorY);
         if (ColorEditor) {
-            // Alinhar cor + checkbox como bloco à direita com largura exata do grupo
+            // Fixar posição da checkbox e desenhar seletor menor à esquerda, sem empurrar
             float fh = ImGui::GetFrameHeight();
-            ImGuiStyle& s = ImGui::GetStyle();
-            float spacing_used = 6.0f; // mesmo espaçamento do SameLine para consistência
-            float cbw = fh + s.FramePadding.x * 2.0f; // largura real do checkbox quadrado
-            float totalWidth = fh + spacing_used + cbw; // color preview + spacing + checkbox
-            AlignRight(totalWidth);
+            float spacing = 2.0f;
+            float previewSize = fh - 4.0f; // ligeiramente menor que a checkbox
+
+            // Posição fixa da checkbox (alinhada à direita)
+            AlignRight(fh + ImGui::GetStyle().FramePadding.x * 2.0f);
+            float checkboxX = ImGui::GetCursorPosX();
             ImGui::SetCursorPosY(CurrentCursorY);
-            ImGui::SetNextItemWidth(fh);
-            ImGui::ColorEdit4(lable, col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreview);
-            ImGui::SameLine(0.0f, spacing_used);
+
+            // Preview imediatamente à esquerda, sem contorno
+            float previewX = checkboxX - spacing - previewSize;
+            ImGui::SetCursorPosX(previewX);
             ImGui::SetCursorPosY(CurrentCursorY);
+            ImVec4 bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+            ImGui::PushStyleColor(ImGuiCol_Button, bg);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, bg);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, bg);
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+            bool open = ImGui::ColorButton(lable, ImVec4(col[0], col[1], col[2], col[3]), ImGuiColorEditFlags_AlphaPreview, ImVec2(previewSize, previewSize));
+            ImGui::PopStyleVar(2);
+            ImGui::PopStyleColor(3);
+            if (open) ImGui::OpenPopup("##ColorPicker");
+
+            // Restaurar cursor para a checkbox na posição original
+            ImGui::SetCursorPosX(checkboxX);
+            ImGui::SetCursorPosY(CurrentCursorY);
+
+            if (ImGui::BeginPopup("##ColorPicker")) {
+                ImGui::ColorPicker4(lable, col, ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_DisplayHSV);
+                ImGui::EndPopup();
+            }
         }
         else {
             // Alinhar checkbox simples à direita da section, simétrico
@@ -220,27 +270,86 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
             AlignRight(cbw);
         }
 
-		// Checkbox menor, cantos discretos e tick branco para alto contraste
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(3.0f, 2.0f));
-		ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 0.95f));
+        // Checkbox com fundo cinza e contorno roxo; tick branco
+        ImVec4 gray      = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+        ImVec4 grayHover = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+        ImVec4 grayActive= ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+        ImVec4 accent    = ImGui::GetStyleColorVec4(ImGuiCol_Button);
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, gray);
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, grayHover);
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, grayActive);
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 0.00f));
+        ImGui::PushStyleColor(ImGuiCol_Border, accent);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(3.0f, 2.0f));
         ImGui::Checkbox("##checkbox", v);
-        ImGui::PopStyleColor();
-        ImGui::PopStyleVar(2);
+        ImGui::PopStyleVar(3);
+        ImGui::PopStyleColor(5);
+        // Tick animation: desenhar suavemente quando marcado
+        {
+            ImVec2 min = ImGui::GetItemRectMin();
+            ImVec2 max = ImGui::GetItemRectMax();
+            float sz = max.y - min.y;
+            float pad = 3.0f;
+            static std::unordered_map<const bool*, float> anim;
+            float& prog = anim[v];
+            float target = *v ? 1.0f : 0.0f;
+            float k = ImClamp(ImGui::GetIO().DeltaTime * 8.0f, 0.0f, 1.0f); // mais suave
+            prog = ImLerp(prog, target, k);
+            if (prog > 0.001f)
+            {
+                float base = (sz - pad * 2.0f);
+                float size = base * prog; // escala suave para ativar/desativar
+                float offset = (sz - size) * 0.5f;
+                ImVec2 top_left = ImVec2(min.x + offset, min.y + offset);
+                ImVec4 c = ImVec4(1,1,1,prog); // fade/escala
+                ImGui::RenderCheckMark(ImGui::GetWindowDrawList(), top_left, ImGui::GetColorU32(c), size);
+            }
+        }
         ImGui::PopID();
-	}
+}
 
 	// Helper para checkboxes pequenas (usado nos hitboxes e em outros locais diretos)
-	inline bool SmallCheckbox(const char* id, bool* v)
-	{
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(3.0f, 2.0f));
-		ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 0.95f));
-		bool changed = ImGui::Checkbox(id, v);
-		ImGui::PopStyleColor();
-		ImGui::PopStyleVar(2);
-		return changed;
-	}
+inline bool SmallCheckbox(const char* id, bool* v)
+{
+        ImVec4 gray      = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+        ImVec4 grayHover = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+        ImVec4 grayActive= ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+        ImVec4 accent    = ImGui::GetStyleColorVec4(ImGuiCol_Button);
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, gray);
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, grayHover);
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, grayActive);
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 0.00f));
+        ImGui::PushStyleColor(ImGuiCol_Border, accent);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(3.0f, 2.0f));
+        bool changed = ImGui::Checkbox(id, v);
+        {
+            ImVec2 min = ImGui::GetItemRectMin();
+            ImVec2 max = ImGui::GetItemRectMax();
+            float sz = max.y - min.y;
+            float pad = 2.0f;
+            static std::unordered_map<const bool*, float> anim;
+            float& prog = anim[v];
+            float target = *v ? 1.0f : 0.0f;
+            float k = ImClamp(ImGui::GetIO().DeltaTime * 8.0f, 0.0f, 1.0f);
+            prog = ImLerp(prog, target, k);
+            if (prog > 0.001f)
+            {
+                float base = (sz - pad * 2.0f);
+                float size = base * prog;
+                float offset = (sz - size) * 0.5f;
+                ImVec2 top_left = ImVec2(min.x + offset, min.y + offset);
+                ImVec4 c = ImVec4(1,1,1,prog);
+                ImGui::RenderCheckMark(ImGui::GetWindowDrawList(), top_left, ImGui::GetColorU32(c), size);
+            }
+        }
+        ImGui::PopStyleVar(3);
+        ImGui::PopStyleColor(5);
+        return changed;
+}
     inline void PutColorEditor(const char* text, const char* lable, float CursorX, float ContentWidth, float col[4], const char* Tip = NULL)
 	{
 		ImGui::PushID(text);
@@ -261,17 +370,19 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 		float CurrentCursorX = ImGui::GetCursorPosX();
 		float SliderWidth = ImGui::GetColumnWidth() - ImGui::GetStyle().ItemSpacing.x - CursorX - 15;
 		ImGui::SetCursorPosX(CurrentCursorX + CursorX);
-		ImGui::TextDisabled(string);
+        ImGui::TextDisabled(TrimLeft(string));
 		if (Tip && ImGui::IsItemHovered())
 			ImGui::SetTooltip(Tip);
-		ImGui::SameLine();
-		ImGui::TextDisabled(format, *v);
-		ImGui::SetCursorPosX(CurrentCursorX + CursorX);
-		ImGui::SetNextItemWidth(SliderWidth);
-		Gui.SliderScalarEx2("", ImGuiDataType_Float, v, p_min, p_max, "", ImGuiSliderFlags_None);
+        ImGui::SameLine(0.0f, 4.0f);
+        ImGui::TextDisabled(format, *v);
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(ImGui::GetStyle().ItemSpacing.x, 3.0f));
+        ImGui::SetCursorPosX(CurrentCursorX + CursorX);
+        ImGui::SetNextItemWidth(SliderWidth - 7);
+        Gui.SliderScalarEx2("", ImGuiDataType_Float, v, p_min, p_max, "", ImGuiSliderFlags_NoInput);
+        ImGui::PopStyleVar();
 		ImGui::PopID();
 	}
-    inline void PutSliderInt(const char* string, float CursorX, int* v, const void* p_min, const void* p_max, const char* format, const char* Tip = NULL)
+inline void PutSliderInt(const char* string, float CursorX, int* v, const void* p_min, const void* p_max, const char* format, const char* Tip = NULL)
 	{
 		ImGui::PushID(string);
 		float CurrentCursorX = ImGui::GetCursorPosX();
@@ -280,13 +391,27 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 		ImGui::TextDisabled(string);
 		if (Tip && ImGui::IsItemHovered())
 			ImGui::SetTooltip(Tip);
-		ImGui::SameLine();
-		ImGui::TextDisabled(format, *v);
-		ImGui::SetCursorPosX(CurrentCursorX + CursorX);
-		ImGui::SetNextItemWidth(SliderWidth);
-		Gui.SliderScalarEx2("", ImGuiDataType_Float, v, p_min, p_max, "", ImGuiSliderFlags_None);
-		ImGui::PopID();
+        ImGui::SameLine(0.0f, 4.0f);
+        ImGui::TextDisabled(format, *v);
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(ImGui::GetStyle().ItemSpacing.x, 3.0f));
+        ImGui::SetCursorPosX(CurrentCursorX + CursorX);
+        ImGui::SetNextItemWidth(SliderWidth - 7);
+        Gui.SliderScalarEx2("", ImGuiDataType_Float, v, p_min, p_max, "", ImGuiSliderFlags_NoInput);
+        ImGui::PopStyleVar();
+	ImGui::PopID();
 	}
+
+    inline bool CenteredHotkeyButton(const char* label, ImVec2 size)
+    {
+        float font_h = ImGui::GetFont()->FontSize;
+        float ypad = (size.y - font_h) * 0.5f;
+        if (ypad < 1.0f) ypad = 1.0f;
+        ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5f, 0.5f));
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10.f, ypad));
+        bool clicked = ImGui::Button(label, size);
+        ImGui::PopStyleVar(2);
+        return clicked;
+    }
 	// ########################################
 
 	inline void DrawGui()
@@ -316,6 +441,7 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
                 float title_size = titleFont ? titleFont->FontSize : (base_size * 1.9f);
                 ImGuiStyle& style = ImGui::GetStyle();
                 float top_height = title_size + style.FramePadding.y * 2.0f; // simétrico: mesma folga em cima/baixo
+                ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0f);
                 ImGui::BeginChild("TopTabs", ImVec2(0, top_height), false, ImGuiWindowFlags_NoScrollbar);
                 {
                     // Título "Saturn" com degradê (início roxo) à esquerda
@@ -355,6 +481,7 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
                     ImGui::PopStyleVar();
                 }
                 ImGui::EndChild();
+                ImGui::PopStyleVar();
 
 			// Área de conteúdo abaixo das abas
 			ImGui::BeginChild("Page", ImVec2(0, 0), false, ImGuiWindowFlags_NoScrollbar);
@@ -368,18 +495,18 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 					static const float MinRounding = 0.f, MaxRouding = 5.f;
 					static const float MinFovFactor = 0.f, MaxFovFactor = 1.f;
 
-					BeginSection("ESP", ImVec2(ImGui::GetColumnWidth(), 0));
+                BeginSectionWithHeaderActions("ESP", ImVec2(ImGui::GetColumnWidth(), 0), true, []{
+                    if (CenteredHotkeyButton(Text::ESP::HotKey.c_str(), ImVec2(54.f, 22.f)))
+                    {
+                        std::thread([&]() {
+                            KeyMgr::GetPressedKey(ESPConfig::HotKey, &Text::ESP::HotKey);
+                        }).detach();
+                    }
+                });
 					{
-						PutSwitch(Text::ESP::Enable.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ESPenabled);
-                        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.f);
-                        ImGui::TextDisabled(Text::ESP::HotKeyList.c_str());
-                        ImGui::SameLine(0.0f, 6.0f);
-                        if (ImGui::Button(Text::ESP::HotKey.c_str(), { 60.f, 24.f }))
-                        {
-                            std::thread([&]() {
-                                KeyMgr::GetPressedKey(ESPConfig::HotKey, &Text::ESP::HotKey);
-                                }).detach();
-                        }
+						PutSwitch(Text::ESP::Enable.c_str(), 0.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ESPenabled);
+                        
+                        
 
                         if (ESPConfig::ESPenabled)
                         {
@@ -387,43 +514,31 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
                             if (ESPConfig::ShowBoxESP)
                             {
                                 PutSwitch(Text::ESP::Outline.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::OutLine);
-                                ImGui::TextDisabled(Text::ESP::BoxType.c_str());
-                                ImGui::SameLine();
-                                AlignRight(160.f);
-                                ImGui::SetNextItemWidth(160.f);
-                                ImGui::Combo("###BoxType", &ESPConfig::BoxType, "Normal\0Corner\0");
-                                PutSliderFloat(Text::ESP::BoxRounding.c_str(), 10.f, &ESPConfig::BoxRounding, &MinRounding, &MaxRouding, "%.1f");
+                                {
+                                    bool isBoxStyle = (ESPConfig::BoxType == 0);
+                                    PutSwitch(Text::ESP::BoxType.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7f, &isBoxStyle);
+                                    ESPConfig::BoxType = isBoxStyle ? 0 : 1;
+                                }
                             }
-                            PutSwitch(Text::ESP::FilledBox.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::FilledBox, true, "###FilledBoxCol", reinterpret_cast<float*>(&ESPConfig::FilledColor));
-                            if (ESPConfig::FilledBox)
-                                PutSwitch(Text::ESP::MultiColor.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::MultiColor, true, "###MultiCol", reinterpret_cast<float*>(&ESPConfig::FilledColor2));
-                            PutSwitch(Text::ESP::HeadBox.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowHeadBox, true, "###HeadBoxCol", reinterpret_cast<float*>(&ESPConfig::HeadBoxColor));
+                            
                             PutSwitch(Text::ESP::Skeleton.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowBoneESP, true, "###BoneCol", reinterpret_cast<float*>(&ESPConfig::BoneColor));
-                            PutSwitch(Text::ESP::SnapLine.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowLineToEnemy, true, "###LineCol", reinterpret_cast<float*>(&ESPConfig::LineToEnemyColor));
-                            if (ESPConfig::ShowLineToEnemy) 
-                            {
-                            ImGui::TextDisabled(Text::ESP::LinePosList.c_str());
-                            ImGui::SameLine(0.0f, 6.0f);
-                            ImGui::SetNextItemWidth(160.f);
-                            ImGui::Combo("###LinePos", &ESPConfig::LinePos, "Top\0Center\0Bottom\0");
-                        }
-                            PutSwitch(Text::ESP::EyeRay.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowEyeRay, true, "###LineCol", reinterpret_cast<float*>(&ESPConfig::EyeRayColor));
+                            
+                            
                             PutSwitch(Text::ESP::OutOfFOVArrow.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowOutOfFOVArrow, true, "###OutFOVCol", reinterpret_cast<float*>(&ESPConfig::OutOfFOVArrowColor));
                             if(ESPConfig::ShowOutOfFOVArrow)
                             PutSliderFloat(Text::ESP::OutOfFOVRadius.c_str(), .5f, &ESPConfig::OutOfFOVRadiusFactor, &MinFovFactor, &MaxFovFactor, "%.1f");
 
-                            PutSwitch(Text::ESP::SoundEsp.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::EnemySound, true, "###EnemySoundCol", reinterpret_cast<float*>(&ESPConfig::EnemySoundColor));
+                            
                             PutSwitch(Text::ESP::HealthBar.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowHealthBar);
-                            PutSwitch(Text::ESP::HealthNum.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowHealthNum);
+                            
                             PutSwitch(Text::ESP::ShowArmorBar.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ArmorBar);
-                            PutSwitch(Text::ESP::ArmorNum.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowArmorNum);
+                            
                             PutSwitch(Text::ESP::Weapon.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowWeaponESP);
                             PutSwitch(Text::ESP::Ammo.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::AmmoBar);
                             PutSwitch(Text::ESP::Distance.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowDistance);
                             PutSwitch(Text::ESP::PlayerName.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowPlayerName);
                             PutSwitch(Text::ESP::ScopedESP.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowIsScoped);
-                            PutSwitch(Text::ESP::FlashedESP.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowIsBlind);
-                            PutSwitch(Text::ESP::FlashCheck.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::FlashCheck);
+                            
                             PutSwitch(Text::ESP::VisCheck.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::VisibleCheck, true, "###VisibleCol", reinterpret_cast<float*>(&ESPConfig::VisibleColor));
                         }
 					}
@@ -506,40 +621,38 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
                 ImGui::Columns(3, nullptr, false);
                 ImGui::SetCursorPos(ImVec2(12.f, 6.f));
 
-					BeginSection("Aimbot - Settings", ImVec2(ImGui::GetColumnWidth(), 0));
+                BeginSectionWithHeaderActions("Aimbot", ImVec2(ImGui::GetColumnWidth(), 0), true, []{
+                    if (CenteredHotkeyButton(Text::Aimbot::HotKey.c_str(), ImVec2(54.f, 22.f)))
+                    {
+                        std::thread([&]() {
+                            KeyMgr::GetPressedKey(AimControl::HotKey, &Text::Aimbot::HotKey);
+                        }).detach();
+                    }
+                });
 					{
 						static const float FovMin = 0.f, FovMax = 30.f, MinFovMax = 1.f;
 						static const int BulletMin = 0, BulletMax = 5;
 						static const float SmoothMin = 0.f, SmoothMax = 10.f;
 						static const int MinHumanize = 0;
 						static const int MaxHumanize = 15;
-						PutSwitch(Text::Aimbot::Enable.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::AimBot);
+						PutSwitch(Text::Aimbot::Enable.c_str(), 0.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::AimBot);
 						if (LegitBotConfig::AimBot)
 						{
-                            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.f);
-                            ImGui::TextDisabled(Text::Aimbot::HotKeyList.c_str());
-                            ImGui::SameLine(0.0f, 6.0f);
-                            if (ImGui::Button(Text::Aimbot::HotKey.c_str(), { 60.f, 24.f }))
-                            {
-                                std::thread([&]() {
-                                    KeyMgr::GetPressedKey(AimControl::HotKey, &Text::Aimbot::HotKey);
-                                    }).detach();
-                            }
-							PutSliderInt(Text::Aimbot::BulletSlider.c_str(), 10.f, &AimControl::AimBullet, &BulletMin, &BulletMax, "%d", Text::Aimbot::StartBulletTip.c_str());
+                            
+                            
+                            
 							PutSwitch(Text::Aimbot::Toggle.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::AimToggleMode, false, NULL, NULL, Text::Aimbot::OffTip.c_str());
 							PutSwitch(Text::Aimbot::DrawFov.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::DrawFov, true, "###FOVcol", reinterpret_cast<float*>(&LegitBotConfig::FovCircleColor));
 							PutSwitch(Text::Aimbot::VisCheck.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::VisibleCheck, false, NULL, NULL, Text::Aimbot::OnTip.c_str());
-							PutSwitch(Text::Aimbot::OnlyAuto.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &AimControl::onlyAuto, false, NULL, NULL, Text::Aimbot::OnlyAutoTip.c_str());
-							PutSwitch(Text::Aimbot::IgnoreFlash.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &AimControl::IgnoreFlash, false, NULL, NULL, Text::Aimbot::OffTip.c_str());
+                            
 							PutSwitch(Text::Aimbot::ScopeOnly.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &AimControl::ScopeOnly);
 
-							PutSwitch(Text::Aimbot::HumanizeVar.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &AimControl::HumanizeVar, false, NULL, NULL, Text::Aimbot::OnTip.c_str());
-							if(AimControl::HumanizeVar)
-								PutSliderInt(Text::Aimbot::HumanizationStrength.c_str(), 10.f, &AimControl::HumanizationStrength, &MinHumanize, &MaxHumanize, "%d");
+                            PutSliderInt(Text::Aimbot::HumanizationStrength.c_str(), 10.f, &AimControl::HumanizationStrength, &MinHumanize, &MaxHumanize, "%d");
 
 							PutSliderFloat(Text::Aimbot::FovSlider.c_str(), 10.f, &AimControl::AimFov, &AimControl::AimFovMin, &FovMax, "%.1f");
 							PutSliderFloat(Text::Aimbot::FovMinSlider.c_str(), 10.f, &AimControl::AimFovMin, &FovMin, &MinFovMax, "%.2f");
-							PutSliderFloat(Text::Aimbot::SmoothSlider.c_str(), 10.f, &AimControl::Smooth, &SmoothMin, &SmoothMax, "%.1f", Text::Aimbot::OnlyAutoTip.c_str());
+                            PutSliderFloat(Text::Aimbot::SmoothSlider.c_str(), 10.f, &AimControl::Smooth, &SmoothMin, &SmoothMax, "%.1f", Text::Aimbot::OnlyAutoTip.c_str());
+                            PutSliderInt(Text::Aimbot::BulletSlider.c_str(), 10.f, &AimControl::AimBullet, &BulletMin, &BulletMax, "%d", Text::Aimbot::StartBulletTip.c_str());
 						}
 					}
 					EndSection();
@@ -547,29 +660,24 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 				// Coluna 2: Triggerbot
                 ImGui::NextColumn();
                 ImGui::SetCursorPosY(6.f);
-                BeginSection("Triggerbot", ImVec2(ImGui::GetColumnWidth(), 0));
+                BeginSectionWithHeaderActions("Triggerbot", ImVec2(ImGui::GetColumnWidth(), 0), true, []{
+                    if (CenteredHotkeyButton(Text::Trigger::HotKey.c_str(), ImVec2(54.f, 22.f)))
+                    {
+                        std::thread([&]() {
+                            KeyMgr::GetPressedKey(TriggerBot::HotKey, &Text::Trigger::HotKey);
+                        }).detach();
+                    }
+                });
 					{
 						static const int DelayMin = 0, DelayMax = 300;
 						static const int DurationMin = 0, DurationMax = 1000;
 
-						PutSwitch(Text::Trigger::Enable.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::TriggerBot);
+						PutSwitch(Text::Trigger::Enable.c_str(), 0.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::TriggerBot);
 						if (LegitBotConfig::TriggerBot)
 						{
-                            if (!LegitBotConfig::TriggerAlways)
-                            {
-                                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.f);
-                                ImGui::TextDisabled(Text::Trigger::HotKeyList.c_str());
-                                ImGui::SameLine(0.0f, 6.0f);
-                                if (ImGui::Button(Text::Trigger::HotKey.c_str(), {60.f, 24.f}))
-                                {
-                                    std::thread([&]() {
-                                        KeyMgr::GetPressedKey(TriggerBot::HotKey, &Text::Trigger::HotKey);
-                                        }).detach();
-                                }
-                            }
-							PutSwitch(Text::Trigger::Toggle.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::TriggerAlways, false, NULL, NULL, Text::Aimbot::OffTip.c_str());
+                            PutSwitch(Text::Trigger::Toggle.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::TriggerAlways, false, NULL, NULL, Text::Aimbot::OffTip.c_str());
 							PutSwitch(Text::Trigger::ScopeOnly.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &TriggerBot::ScopeOnly);
-							PutSwitch(Text::Trigger::IgnoreFlash.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &TriggerBot::IgnoreFlash, false, NULL, NULL, Text::Aimbot::OffTip.c_str());
+                            
 							PutSwitch(Text::Trigger::StopOnly.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &TriggerBot::StopedOnly);
 							PutSwitch(Text::Trigger::TTDtimeout.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &TriggerBot::TTDtimeout, false, NULL, NULL, Text::Aimbot::OnTip.c_str());
 							PutSliderInt(Text::Trigger::DelaySlider.c_str(), 5.f, &TriggerBot::TriggerDelay, &DelayMin, &DelayMax, "%d ms", Text::Trigger::DelayTip.c_str());
@@ -581,11 +689,11 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 					// Coluna 3: RCS (Recoil)
                 ImGui::NextColumn();
                 ImGui::SetCursorPosY(6.f);
-            BeginSection("RCS", ImVec2(ImGui::GetColumnWidth(), 0));
+            BeginSection("Recoil Control", ImVec2(ImGui::GetColumnWidth(), 0));
 					{
 						static const float recoilMin = 0.f, recoilMax = 2.f;
 						static const int RCSBulletMin = 0, RCSBulletMax = 5;
-						PutSwitch(Text::RCS::Toggle.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::RCS);
+						PutSwitch(Text::RCS::Toggle.c_str(), 0.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::RCS);
 						if (LegitBotConfig::RCS)
 						{
 							PutSliderInt(Text::RCS::BulletSlider.c_str(), 5.f, &RCS::RCSBullet, &RCSBulletMin, &RCSBulletMax, "%d");
@@ -652,15 +760,11 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 						PutSwitch(Text::Misc::bmbTimer.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::bmbTimer, true, "###bmbTimerCol", reinterpret_cast<float*>(&MiscCFG::BombTimerCol));
 						PutSwitch(Text::Misc::SpecList.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::SpecList);
 						PutSwitch(Text::Misc::Watermark.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::WaterMark);
-						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.f);
-						ImGui::TextDisabled(Text::Misc::HitSound.c_str());
-						ImGui::SameLine();
-                        ImGui::SameLine(0.0f, 6.0f);
-                        ImGui::SetNextItemWidth(160.f);
-                        ImGui::Combo("###HitSounds", &MiscCFG::HitSound, "None\0Neverlose\0Skeet\0");
+                        
+                        
 						PutSwitch(Text::Misc::HitMerker.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::HitMarker);
 						PutSwitch(Text::Misc::BunnyHop.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::BunnyHop, false, NULL, NULL, Text::Misc::InsecureTip.c_str());
-						PutSwitch(Text::Misc::SniperCrosshair.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::SniperCrosshair, true, "###sniperCrosshair", reinterpret_cast<float*>(&MiscCFG::SniperCrosshairColor));
+                        
 						PutSwitch("Auto Accept", 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::AutoAccept);
 						PutSwitch("Anti-afk", 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::AntiAFKKick);
 					}
@@ -672,7 +776,10 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 					{
                         ImGui::TextDisabled(Text::Misc::MenuKey.c_str());
                         ImGui::SameLine(0.0f, 6.0f);
-                        if (ImGui::Button(Text::Misc::HotKey.c_str(), { 60.f, 24.f }))
+                        float miscHotkeyRowY = ImGui::GetCursorPosY();
+                        AlignRight(60.f);
+                        ImGui::SetCursorPosY(miscHotkeyRowY);
+                        if (CenteredHotkeyButton(Text::Misc::HotKey.c_str(), ImVec2(60.f, 24.f)))
                         {
                             std::thread([&]() {
                                 KeyMgr::GetPressedKey(MenuConfig::HotKey, &Text::Misc::HotKey);
@@ -681,7 +788,6 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 						PutSwitch(Text::Misc::SpecCheck.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &MenuConfig::WorkInSpec);
 						PutSwitch(Text::Misc::TeamCheck.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &MenuConfig::TeamCheck);
 						PutSwitch(Text::Misc::AntiRecord.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &MenuConfig::BypassOBS);
-						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.f);
 
                         // Removed external and maintenance buttons per user request
                         // (Source Code, Contact Author, Unhook, Clear Traces)
@@ -702,3 +808,4 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 		LoadDefaultConfig();
 	}
 }
+#include <functional>

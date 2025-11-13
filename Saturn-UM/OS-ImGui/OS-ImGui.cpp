@@ -609,8 +609,14 @@ namespace OSImGui
         float frame_height_origin = frame_sc.GetHeight();
         frame_sc.Min.y += frame_height_origin / 3;
         frame_sc.Max.y -= frame_height_origin / 3;
-        //                                                                           grab color                            hover color                color
-        const ImU32 frame_col = ImGui::ColorConvertFloat4ToU32(g.ActiveId == id ? ImColor(ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered)) : hovered ? ImColor(ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered)) : ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Border)));//ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered), ImGui::GetStyleColorVec4(ImGuiCol_CheckMark)
+        const ImU32 frame_col = ImGui::ColorConvertFloat4ToU32(ImColor(ImGui::GetStyleColorVec4(ImGuiCol_FrameBg)));
+        if (hovered || g.ActiveId == id)
+        {
+            ImVec4 glow = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
+            glow.w = g.ActiveId == id ? 0.45f : 0.25f;
+            ImU32 glow_col = ImGui::ColorConvertFloat4ToU32(glow);
+            window->DrawList->AddRect(frame_sc.Min, frame_sc.Max, glow_col, grab_radius, 0, 2.0f);
+        }
         ImGui::RenderNavHighlight(frame_bb, id);
         window->DrawList->AddRectFilled(frame_sc.Min, frame_sc.Max, frame_col, grab_radius);
 
@@ -620,26 +626,32 @@ namespace OSImGui
         if (value_changed)
             ImGui::MarkItemEdited(id);
         //ImLerp(ImVec4(RGBA_TO_FLOAT(31, 36, 70, 200)), ImVec4(RGBA_TO_FLOAT(55, 63, 124, 200)), t));
-        // Render grab
-        if (grab_bb.Max.x > grab_bb.Min.x)
-        {
-            window->DrawList->AddRectFilled(
-                { grab_bb.GetCenter().x - grab_radius, grab_bb.GetCenter().y - grab_radius },
-                { grab_bb.GetCenter().x + grab_radius, grab_bb.GetCenter().y + grab_radius },
-                ImColor(ImGui::GetStyleColorVec4(ImGuiCol_CheckMark)), 20);
-            //window->DrawList->AddLine(
-            //    { grab_bb.GetCenter().x - grab_radius * 0.5f - 1, grab_bb.GetCenter().y - grab_radius * 0.75f },
-            //    { grab_bb.GetCenter().x - grab_radius * 0.5f - 1, grab_bb.GetCenter().y + grab_radius * 0.75f },
-            //    ImColor(150, 150, 150, 255), 1.3f);
-            //window->DrawList->AddLine(
-            //    { grab_bb.GetCenter().x - 1, grab_bb.GetCenter().y - grab_radius * 0.75f },
-            //    { grab_bb.GetCenter().x - 1, grab_bb.GetCenter().y + grab_radius * 0.75f },
-            //    ImColor(150, 150, 150, 255), 1.3f);
-            //window->DrawList->AddLine(
-            //    { grab_bb.GetCenter().x + grab_radius * 0.5f - 1, grab_bb.GetCenter().y - grab_radius * 0.75f },
-            //    { grab_bb.GetCenter().x + grab_radius * 0.5f - 1, grab_bb.GetCenter().y + grab_radius * 0.75f },
-            //    ImColor(150, 150, 150, 255), 1.3f);
-        }
+        // Render grab suavizado
+        auto get_norm = [&](ImGuiDataType type, const void* v, const void* vmin, const void* vmax) -> float {
+            switch (type) {
+            case ImGuiDataType_Float: {
+                float val = *(const float*)v, mn = *(const float*)vmin, mx = *(const float*)vmax;
+                if (mx == mn) return 0.0f; return ImClamp((val - mn) / (mx - mn), 0.0f, 1.0f);
+            }
+            case ImGuiDataType_S32: {
+                int val = *(const int*)v, mn = *(const int*)vmin, mx = *(const int*)vmax;
+                if (mx == mn) return 0.0f; return ImClamp((float)(val - mn) / (float)(mx - mn), 0.0f, 1.0f);
+            }
+            default: return 0.0f;
+            }
+        };
+        float raw_t = get_norm(data_type, p_data, p_min, p_max);
+        ImGuiStorage* storage = ImGui::GetStateStorage();
+        float* smooth_t = storage->GetFloatRef(id, raw_t);
+        float dt = ImGui::GetIO().DeltaTime;
+        float k = ImClamp(dt * 10.0f, 0.0f, 1.0f);
+        *smooth_t = ImLerp(*smooth_t, raw_t, k);
+        float cx = ImLerp(frame_sc.Min.x, frame_sc.Max.x, *smooth_t);
+        float cy = (frame_sc.Min.y + frame_sc.Max.y) * 0.5f;
+        window->DrawList->AddRectFilled(
+            { cx - grab_radius, cy - grab_radius },
+            { cx + grab_radius, cy + grab_radius },
+            ImColor(ImGui::GetStyleColorVec4(ImGuiCol_CheckMark)), 20);
 
         // Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
         char value_buf[64];
@@ -658,4 +670,3 @@ namespace OSImGui
         return value_changed;
     }
 }
-

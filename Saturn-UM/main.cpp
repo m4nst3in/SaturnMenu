@@ -67,25 +67,23 @@ void Cheat()
 	int tryCount = 0;
 	//Init::Verify::RandTitle();
 
-	Log::Custom(R"LOGO(______                            ______                  
-|  _  \                           | ___ \                 
-| | | |_ __ __ _  __ _  ___  _ __ | |_/ /_   _ _ __ _ __  
-| | | | '__/ _` |/ _` |/ _ \| '_ \| ___ \ | | | '__| '_ \ 
-| |/ /| | | (_| | (_| | (_) | | | | |_/ / |_| | |  | | | |
-|___/ |_|  \__,_|\__, |\___/|_| |_\____/ \__,_|_|  |_| |_|
-                  __/ |                                   
-                 |___/                                    
+	Log::Custom(R"LOGO(                  
+ .|'''.|            .                             
+ ||..  '   ....   .||.  ... ...  ... ..  .. ...   
+  ''|||.  '' .||   ||    ||  ||   ||' ''  ||  ||  
+.     '|| .|' ||   ||    ||  ||   ||      ||  ||  
+|'....|'  '|..'|'  '|.'  '|..'|. .||.    .||. ||. 
+                                                  
+                                                                                      
 )LOGO", 13);
-	Log::Info(MenuConfig::name + " v" + MenuConfig::version + " by " + MenuConfig::author);
-	Log::Info("https://github.com/ByteCorum/DragonBurn");
-	Log::Info("https://discord.gg/5WcvdzFybD\n");
+	Log::Info(MenuConfig::name + " v" + MenuConfig::version);
 
 	if (!Init::Verify::CheckWindowVersion())
-		Log::Warning("Your os is unsupported, bugs may occurred", true);
+		Log::Warning(MenuConfig::name + " don't support your OS. Use Windows 11 24H2 for better compatibility!", true);
 
 	char documentsPath[MAX_PATH];
 	if (SHGetFolderPathA(NULL, CSIDL_PERSONAL, NULL, 0, documentsPath) != S_OK)
-		Log::Error("Failed to get the Documents folder path");
+		Log::Error("Documents folder can't be found/accessed.");
 
 	MenuConfig::docPath = documentsPath;
 	MenuConfig::path = MenuConfig::docPath + "\\Saturn";
@@ -97,7 +95,7 @@ void Cheat()
 		try
 		{
 			fs::create_directories(MenuConfig::path + "\\Data");
-			Log::Fine("Config folder connected: " + MenuConfig::path);
+			Log::Fine("Config Loaded: " + MenuConfig::path);
 		}
 		catch (std::exception error)
 		{
@@ -145,16 +143,16 @@ CHECK_VER://CHECK_VER
 
 	bool mapped = false;
 CONNECT_KERNEL://CONNECT_KERNEL
-	Log::Info("Connecting to kernel mode driver...");
+	Log::Info("Trying to connect to Saturn-KM...");
 	if (memoryManager.ConnectDriver(L"\\\\.\\Saturn-KM"))
 	{
 		Log::PreviousLine();
-		Log::Fine("Successfully connected to kernel mode driver");
+		Log::Fine("Connected to Saturn-KM!");
 	}
 	else
 	{
 		Log::PreviousLine();
-		Log::Error("Failed to connect to kernel mode driver", mapped, mapped);
+		Log::Error("Failed to connect to Saturn-KM", mapped, mapped);
 		Log::Info("Triggered auto-map protocol");
 		Log::Info("Looking for kernel mapper...");
 
@@ -190,7 +188,7 @@ CONNECT_KERNEL://CONNECT_KERNEL
 		}
 	}
 
-	Log::Info("Waiting for CS2...");
+	Log::Info("Trying to find cs2.exe...");
 	bool preStart = false;
 	while (memoryManager.GetProcessID(L"cs2.exe") == 0)
 	{
@@ -200,7 +198,7 @@ CONNECT_KERNEL://CONNECT_KERNEL
 	if (preStart)
 	{
 		Log::PreviousLine();
-		Log::Info("Connecting to CS2(it may take some time)...");
+		Log::Info("CS2 found! Hooking...");
 		Sleep(20000);
 	}
 	Log::PreviousLine();
@@ -208,12 +206,12 @@ CONNECT_KERNEL://CONNECT_KERNEL
 
 	tryCount = 0;
 UPDATE_OFFSETS://UPDATE_OFFSETS
-	Log::Info("Updating offsets...");
+	Log::Info("Trying to update offsets...");
 	try
 	{
 		Offset.UpdateOffsets();
 		Log::PreviousLine();
-		Log::Fine("Offsets updated");
+		Log::Fine("Offsets updated succesfully!");
 	}
 	catch (const std::exception& error)
 	{
@@ -230,11 +228,11 @@ UPDATE_OFFSETS://UPDATE_OFFSETS
 			Log::Error(errorMsg);
 	}
 
-	Log::Info("Attaching to CS2...");
+	Log::Info("Invading CS2 memory...");
 	if (!memoryManager.Attach(memoryManager.GetProcessID(L"cs2.exe")))
 	{
 		Log::PreviousLine();
-		Log::Error("Failed to attach to the process");
+		Log::Error("Couldn't invade CS2 memory!");
 	}
 
 	if (!gGame.InitAddress())
@@ -246,12 +244,12 @@ UPDATE_OFFSETS://UPDATE_OFFSETS
 	g_globalVars = std::make_unique<globalvars>();
 	if (!g_globalVars->UpdateGlobalvars()) {
 		Log::PreviousLine();
-		Log::Error("Offsets are outdated, wait a few hours for offsets to update");
+		Log::Error("Offsets are not updated, wait until the menu updates!");
 	}
 
 	Log::PreviousLine();
-	Log::Fine("Linked to CS2");
-		Log::Fine("Saturn loaded");
+	Log::Fine("VAC pwned!");
+		Log::Fine("Saturn loaded succesfully!");
 
 
 #ifndef DBDEBUG
