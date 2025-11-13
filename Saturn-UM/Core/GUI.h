@@ -137,6 +137,10 @@ namespace GUI
 inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool bordered = true)
 {
     ImGui::BeginChild(title, size, bordered, ImGuiWindowFlags_NoScrollbar);
+    // Compactar espaçamentos dentro da section
+    ImGuiStyle& st = ImGui::GetStyle();
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(st.ItemSpacing.x, 4.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(st.FramePadding.x, 5.0f));
     ImGui::TextDisabled(title);
     ImGui::Separator();
 }
@@ -148,8 +152,9 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
         float base_size = ImGui::GetFontSize();
         float font_size = font_size_override > 0.0f ? font_size_override : (font_override ? font->FontSize : base_size);
         ImVec2 p = ImGui::GetCursorScreenPos();
-        // Centraliza verticalmente no frame
-        p.y += (ImGui::GetFrameHeight() - font_size) * 0.5f;
+        // Centraliza verticalmente no frame APENAS quando usando a fonte/size padrão
+        if (font_override == nullptr && font_size_override <= 0.0f)
+            p.y += (ImGui::GetFrameHeight() - font_size) * 0.5f;
 
         int len = (int)strlen(text);
         float scale = font_size / base_size;
@@ -171,9 +176,16 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
         ImGui::Dummy(ImVec2(adv.x * scale, font_size));
     }
     inline void EndSection()
-	{
-		ImGui::EndChild();
-	}
+    {
+        // Desenhar linha vertical no lado direito da section
+        ImDrawList* dl = ImGui::GetWindowDrawList();
+        ImVec2 pos = ImGui::GetWindowPos();
+        ImVec2 sz  = ImGui::GetWindowSize();
+        dl->AddLine(ImVec2(pos.x + sz.x - 1.0f, pos.y), ImVec2(pos.x + sz.x - 1.0f, pos.y + sz.y), ImGui::GetColorU32(ImGuiCol_Border), 1.0f);
+
+        ImGui::PopStyleVar(2);
+        ImGui::EndChild();
+    }
     inline void PutSwitch(const char* string, float CursorX, float ContentWidth, bool* v, bool ColorEditor = false, const char* lable = NULL, float col[4] = NULL, const char* Tip = NULL)
 	{
 		ImGui::PushID(string);
@@ -183,35 +195,39 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 		ImGui::TextDisabled(string);
 		if (Tip && ImGui::IsItemHovered())
 			ImGui::SetTooltip(Tip);
-		ImGui::SameLine();
+		ImGui::SameLine(0.0f, 6.0f);
 		// Alinhar verticalmente os controles à altura do texto
 		ImGui::SetCursorPosY(CurrentCursorY);
-		if (ColorEditor) {
-			// Alinhar cor + checkbox como bloco à direita com largura conhecida
-			float fh = ImGui::GetFrameHeight();
-			float spacing = ImGui::GetStyle().ItemSpacing.x;
-			float totalWidth = fh + spacing + fh; // color preview + spacing + checkbox
-			AlignRight(totalWidth);
-			ImGui::SetCursorPosY(CurrentCursorY);
-			ImGui::SetNextItemWidth(fh);
-			ImGui::ColorEdit4(lable, col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreview);
-			ImGui::SameLine();
-			ImGui::SetCursorPosY(CurrentCursorY);
-		}
-		else {
-			// Alinhamento horizontal consistente: usar largura exata da checkbox
-			float checkboxWidth = ImGui::GetFrameHeight();
-			AlignRight(checkboxWidth);
-		}
+        if (ColorEditor) {
+            // Alinhar cor + checkbox como bloco à direita com largura exata do grupo
+            float fh = ImGui::GetFrameHeight();
+            ImGuiStyle& s = ImGui::GetStyle();
+            float spacing_used = 6.0f; // mesmo espaçamento do SameLine para consistência
+            float cbw = fh + s.FramePadding.x * 2.0f; // largura real do checkbox quadrado
+            float totalWidth = fh + spacing_used + cbw; // color preview + spacing + checkbox
+            AlignRight(totalWidth);
+            ImGui::SetCursorPosY(CurrentCursorY);
+            ImGui::SetNextItemWidth(fh);
+            ImGui::ColorEdit4(lable, col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreview);
+            ImGui::SameLine(0.0f, spacing_used);
+            ImGui::SetCursorPosY(CurrentCursorY);
+        }
+        else {
+            // Alinhar checkbox simples à direita da section, simétrico
+            float fh = ImGui::GetFrameHeight();
+            ImGuiStyle& s = ImGui::GetStyle();
+            float cbw = fh + s.FramePadding.x * 2.0f;
+            AlignRight(cbw);
+        }
 
 		// Checkbox menor, cantos discretos e tick branco para alto contraste
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(3.0f, 2.0f));
 		ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 0.95f));
-		ImGui::Checkbox("##checkbox", v);
-		ImGui::PopStyleColor();
-		ImGui::PopStyleVar(2);
-		ImGui::PopID();
+        ImGui::Checkbox("##checkbox", v);
+        ImGui::PopStyleColor();
+        ImGui::PopStyleVar(2);
+        ImGui::PopID();
 	}
 
 	// Helper para checkboxes pequenas (usado nos hitboxes e em outros locais diretos)
@@ -273,7 +289,7 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 	}
 	// ########################################
 
-    inline void DrawGui()
+	inline void DrawGui()
 	{
 		LoadImages();
 		ImTextureID ImageID;
@@ -286,28 +302,59 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 
 		char TempText[256];
 		ImGuiWindowFlags Flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar;
-		ImGui::SetNextWindowPos({ (ImGui::GetIO().DisplaySize.x - MenuConfig::WCS.MainWinSize.x) / 2.0f, (ImGui::GetIO().DisplaySize.y - MenuConfig::WCS.MainWinSize.y) / 2.0f }, ImGuiCond_Once);
-		ImGui::SetNextWindowSize(MenuConfig::WCS.MainWinSize);
-		ImGui::Begin("Saturn", nullptr, Flags);
+        ImGui::SetNextWindowPos({ (ImGui::GetIO().DisplaySize.x - MenuConfig::WCS.MainWinSize.x) / 2.0f, (ImGui::GetIO().DisplaySize.y - MenuConfig::WCS.MainWinSize.y) / 2.0f }, ImGuiCond_Once);
+        ImGui::SetNextWindowSize(MenuConfig::WCS.MainWinSize);
+        // Fundo do menu: cinza bem escuro para combinar com roxo (aplica na janela e nos childs)
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.06f, 0.06f, 0.08f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ChildBg,  ImVec4(0.06f, 0.06f, 0.08f, 1.0f));
+        ImGui::Begin("Saturn", nullptr, Flags);
 			{
-				// Topo com abas horizontais (sem categorias aninhadas)
-		ImGui::BeginChild("TopTabs", ImVec2(0, ImGui::GetFrameHeight()*1.8f), false, ImGuiWindowFlags_NoScrollbar);
-			{
-				// Título "Saturn" com degradê e fonte grande nativa (sem blur)
-				ImVec4 start = ImVec4(0.45f, 0.75f, 1.00f, 1.00f);
-				ImVec4 end   = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-				GradientText("Saturn", start, end, OSImGui::TitleFont ? OSImGui::TitleFont->FontSize : ImGui::GetFontSize() * 1.9f, OSImGui::TitleFont);
-				ImGui::SameLine(0.f, 18.f);
-				if (ImGui::BeginTabBar("MainTabs", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_FittingPolicyScroll))
+                // Topo com título à esquerda e abas à direita (mesma linha)
+                // Calcular altura do cabeçalho com base no título (fonte nativa) e garantir simetria acima/abaixo
+                float base_size = ImGui::GetFontSize();
+                ImFont* titleFont = OSImGui::TitleFontLarge ? OSImGui::TitleFontLarge : OSImGui::TitleFont;
+                float title_size = titleFont ? titleFont->FontSize : (base_size * 1.9f);
+                ImGuiStyle& style = ImGui::GetStyle();
+                float top_height = title_size + style.FramePadding.y * 2.0f; // simétrico: mesma folga em cima/baixo
+                ImGui::BeginChild("TopTabs", ImVec2(0, top_height), false, ImGuiWindowFlags_NoScrollbar);
+                {
+                    // Título "Saturn" com degradê (início roxo) à esquerda
+                    ImVec4 start = ImVec4(0.486f, 0.227f, 0.929f, 1.00f); // #7C3AED
+                    ImVec4 end   = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+                    // alinhar verticalmente o título dentro do cabeçalho de forma simétrica
+                    float top_pad_y = (top_height - title_size) * 0.5f;
+                    ImGui::SetCursorPosY(top_pad_y);
+                    ImGui::SetCursorPosX(12.0f);
+                    if (titleFont) ImGui::PushFont(titleFont);
+                    GradientText("Saturn", start, end, title_size, titleFont);
+                    if (titleFont) ImGui::PopFont();
+                    // Abas à direita do título (mesma linha, com espaçamento menor)
+                    ImGui::SameLine(0.0f, 10.0f);
+                    // diminuir a altura das abas para ficarem simétricas com a base das letras do título
+                    float tab_pad_y = style.FramePadding.y * 0.60f; // ~40% menos altura
+                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, tab_pad_y));
+                    // centralizar verticalmente as abas dentro do cabeçalho
+                    float tab_frame_h = ImGui::GetFrameHeight();
+                    float tabs_y = top_pad_y + (title_size - tab_frame_h) * 0.5f;
+                    ImGui::SetCursorPosY(tabs_y);
+                    // remover a linha abaixo das abas (separator/border do TabBar)
+                    ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0,0,0,0));
+                    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0,0,0,0));
+                    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+                    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+                    if (ImGui::BeginTabBar("MainTabs", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_FittingPolicyScroll))
                     {
-                if (ImGui::BeginTabItem(ICON_FA_CROSSHAIRS "  Legit")) { MenuConfig::WCS.MenuPage = 0; ImGui::EndTabItem(); }
-                if (ImGui::BeginTabItem(ICON_FA_EYE        "  Visual")) { MenuConfig::WCS.MenuPage = 1; ImGui::EndTabItem(); }
-                if (ImGui::BeginTabItem(ICON_FA_WRENCH     "  Misc"))  { MenuConfig::WCS.MenuPage = 2; ImGui::EndTabItem(); }
+                        if (ImGui::BeginTabItem(ICON_FA_CROSSHAIRS "  Legit")) { MenuConfig::WCS.MenuPage = 0; ImGui::EndTabItem(); }
+                        if (ImGui::BeginTabItem(ICON_FA_EYE        "  Visual")) { MenuConfig::WCS.MenuPage = 1; ImGui::EndTabItem(); }
+                        if (ImGui::BeginTabItem(ICON_FA_WRENCH     "  Misc"))  { MenuConfig::WCS.MenuPage = 2; ImGui::EndTabItem(); }
                         // Config tab removida temporariamente
                         ImGui::EndTabBar();
                     }
-			}
-			ImGui::EndChild();
+                    ImGui::PopStyleVar(2);
+                    ImGui::PopStyleColor(2);
+                    ImGui::PopStyleVar();
+                }
+                ImGui::EndChild();
 
 			// Área de conteúdo abaixo das abas
 			ImGui::BeginChild("Page", ImVec2(0, 0), false, ImGuiWindowFlags_NoScrollbar);
@@ -315,24 +362,24 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 			// Layout por página
 			if (MenuConfig::WCS.MenuPage == 1)
 			{
-				ImGui::Columns(2, nullptr, false);
-				ImGui::SetCursorPos(ImVec2(12.f, 10.f));
+                // Visual: organizar em 3 colunas (ESP, Preview, Radar)
+                ImGui::Columns(3, nullptr, false);
+                ImGui::SetCursorPos(ImVec2(12.f, 6.f));
 					static const float MinRounding = 0.f, MaxRouding = 5.f;
 					static const float MinFovFactor = 0.f, MaxFovFactor = 1.f;
 
 					BeginSection("ESP", ImVec2(ImGui::GetColumnWidth(), 0));
 					{
 						PutSwitch(Text::ESP::Enable.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ESPenabled);
-						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.f);
-						ImGui::TextDisabled(Text::ESP::HotKeyList.c_str());
-						ImGui::SameLine();
-						AlignRight(70.f);
-						if (ImGui::Button(Text::ESP::HotKey.c_str(), { 70.f, 25.f }))
-						{
-							std::thread([&]() {
-								KeyMgr::GetPressedKey(ESPConfig::HotKey, &Text::ESP::HotKey);
-								}).detach();
-						}
+                        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.f);
+                        ImGui::TextDisabled(Text::ESP::HotKeyList.c_str());
+                        ImGui::SameLine(0.0f, 6.0f);
+                        if (ImGui::Button(Text::ESP::HotKey.c_str(), { 60.f, 24.f }))
+                        {
+                            std::thread([&]() {
+                                KeyMgr::GetPressedKey(ESPConfig::HotKey, &Text::ESP::HotKey);
+                                }).detach();
+                        }
 
                         if (ESPConfig::ESPenabled)
                         {
@@ -355,16 +402,15 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
                             PutSwitch(Text::ESP::SnapLine.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowLineToEnemy, true, "###LineCol", reinterpret_cast<float*>(&ESPConfig::LineToEnemyColor));
                             if (ESPConfig::ShowLineToEnemy) 
                             {
-                                ImGui::TextDisabled(Text::ESP::LinePosList.c_str());
-                                ImGui::SameLine();
-                                AlignRight(160.f);
-                                ImGui::SetNextItemWidth(160.f);
-                                ImGui::Combo("###LinePos", &ESPConfig::LinePos, "Top\0Center\0Bottom\0");
-                            }
+                            ImGui::TextDisabled(Text::ESP::LinePosList.c_str());
+                            ImGui::SameLine(0.0f, 6.0f);
+                            ImGui::SetNextItemWidth(160.f);
+                            ImGui::Combo("###LinePos", &ESPConfig::LinePos, "Top\0Center\0Bottom\0");
+                        }
                             PutSwitch(Text::ESP::EyeRay.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowEyeRay, true, "###LineCol", reinterpret_cast<float*>(&ESPConfig::EyeRayColor));
                             PutSwitch(Text::ESP::OutOfFOVArrow.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowOutOfFOVArrow, true, "###OutFOVCol", reinterpret_cast<float*>(&ESPConfig::OutOfFOVArrowColor));
                             if(ESPConfig::ShowOutOfFOVArrow)
-                                PutSliderFloat(Text::ESP::OutOfFOVRadius.c_str(), .5f, &ESPConfig::OutOfFOVRadiusFactor, &MinFovFactor, &MaxFovFactor, "%.1f");
+                            PutSliderFloat(Text::ESP::OutOfFOVRadius.c_str(), .5f, &ESPConfig::OutOfFOVRadiusFactor, &MinFovFactor, &MaxFovFactor, "%.1f");
 
                             PutSwitch(Text::ESP::SoundEsp.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::EnemySound, true, "###EnemySoundCol", reinterpret_cast<float*>(&ESPConfig::EnemySoundColor));
                             PutSwitch(Text::ESP::HealthBar.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowHealthBar);
@@ -383,18 +429,20 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 					}
 					EndSection();
 
-				ImGui::NextColumn();
-				ImGui::SetCursorPosY(10.f);
-				BeginSection("ESP Preview", ImVec2(ImGui::GetColumnWidth(), 0));
+                // Coluna 2: Preview
+                ImGui::NextColumn();
+                ImGui::SetCursorPosY(6.f);
+                BeginSection("ESP Preview", ImVec2(ImGui::GetColumnWidth(), 0));
 				{
 					ESP::RenderPreview({ ImGui::GetColumnWidth(), ImGui::GetCursorPosY() });
 					ImGui::Dummy({ 0.f, ImGui::GetFrameHeight() * 3 });
 				}
-				EndSection();
+                EndSection();
 
-				// Espaço reduzido entre seções
-				ImGui::Spacing();
-				BeginSection("External Radar", ImVec2(ImGui::GetColumnWidth(), 0));
+                // Coluna 3: Radar
+                ImGui::NextColumn();
+                ImGui::SetCursorPosY(6.f);
+                BeginSection("External Radar", ImVec2(ImGui::GetColumnWidth(), 0));
 				{
 						static const float RadarPointSizeProportionMin = 0.2f, RadarPointSizeProportionMax = 2.f;
 						static const float ProportionMin = 500.f, ProportionMax = 15000.f;
@@ -414,9 +462,10 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 							}
 						}
 					}
-					EndSection();
+                    EndSection();
 
-					ImGui::Columns(1);
+                    // Encerrar grade de 3 colunas
+                    ImGui::Columns(1);
 						
 					//ImGui::NewLine();
 					//ImGui::GradientText("Crosshairs");
@@ -453,8 +502,9 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 				
 			if (MenuConfig::WCS.MenuPage == 0)
 			{
-				ImGui::Columns(2, nullptr, false);
-				ImGui::SetCursorPos(ImVec2(12.f, 10.f));
+                // Legit: organizar em 3 colunas (Aimbot, Triggerbot, RCS)
+                ImGui::Columns(3, nullptr, false);
+                ImGui::SetCursorPos(ImVec2(12.f, 6.f));
 
 					BeginSection("Aimbot - Settings", ImVec2(ImGui::GetColumnWidth(), 0));
 					{
@@ -466,16 +516,15 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 						PutSwitch(Text::Aimbot::Enable.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::AimBot);
 						if (LegitBotConfig::AimBot)
 						{
-							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.f);
-							ImGui::TextDisabled(Text::Aimbot::HotKeyList.c_str());
-							ImGui::SameLine();
-							AlignRight(70.f);
-							if (ImGui::Button(Text::Aimbot::HotKey.c_str(), { 70.f, 25.f }))
-							{
-								std::thread([&]() {
-									KeyMgr::GetPressedKey(AimControl::HotKey, &Text::Aimbot::HotKey);
-									}).detach();
-							}
+                            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.f);
+                            ImGui::TextDisabled(Text::Aimbot::HotKeyList.c_str());
+                            ImGui::SameLine(0.0f, 6.0f);
+                            if (ImGui::Button(Text::Aimbot::HotKey.c_str(), { 60.f, 24.f }))
+                            {
+                                std::thread([&]() {
+                                    KeyMgr::GetPressedKey(AimControl::HotKey, &Text::Aimbot::HotKey);
+                                    }).detach();
+                            }
 							PutSliderInt(Text::Aimbot::BulletSlider.c_str(), 10.f, &AimControl::AimBullet, &BulletMin, &BulletMax, "%d", Text::Aimbot::StartBulletTip.c_str());
 							PutSwitch(Text::Aimbot::Toggle.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::AimToggleMode, false, NULL, NULL, Text::Aimbot::OffTip.c_str());
 							PutSwitch(Text::Aimbot::DrawFov.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::DrawFov, true, "###FOVcol", reinterpret_cast<float*>(&LegitBotConfig::FovCircleColor));
@@ -495,10 +544,10 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 					}
 					EndSection();
 
-				// Coluna direita
-				ImGui::NextColumn();
-				ImGui::SetCursorPosY(10.f);
-				BeginSection("Triggerbot", ImVec2(ImGui::GetColumnWidth(), 0));
+				// Coluna 2: Triggerbot
+                ImGui::NextColumn();
+                ImGui::SetCursorPosY(6.f);
+                BeginSection("Triggerbot", ImVec2(ImGui::GetColumnWidth(), 0));
 					{
 						static const int DelayMin = 0, DelayMax = 300;
 						static const int DurationMin = 0, DurationMax = 1000;
@@ -506,19 +555,18 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 						PutSwitch(Text::Trigger::Enable.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::TriggerBot);
 						if (LegitBotConfig::TriggerBot)
 						{
-							if (!LegitBotConfig::TriggerAlways)
-							{
-								ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.f);
-								ImGui::TextDisabled(Text::Trigger::HotKeyList.c_str());
-								ImGui::SameLine();
-								AlignRight(70.f);
-								if (ImGui::Button(Text::Trigger::HotKey.c_str(), {70.f, 25.f}))
-								{
-									std::thread([&]() {
-										KeyMgr::GetPressedKey(TriggerBot::HotKey, &Text::Trigger::HotKey);
-										}).detach();
-								}
-							}
+                            if (!LegitBotConfig::TriggerAlways)
+                            {
+                                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.f);
+                                ImGui::TextDisabled(Text::Trigger::HotKeyList.c_str());
+                                ImGui::SameLine(0.0f, 6.0f);
+                                if (ImGui::Button(Text::Trigger::HotKey.c_str(), {60.f, 24.f}))
+                                {
+                                    std::thread([&]() {
+                                        KeyMgr::GetPressedKey(TriggerBot::HotKey, &Text::Trigger::HotKey);
+                                        }).detach();
+                                }
+                            }
 							PutSwitch(Text::Trigger::Toggle.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::TriggerAlways, false, NULL, NULL, Text::Aimbot::OffTip.c_str());
 							PutSwitch(Text::Trigger::ScopeOnly.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &TriggerBot::ScopeOnly);
 							PutSwitch(Text::Trigger::IgnoreFlash.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &TriggerBot::IgnoreFlash, false, NULL, NULL, Text::Aimbot::OffTip.c_str());
@@ -530,8 +578,10 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 					}
 					EndSection();
 
-					// Segunda seção da coluna direita: RCS (Recoil)
-            BeginSection("RCS", ImVec2(ImGui::GetColumnWidth(), 0), false);
+					// Coluna 3: RCS (Recoil)
+                ImGui::NextColumn();
+                ImGui::SetCursorPosY(6.f);
+            BeginSection("RCS", ImVec2(ImGui::GetColumnWidth(), 0));
 					{
 						static const float recoilMin = 0.f, recoilMax = 2.f;
 						static const int RCSBulletMin = 0, RCSBulletMax = 5;
@@ -584,8 +634,7 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 						}
 					}
 					EndSection();
-					// RCS e Triggerbot movidos para páginas próprias (MenuPage 5 e 4)
-					
+					// Encerrar grade de 3 colunas
 					ImGui::Columns(1);
 				}
 
@@ -606,9 +655,9 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.f);
 						ImGui::TextDisabled(Text::Misc::HitSound.c_str());
 						ImGui::SameLine();
-						AlignRight(160.f);
-						ImGui::SetNextItemWidth(160.f);
-						ImGui::Combo("###HitSounds", &MiscCFG::HitSound, "None\0Neverlose\0Skeet\0");
+                        ImGui::SameLine(0.0f, 6.0f);
+                        ImGui::SetNextItemWidth(160.f);
+                        ImGui::Combo("###HitSounds", &MiscCFG::HitSound, "None\0Neverlose\0Skeet\0");
 						PutSwitch(Text::Misc::HitMerker.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::HitMarker);
 						PutSwitch(Text::Misc::BunnyHop.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::BunnyHop, false, NULL, NULL, Text::Misc::InsecureTip.c_str());
 						PutSwitch(Text::Misc::SniperCrosshair.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::SniperCrosshair, true, "###sniperCrosshair", reinterpret_cast<float*>(&MiscCFG::SniperCrosshairColor));
@@ -621,15 +670,14 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 					ImGui::SetCursorPosY(24.f);
 					BeginSection("Global Settings", ImVec2(ImGui::GetColumnWidth(), 0));
 					{
-						ImGui::TextDisabled(Text::Misc::MenuKey.c_str());
-						ImGui::SameLine();
-						AlignRight(70.f);
-						if (ImGui::Button(Text::Misc::HotKey.c_str(), { 70.f, 25.f }))
-						{
-							std::thread([&]() {
-								KeyMgr::GetPressedKey(MenuConfig::HotKey, &Text::Misc::HotKey);
-								}).detach();
-						}
+                        ImGui::TextDisabled(Text::Misc::MenuKey.c_str());
+                        ImGui::SameLine(0.0f, 6.0f);
+                        if (ImGui::Button(Text::Misc::HotKey.c_str(), { 60.f, 24.f }))
+                        {
+                            std::thread([&]() {
+                                KeyMgr::GetPressedKey(MenuConfig::HotKey, &Text::Misc::HotKey);
+                                }).detach();
+                        }
 						PutSwitch(Text::Misc::SpecCheck.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &MenuConfig::WorkInSpec);
 						PutSwitch(Text::Misc::TeamCheck.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &MenuConfig::TeamCheck);
 						PutSwitch(Text::Misc::AntiRecord.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &MenuConfig::BypassOBS);
@@ -645,8 +693,11 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
 
                     // Página de Config removida temporariamente
 					ImGui::NewLine();
-				} ImGui::EndChild();
-			} ImGui::End();
+			} ImGui::EndChild();
+		} ImGui::End();
+
+        // Reverter cores de fundo apenas para esta janela
+        ImGui::PopStyleColor(2);
 
 		LoadDefaultConfig();
 	}

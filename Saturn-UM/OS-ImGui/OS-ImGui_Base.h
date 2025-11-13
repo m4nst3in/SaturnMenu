@@ -19,6 +19,7 @@ namespace OSImGui
 {
     // Fonte grande para títulos (exposta para uso no GUI)
     extern ImFont* TitleFont;
+    extern ImFont* TitleFontLarge;
 	class D3DDevice
 	{
 	public:
