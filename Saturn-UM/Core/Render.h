@@ -161,7 +161,9 @@ namespace Render
 			maxPos.y = max(boneJoint.ScreenPos.y, maxPos.y);
 		}
 
-		BoneJointPos headBone = Entity.GetBone().BonePosList[BONEINDEX::head];
+        if (Entity.GetBone().BonePosList.size() <= BONEINDEX::head)
+            return ImVec4(0, 0, 0, 0);
+        BoneJointPos headBone = Entity.GetBone().BonePosList[BONEINDEX::head];
 		const float diffY = maxPos.y - headBone.ScreenPos.y;
 		const float height = diffY * 1.09f;
 		const float width = height * 0.6f;
@@ -186,17 +188,19 @@ namespace Render
 		const auto& bonePosList = Entity.GetBone().BonePosList;
 		BoneJointPos previous, current;
 
-		for (const auto& boneChain : BoneJointList::List)
-		{
-			previous.Pos = Vec3(0, 0, 0);
-			for (const auto& index : boneChain)
-			{
-				current = bonePosList[index];
-				if (previous.Pos == Vec3(0, 0, 0))
-				{
-					previous = current;
-					continue;
-				}
+        for (const auto& boneChain : BoneJointList::List)
+        {
+            previous.Pos = Vec3(0, 0, 0);
+            for (const auto& index : boneChain)
+            {
+                if (index >= bonePosList.size())
+                    continue;
+                current = bonePosList[index];
+                if (previous.Pos == Vec3(0, 0, 0))
+                {
+                    previous = current;
+                    continue;
+                }
 				if (previous.IsVisible && current.IsVisible)
 				{
 					Gui.Line(previous.ScreenPos, current.ScreenPos, Color, Thickness);
@@ -212,7 +216,9 @@ namespace Render
 			return;
 
 		const auto& bonePosList = Entity.GetBone().BonePosList;
-		const BoneJointPos& head = bonePosList[BONEINDEX::head];
+        if (bonePosList.size() <= BONEINDEX::head)
+            return;
+        const BoneJointPos& head = bonePosList[BONEINDEX::head];
 		const Vec2 startPoint = head.ScreenPos;
 
 		const float degToRad = M_PI / 180.0f;

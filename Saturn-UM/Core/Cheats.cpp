@@ -282,26 +282,32 @@ void Cheats::HandleEnts(const std::vector<EntityResult>& entities, CEntity& loca
 			float aimFovTan = tan(AimControl::AimFov * DEG_TO_RAD / 2.f);
 			float aimFovRadius = (aimFovTan / staticFovTan) * halfWindowSize;
 
-			for (size_t i = 0; i < AimControl::HitboxList.size(); ++i) {
-				int hitboxID = AimControl::HitboxList[i];
+            const auto& bones = entity.GetBone().BonePosList;
+            if (!bones.empty()) {
+                for (size_t i = 0; i < AimControl::HitboxList.size(); ++i) {
+                    int hitboxID = AimControl::HitboxList[i];
+                    if (hitboxID < 0 || static_cast<size_t>(hitboxID) >= bones.size()) {
+                        continue;
+                    }
 
-				float distanceToSight = entity.GetBone().BonePosList[hitboxID].ScreenPos.DistanceTo(
-					{ screenCenter.x, screenCenter.y });
+                    float distanceToSight = bones[hitboxID].ScreenPos.DistanceTo(
+                        { screenCenter.x, screenCenter.y });
 
-				if (distanceToSight < minDistance && distanceToSight <= aimFovRadius) {
-					minDistance = distanceToSight;
+                    if (distanceToSight < minDistance && distanceToSight <= aimFovRadius) {
+                        minDistance = distanceToSight;
 
-					if (!LegitBotConfig::VisibleCheck ||
-						entity.Pawn.bSpottedByMask & (DWORD64(1) << (localPlayerControllerIndex)) ||
-						localEntity.Pawn.bSpottedByMask & (DWORD64(1) << (entityIndex))) {
-						Vec3 tempPos = entity.GetBone().BonePosList[hitboxID].Pos;
+                        if (!LegitBotConfig::VisibleCheck ||
+                            entity.Pawn.bSpottedByMask & (DWORD64(1) << (localPlayerControllerIndex)) ||
+                            localEntity.Pawn.bSpottedByMask & (DWORD64(1) << (entityIndex))) {
+                            Vec3 tempPos = bones[hitboxID].Pos;
 
-						bestAimPos = tempPos;
-						aimPosList.push_back(bestAimPos);
-						MaxAimDistance = distanceToSight;
-					}
-				}
-			}
+                            bestAimPos = tempPos;
+                            aimPosList.push_back(bestAimPos);
+                            MaxAimDistance = distanceToSight;
+                        }
+                    }
+                }
+            }
 		}
 
 		// render esp
