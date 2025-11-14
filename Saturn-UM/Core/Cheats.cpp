@@ -22,7 +22,6 @@
 #include "../Core/Interfaces.h"
 #include "../Core/FrameContext.h"
 #include "../Core/DI.h"
-#include "../Core/Metrics.h"
 
 #include "../Core/Init.h"
 
@@ -54,26 +53,14 @@ struct MiscFeatureAdapter : Core::IFeature {
 struct VisualFeatureAdapter : Core::IFeature {
     const CEntity* local;
     void OnFrame(const Core::FrameContext& ctx) override { local = ctx.local; }
-    void OnRender() override {
-        auto metrics = Core::Container::Get<Core::Metrics>();
-        auto t0 = std::chrono::steady_clock::now();
-        if (local) Visual(*local);
-        auto t1 = std::chrono::steady_clock::now();
-        if (metrics) metrics->Record("Visual", std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count());
-    }
+    void OnRender() override { if (local) Visual(*local); }
 };
 
 struct RadarFeatureAdapter : Core::IFeature {
     Base_Radar* radar;
     const CEntity* local;
     void OnFrame(const Core::FrameContext& ctx) override { radar = ctx.radar; local = ctx.local; }
-    void OnRender() override {
-        auto metrics = Core::Container::Get<Core::Metrics>();
-        auto t0 = std::chrono::steady_clock::now();
-        if (radar && local) Radar(*radar, *local);
-        auto t1 = std::chrono::steady_clock::now();
-        if (metrics) metrics->Record("Radar", std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count());
-    }
+    void OnRender() override { if (radar && local) Radar(*radar, *local); }
 };
 
 struct ESPFeatureAdapter : Core::IFeature {
@@ -120,15 +107,8 @@ struct TriggerAimFeatureAdapter : Core::IFeature {
     std::vector<Vec3>* aimList;
     void OnFrame(const Core::FrameContext& ctx) override {
         local = ctx.local; localIndex = ctx.localControllerIndex; aimList = ctx.aimPosList;
-        auto metrics = Core::Container::Get<Core::Metrics>();
-        auto t0 = std::chrono::steady_clock::now();
         if (local) Trigger(*local, localIndex);
-        auto t1 = std::chrono::steady_clock::now();
-        if (metrics) metrics->Record("Trigger", std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count());
-        auto a0 = std::chrono::steady_clock::now();
         if (local && aimList) AIM(*local, *aimList);
-        auto a1 = std::chrono::steady_clock::now();
-        if (metrics) metrics->Record("Aim", std::chrono::duration_cast<std::chrono::milliseconds>(a1 - a0).count());
     }
     void OnRender() override {}
 };

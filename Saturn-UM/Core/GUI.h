@@ -18,8 +18,6 @@
 #include "..\Resources\IconsFontAwesome.h"
 
 #include "../Features/ESP.h"
-#include "../Core/DI.h"
-#include "../Core/Metrics.h"
 #include <string>
 
 inline ID3D11ShaderResourceView* Logo = NULL;
@@ -932,52 +930,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                     }
                     EndSection();
 
-                    BeginSection("Diagnostics", ImVec2(ImGui::GetColumnWidth(), 0));
-                    {
-                        auto metrics = Core::Container::Get<Core::Metrics>();
-                        if (metrics)
-                        {
-                            long long vLast = metrics->Get("Visual");
-                            long long vAvg = metrics->Average("Visual");
-                            long long vMed = metrics->Median("Visual");
-                            long long vP95 = metrics->P95("Visual");
-                            long long rLast = metrics->Get("Radar");
-                            long long rAvg = metrics->Average("Radar");
-                            long long rMed = metrics->Median("Radar");
-                            long long rP95 = metrics->P95("Radar");
-                            long long fLast = metrics->Get("Features");
-                            long long fAvg = metrics->Average("Features");
-                            long long fMed = metrics->Median("Features");
-                            long long fP95 = metrics->P95("Features");
-                            long long tLast = metrics->Get("Trigger");
-                            long long tAvg = metrics->Average("Trigger");
-                            long long tMed = metrics->Median("Trigger");
-                            long long tP95 = metrics->P95("Trigger");
-                            long long aLast = metrics->Get("Aim");
-                            long long aAvg = metrics->Average("Aim");
-                            long long aMed = metrics->Median("Aim");
-                            long long aP95 = metrics->P95("Aim");
-                            auto colorFor = [](long long last, long long thr){ return ImColor(last>thr? ImVec4(0.9f,0.2f,0.2f,1.f): ImVec4(0.5f,0.9f,0.5f,1.f)); };
-                            ImGui::TextColored(colorFor(vLast, MenuConfig::DiagThrVisual), "Visual: %lld ms (avg %lld, med %lld, p95 %lld)", vLast, vAvg, vMed, vP95);
-                            ImGui::TextColored(colorFor(rLast, MenuConfig::DiagThrRadar), "Radar: %lld ms (avg %lld, med %lld, p95 %lld)", rLast, rAvg, rMed, rP95);
-                            ImGui::TextColored(colorFor(fLast, MenuConfig::DiagThrFeatures), "Features: %lld ms (avg %lld, med %lld, p95 %lld)", fLast, fAvg, fMed, fP95);
-                            ImGui::TextColored(colorFor(tLast, MenuConfig::DiagThrTrigger), "Trigger: %lld ms (avg %lld, med %lld, p95 %lld)", tLast, tAvg, tMed, tP95);
-                            ImGui::TextColored(colorFor(aLast, MenuConfig::DiagThrAim), "Aim: %lld ms (avg %lld, med %lld, p95 %lld)", aLast, aAvg, aMed, aP95);
-                            long long rcsFb = metrics->Get("RCS_FallbacksPerSec");
-                            ImGui::Text("RCS Fallbacks/s: %lld", rcsFb);
-                            if (ImGui::Button("Reset Metrics")) { metrics->Reset(); }
-                            bool paused = metrics->IsPaused();
-                            PutSwitch("Pause metrics", 5.f, ImGui::GetFrameHeight() * 1.7, &paused);
-                            metrics->SetPaused(paused);
-                            int minThr=0, maxThr=50;
-                            PutSliderInt("Visual thr", 5.f, &MenuConfig::DiagThrVisual, &minThr, &maxThr, "%d ms");
-                            PutSliderInt("Radar thr", 5.f, &MenuConfig::DiagThrRadar, &minThr, &maxThr, "%d ms");
-                            PutSliderInt("Features thr", 5.f, &MenuConfig::DiagThrFeatures, &minThr, &maxThr, "%d ms");
-                            PutSliderInt("Trigger thr", 5.f, &MenuConfig::DiagThrTrigger, &minThr, &maxThr, "%d ms");
-                            PutSliderInt("Aim thr", 5.f, &MenuConfig::DiagThrAim, &minThr, &maxThr, "%d ms");
-                        }
-                    }
-                    EndSection();
+                    
 
 					ImGui::Columns(1);
 				}

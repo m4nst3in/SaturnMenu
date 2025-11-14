@@ -1,7 +1,6 @@
 #include "RCS.h"
 #include "../Helpers/Logger.h"
 #include "../Core/DI.h"
-#include "../Core/Metrics.h"
 
 
 namespace
@@ -90,11 +89,7 @@ void RCS::RecoilControl(const CEntity& LocalPlayer)
 	    }
 
     DWORD now = GetTickCount64();
-    if (now - lastTick >= 1000) {
-        auto metrics = Core::Container::Get<Core::Metrics>();
-        fallbackCount = 0;
-        lastTick = now;
-    }
+    if (now - lastTick >= 1000) { fallbackCount = 0; lastTick = now; }
 }
 
 void RCS::UpdateAngles(const CEntity& Local, Vec2& Angles)
@@ -133,9 +128,5 @@ void RCS::UpdateAngles(const CEntity& Local, Vec2& Angles)
     oldPunch = punch;
 
     DWORD now = GetTickCount64();
-    if (now - lastTick >= 1000) {
-        auto metrics = Core::Container::Get<Core::Metrics>();
-        fallbackCount = 0;
-        lastTick = now;
-    }
+    if (now - lastTick >= 1000) { fallbackCount = 0; lastTick = now; }
 }

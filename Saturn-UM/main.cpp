@@ -2,7 +2,6 @@
 
 #include "Core/Cheats.h"
 #include "Core/DI.h"
-#include "Core/Metrics.h"
 #include "Offsets/Offsets.h"
 #include "Resources/Language.h"
 #include "Core/Init.h"
@@ -239,11 +238,9 @@ UPDATE_OFFSETS://UPDATE_OFFSETS
         Log::Error("Offsets are not updated, wait until the menu updates!");
     }
 
-    static Core::Metrics metrics;
     Core::Container::Set(&memoryManager);
     Core::Container::Set(&gGame);
     Core::Container::Set(g_globalVars.get());
-    Core::Container::Set(&metrics);
 
 	Log::PreviousLine();
 	Log::Fine("VAC pwned!");

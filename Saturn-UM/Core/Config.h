@@ -13,11 +13,6 @@ namespace MenuConfig
 	inline int AimDelay = 1;
 	inline int BunnyHopDelay = 25;
     inline int RenderDistance = 1000;
-    inline int DiagThrVisual = 5;
-    inline int DiagThrRadar = 3;
-    inline int DiagThrFeatures = 5;
-    inline int DiagThrTrigger = 1;
-    inline int DiagThrAim = 1;
 
 	struct {
 		// 0: Visual 1: Aimbot 2: Misc 3: Config

@@ -224,11 +224,6 @@ namespace MyConfigSaver
         ConfigData["MenuConfig"]["SpecWinPos"]["x"] = MenuConfig::SpecWinPos.x;
         ConfigData["MenuConfig"]["SpecWinPos"]["y"] = MenuConfig::SpecWinPos.y;
 
-        ConfigData["MenuConfig"]["DiagThrVisual"] = MenuConfig::DiagThrVisual;
-        ConfigData["MenuConfig"]["DiagThrRadar"] = MenuConfig::DiagThrRadar;
-        ConfigData["MenuConfig"]["DiagThrFeatures"] = MenuConfig::DiagThrFeatures;
-        ConfigData["MenuConfig"]["DiagThrTrigger"] = MenuConfig::DiagThrTrigger;
-        ConfigData["MenuConfig"]["DiagThrAim"] = MenuConfig::DiagThrAim;
 
         configFile << ConfigData.dump(4);
         configFile.close();
@@ -466,11 +461,6 @@ namespace MyConfigSaver
             MenuConfig::RadarWinChengePos = true;
             MenuConfig::SpecWinChengePos = true;
 
-            MenuConfig::DiagThrVisual = ReadData(ConfigData["MenuConfig"], { "DiagThrVisual" }, MenuConfig::DiagThrVisual);
-            MenuConfig::DiagThrRadar = ReadData(ConfigData["MenuConfig"], { "DiagThrRadar" }, MenuConfig::DiagThrRadar);
-            MenuConfig::DiagThrFeatures = ReadData(ConfigData["MenuConfig"], { "DiagThrFeatures" }, MenuConfig::DiagThrFeatures);
-            MenuConfig::DiagThrTrigger = ReadData(ConfigData["MenuConfig"], { "DiagThrTrigger" }, MenuConfig::DiagThrTrigger);
-            MenuConfig::DiagThrAim = ReadData(ConfigData["MenuConfig"], { "DiagThrAim" }, MenuConfig::DiagThrAim);
         }
 
         ValidateConfig();
