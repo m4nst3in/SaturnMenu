@@ -1,15 +1,3 @@
-//______                            ______                  
-//|  _  \                           | ___ \                 
-//| | | |_ __ __ _  __ _  ___  _ __ | |_/ /_   _ _ __ _ __  
-//| | | | '__/ _` |/ _` |/ _ \| '_ \| ___ \ | | | '__| '_ \ 
-//| |/ /| | | (_| | (_| | (_) | | | | |_/ / |_| | |  | | | |
-//|___/ |_|  \__,_|\__, |\___/|_| |_\____/ \__,_|_|  |_| |_|
-//                  __/ |                                   
-//                 |___/                                    
-//
-//https://discord.gg/5WcvdzFybD
-//https://github.com/ByteCorum/DragonBurn
-
 #include <string>
 #include <thread>
 #include <future>
@@ -70,6 +58,7 @@ struct ESPFeatureAdapter : Core::IFeature {
     void OnFrame(const Core::FrameContext& ctx) override { entities = ctx.entities; local = ctx.local; localIndex = ctx.localControllerIndex; }
     void OnRender() override {
         if (!entities || !local) return;
+        if (!Init::Client::ShouldRenderESP()) return;
         auto mm = Core::Container::Get<MemoryMgr>();
         for (const auto& result : *entities) {
             if (!result.isValid) continue;
@@ -234,13 +223,13 @@ void Cheats::Run()
                 WeaponConfig::WeaponProfile p;
                 p.rcsEnabled = LegitBotConfig::RCS;
                 p.rcsBullet = RCS::RCSBullet;
-                p.rcsYaw = 1.40f;
-                p.rcsPitch = 1.40f;
+                p.rcsYaw = 1.00f;
+                p.rcsPitch = 1.00f;
                 WeaponConfig::WeaponConfigs[k] = p;
             } else {
                 auto& p = WeaponConfig::WeaponConfigs[k];
-                p.rcsYaw = 1.40f;
-                p.rcsPitch = 1.40f;
+                p.rcsYaw = 1.00f;
+                p.rcsPitch = 1.00f;
             }
         };
         ensureRifle("famas");

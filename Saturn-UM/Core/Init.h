@@ -189,6 +189,15 @@ namespace Init
             return false;
         }
 
+        static bool ShouldRenderESP() {
+            HWND hwnd_cs2 = FindWindow(NULL, TEXT("Counter-Strike 2"));
+            if (!hwnd_cs2) return false;
+            if (IsIconic(hwnd_cs2)) return false;
+            HWND fg = GetForegroundWindow();
+            if (fg != hwnd_cs2) return false;
+            return true;
+        }
+
         static void Exit()
         {
             exit(0);
@@ -196,4 +205,3 @@ namespace Init
     };
 
 }
-

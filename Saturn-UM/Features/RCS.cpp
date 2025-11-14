@@ -1,6 +1,8 @@
 #include "RCS.h"
 #include "../Helpers/Logger.h"
 #include "../Core/DI.h"
+#include "../Core/Config.h" // Certifique-se que esse header dá acesso ao WeaponConfig::WeaponConfigs
+#include "TriggerBot.h"
 
 namespace
 {
@@ -26,8 +28,21 @@ void RCS::RecoilControl(const CEntity& LocalPlayer)
 {
     static Vec2 oldPunch{ 0.f, 0.f };
     static int lastShotsFired = 0;
-    char buf[256];
-    static DWORD lastResetLogTick = 0;
+
+    std::string weaponName = TriggerBot::GetWeapon(LocalPlayer);
+    WeaponRCSConfig defaultConfig = GetWeaponRCSConfig(weaponName);
+
+    // Pegue config do usuário se existir
+    float yaw = defaultConfig.yaw;
+    float pitch = defaultConfig.pitch;
+
+    auto it = WeaponConfig::WeaponConfigs.find(weaponName);
+    if (it != WeaponConfig::WeaponConfigs.end())
+    {
+        const auto& userCfg = it->second;
+        if (userCfg.rcsYaw > 0.0f)   yaw   = userCfg.rcsYaw;
+        if (userCfg.rcsPitch > 0.0f) pitch = userCfg.rcsPitch;
+    }
 
     Vec2 punch{};
     if (!GetPunchFromCache(LocalPlayer, punch)) {
@@ -39,42 +54,22 @@ void RCS::RecoilControl(const CEntity& LocalPlayer)
     int shotsFired = LocalPlayer.Pawn.ShotsFired;
 
     if (lastShotsFired == 0 && shotsFired > 0)
-    {
         oldPunch = punch;
-    }
 
     if (shotsFired <= 0)
     {
-        oldPunch.x = 0.f;
-        oldPunch.y = 0.f;
+        oldPunch.x = 0.f; oldPunch.y = 0.f;
         lastShotsFired = shotsFired;
         return;
     }
-
-    Vec2 viewAngles = LocalPlayer.Pawn.ViewAngle;
-
-    Vec2 newAngles{
-        viewAngles.x + oldPunch.x - punch.x * 2.f,
-        viewAngles.y + oldPunch.y - punch.y * 2.f
-    };
-
-    if (newAngles.x > 89.f)  newAngles.x = 89.f;
-    if (newAngles.x < -89.f) newAngles.x = -89.f;
-    while (newAngles.y > 180.f)  newAngles.y -= 360.f;
-    while (newAngles.y < -180.f) newAngles.y += 360.f;
-
-    Vec2 delta = newAngles - viewAngles;
 
     float sens = LocalPlayer.Client.Sensitivity;
     constexpr float m_yaw = 0.022f;
     constexpr float m_pitch = 0.022f;
 
-    delta.x *= RCSScale.y;
-    delta.y *= RCSScale.x;
-
     Vec2 deltaPunch{ punch.x - oldPunch.x, punch.y - oldPunch.y };
-    int mouseX = static_cast<int>(std::round((deltaPunch.y * 2.f * RCSScale.x) / (sens * m_yaw)));
-    int mouseY = static_cast<int>(std::round((deltaPunch.x * 2.f * RCSScale.y) / (sens * m_pitch)));
+    int mouseX = static_cast<int>(std::round((deltaPunch.y * 2.f * yaw) / (sens * m_yaw)));
+    int mouseY = static_cast<int>(std::round((deltaPunch.x * 2.f * pitch) / (sens * m_pitch)));
 
     if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
     {
@@ -83,49 +78,51 @@ void RCS::RecoilControl(const CEntity& LocalPlayer)
     }
 
     lastShotsFired = shotsFired;
-
-    static DWORD lastTick = GetTickCount64();
-    static int fallbackCount = 0;
-    DWORD now = GetTickCount64();
-    if (now - lastTick >= 1000) { fallbackCount = 0; lastTick = now; }
 }
-
 
 void RCS::UpdateAngles(const CEntity& Local, Vec2& Angles)
 {
     static Vec2 oldPunch{ 0.f, 0.f };
-    char buf[256];
+
+    std::string weaponName = TriggerBot::GetWeapon(Local);
+    WeaponRCSConfig defaultConfig = GetWeaponRCSConfig(weaponName);
+
+    // Pegue config do usuário se existir
+    float yaw = defaultConfig.yaw;
+    float pitch = defaultConfig.pitch;
+
+    auto it = WeaponConfig::WeaponConfigs.find(weaponName);
+    if (it != WeaponConfig::WeaponConfigs.end())
+    {
+        const auto& userCfg = it->second;
+        if (userCfg.rcsYaw > 0.0f)   yaw   = userCfg.rcsYaw;
+        if (userCfg.rcsPitch > 0.0f) pitch = userCfg.rcsPitch;
+    }
 
     int shotsFired = Local.Pawn.ShotsFired;
 
-    if (shotsFired <= 0)
-    {
-        oldPunch.x = 0.f;
-        oldPunch.y = 0.f;
+    if (shotsFired <= 0) {
+        oldPunch.x = 0.f; oldPunch.y = 0.f;
         return;
     }
 
-    static DWORD lastTick = GetTickCount64();
-    static int fallbackCount = 0;
     Vec2 punch{};
     if (!GetPunchFromCache(Local, punch)) {
         Vec2 ap = Local.Pawn.AimPunchAngle;
         punch.x = ap.x;
         punch.y = ap.y;
-        fallbackCount++;
     }
 
-    Vec2 viewAngles = Local.Pawn.ViewAngle;
-
     Vec2 deltaPunch{ punch.x - oldPunch.x, punch.y - oldPunch.y };
-    Angles.x -= deltaPunch.x * 2.f;
-    Angles.y -= deltaPunch.y * 2.f;
+
+    // Aplica yaw/pitch (user ou padrão)
+    Angles.x -= deltaPunch.x * 2.f * pitch;
+    Angles.y -= deltaPunch.y * 2.f * yaw;
+
     if (Angles.x > 89.f)  Angles.x = 89.f;
     if (Angles.x < -89.f) Angles.x = -89.f;
     while (Angles.y > 180.f)  Angles.y -= 360.f;
     while (Angles.y < -180.f) Angles.y += 360.f;
-    oldPunch = punch;
 
-    DWORD now = GetTickCount64();
-    if (now - lastTick >= 1000) { fallbackCount = 0; lastTick = now; }
+    oldPunch = punch;
 }
