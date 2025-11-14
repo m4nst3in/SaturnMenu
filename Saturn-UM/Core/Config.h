@@ -12,7 +12,12 @@ namespace MenuConfig
 	inline int RenderFPS = 1000;
 	inline int AimDelay = 1;
 	inline int BunnyHopDelay = 25;
-	inline int RenderDistance = 1000;
+    inline int RenderDistance = 1000;
+    inline int DiagThrVisual = 5;
+    inline int DiagThrRadar = 3;
+    inline int DiagThrFeatures = 5;
+    inline int DiagThrTrigger = 1;
+    inline int DiagThrAim = 1;
 
 	struct {
 		// 0: Visual 1: Aimbot 2: Misc 3: Config
@@ -49,7 +54,7 @@ namespace MenuConfig
 
 namespace LegitBotConfig
 {
-	inline bool AimBot = true;
+    inline bool AimBot = false;
 	inline bool AimAlways = false;
 	inline bool AimToggleMode = false;
 	// 0: head 1: neck 3: spine

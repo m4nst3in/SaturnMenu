@@ -14,10 +14,15 @@
 #include <thread>
 #include <future>
 #include <iostream>
+#include <memory>
 
 #include "Cheats.h"
 #include "Render.h"
 #include "../Core/Config.h"
+#include "../Core/Interfaces.h"
+#include "../Core/FrameContext.h"
+#include "../Core/DI.h"
+#include "../Core/Metrics.h"
 
 #include "../Core/Init.h"
 
@@ -39,6 +44,98 @@ void AIM(const CEntity&, std::vector<Vec3>);
 void MiscFuncs(CEntity&);
 void RenderCrosshair(ImDrawList*, const CEntity&);
 void RadarSetting(Base_Radar&);
+
+struct MiscFeatureAdapter : Core::IFeature {
+    const CEntity* local;
+    void OnFrame(const Core::FrameContext& ctx) override { local = ctx.local; }
+    void OnRender() override { if (local) { CEntity copy = *local; MiscFuncs(copy); } }
+};
+
+struct VisualFeatureAdapter : Core::IFeature {
+    const CEntity* local;
+    void OnFrame(const Core::FrameContext& ctx) override { local = ctx.local; }
+    void OnRender() override {
+        auto metrics = Core::Container::Get<Core::Metrics>();
+        auto t0 = std::chrono::steady_clock::now();
+        if (local) Visual(*local);
+        auto t1 = std::chrono::steady_clock::now();
+        if (metrics) metrics->Record("Visual", std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count());
+    }
+};
+
+struct RadarFeatureAdapter : Core::IFeature {
+    Base_Radar* radar;
+    const CEntity* local;
+    void OnFrame(const Core::FrameContext& ctx) override { radar = ctx.radar; local = ctx.local; }
+    void OnRender() override {
+        auto metrics = Core::Container::Get<Core::Metrics>();
+        auto t0 = std::chrono::steady_clock::now();
+        if (radar && local) Radar(*radar, *local);
+        auto t1 = std::chrono::steady_clock::now();
+        if (metrics) metrics->Record("Radar", std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count());
+    }
+};
+
+struct ESPFeatureAdapter : Core::IFeature {
+    const std::vector<EntityResult>* entities;
+    const CEntity* local;
+    int localIndex;
+    void OnFrame(const Core::FrameContext& ctx) override { entities = ctx.entities; local = ctx.local; localIndex = ctx.localControllerIndex; }
+    void OnRender() override {
+        if (!entities || !local) return;
+        auto mm = Core::Container::Get<MemoryMgr>();
+        for (const auto& result : *entities) {
+            if (!result.isValid) continue;
+            if (!ESPConfig::ESPenabled) continue;
+            if (ESPConfig::FlashCheck && local->Pawn.FlashDuration >= 0.1f) continue;
+            const ImVec4& Rect = result.espRect;
+            const int distance = result.distance;
+            if (MenuConfig::RenderDistance == 0 || (distance <= MenuConfig::RenderDistance && MenuConfig::RenderDistance > 0)) {
+                ESP::RenderPlayerESP(*local, result.entity, Rect, localIndex, result.entityIndex);
+                Render::DrawDistance(*local, result.entity, Rect);
+                if (ESPConfig::ShowHealthBar) {
+                    ImVec2 HealthBarPos = { Rect.x - 6.f, Rect.y };
+                    ImVec2 HealthBarSize = { 4, Rect.w };
+                    Render::DrawHealthBar(result.entity.Controller.Address, result.entity.Pawn.Health > 100 ? result.entity.Pawn.Health : 100, result.entity.Pawn.Health, HealthBarPos, HealthBarSize);
+                }
+                if (ESPConfig::ArmorBar && result.entity.Pawn.Armor > 0) {
+                    bool HasHelmet;
+                    ImVec2 ArmorBarPos;
+                    if (mm) mm->ReadMemory(result.entity.Controller.Address + Offset.PlayerController.HasHelmet, HasHelmet);
+                    if (ESPConfig::ShowHealthBar)
+                        ArmorBarPos = { Rect.x - 10.f, Rect.y };
+                    else
+                        ArmorBarPos = { Rect.x - 6.f, Rect.y };
+                    ImVec2 ArmorBarSize = { 4.f, Rect.w };
+                    Render::DrawArmorBar(result.entity.Controller.Address, result.entity.Pawn.Armor > 100 ? result.entity.Pawn.Armor : 100, result.entity.Pawn.Armor, HasHelmet, ArmorBarPos, ArmorBarSize);
+                }
+            }
+        }
+    }
+};
+
+struct TriggerAimFeatureAdapter : Core::IFeature {
+    const CEntity* local;
+    int localIndex;
+    std::vector<Vec3>* aimList;
+    void OnFrame(const Core::FrameContext& ctx) override {
+        local = ctx.local; localIndex = ctx.localControllerIndex; aimList = ctx.aimPosList;
+        auto metrics = Core::Container::Get<Core::Metrics>();
+        auto t0 = std::chrono::steady_clock::now();
+        if (local) Trigger(*local, localIndex);
+        auto t1 = std::chrono::steady_clock::now();
+        if (metrics) metrics->Record("Trigger", std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count());
+        auto a0 = std::chrono::steady_clock::now();
+        if (local && aimList) AIM(*local, *aimList);
+        auto a1 = std::chrono::steady_clock::now();
+        if (metrics) metrics->Record("Aim", std::chrono::duration_cast<std::chrono::milliseconds>(a1 - a0).count());
+    }
+    void OnRender() override {}
+};
+
+static bool g_featuresInitialized = false;
+static std::vector<std::unique_ptr<Core::IFeature>> g_features_tick;
+static std::vector<std::unique_ptr<Core::IFeature>> g_features_render;
 
 void Cheats::Run()
 {	
@@ -103,9 +200,19 @@ void Cheats::Run()
 	// render, collect aim data
 	HandleEnts(entityResults, LocalEntity, LocalPlayerControllerIndex, GameRadar, AimPosList);
 
-	Visual(LocalEntity);
-	Radar(GameRadar, LocalEntity);
-	MiscFuncs(LocalEntity);
+    if (!g_featuresInitialized) {
+        g_features_tick.emplace_back(std::make_unique<TriggerAimFeatureAdapter>());
+        g_features_render.emplace_back(std::make_unique<VisualFeatureAdapter>());
+        g_features_render.emplace_back(std::make_unique<RadarFeatureAdapter>());
+        g_features_render.emplace_back(std::make_unique<ESPFeatureAdapter>());
+        g_features_render.emplace_back(std::make_unique<MiscFeatureAdapter>());
+        g_featuresInitialized = true;
+    }
+
+    Core::FrameContext ctx{ &LocalEntity, LocalPlayerControllerIndex, &entityResults, &AimPosList, &GameRadar };
+    for (auto& f : g_features_render) {
+        f->OnFrame(ctx);
+    }
 
 	int currentFPS = static_cast<int>(ImGui::GetIO().Framerate);
 	if (currentFPS > MenuConfig::RenderFPS)
@@ -113,12 +220,17 @@ void Cheats::Run()
 		int FrameWait = round(1000.0f / MenuConfig::RenderFPS);
 		std::this_thread::sleep_for(std::chrono::milliseconds(FrameWait));
 	}
+
+	for (auto& f : g_features_render) {
+		f->OnRender();
+	}
 	
 	// run trigger & aim every new tick
 	if (m_currentTick != m_previousTick)
 	{
-		Trigger(LocalEntity, LocalPlayerControllerIndex);
-		AIM(LocalEntity, AimPosList);
+        for (auto& f : g_features_tick) {
+            f->OnFrame(ctx);
+        }
 		
 		std::vector<CEntity> allEntities;
 		for (const auto& pair : cachedResults) {
@@ -311,52 +423,9 @@ void Cheats::HandleEnts(const std::vector<EntityResult>& entities, CEntity& loca
 		}
 
 		// render esp
-		if (ESPConfig::ESPenabled && (!ESPConfig::FlashCheck || localEntity.Pawn.FlashDuration < 0.1f))
+        if (false)
 		{
-			const ImVec4& Rect = result.espRect;
-			const int distance = result.distance;
-
-			if (MenuConfig::RenderDistance == 0 || (distance <= MenuConfig::RenderDistance && MenuConfig::RenderDistance > 0))
-			{
-				ESP::RenderPlayerESP(localEntity, entity, Rect, localPlayerControllerIndex, entityIndex);
-				Render::DrawDistance(localEntity, entity, Rect);
-
-                // healthbar
-                if(ESPConfig::ShowHealthBar)
-				{
-					ImVec2 HealthBarPos = { Rect.x - 6.f, Rect.y };
-					ImVec2 HealthBarSize = { 4, Rect.w };
-					Render::DrawHealthBar(entity.Controller.Address, entity.Pawn.Health > 100 ? entity.Pawn.Health : 100, entity.Pawn.Health, HealthBarPos, HealthBarSize);
-				}
-
-
-				// ammo
-				// When player is using knife or nade, Ammo = -1.
-				if (ESPConfig::AmmoBar && entity.Pawn.Ammo != -1)
-				{
-					ImVec2 AmmoBarPos = { Rect.x, Rect.y + Rect.w + 2 };
-					ImVec2 AmmoBarSize = { Rect.z, 4 };
-					Render::DrawAmmoBar(entity.Controller.Address, entity.Pawn.Ammo + entity.Pawn.ShotsFired, 
-						entity.Pawn.Ammo, AmmoBarPos, AmmoBarSize);
-				}
-
-                // armor
-                // It is meaningless to render a empty bar
-                if (ESPConfig::ArmorBar && entity.Pawn.Armor > 0)
-				{
-					bool HasHelmet;
-					ImVec2 ArmorBarPos;
-					memoryManager.ReadMemory(entity.Controller.Address + Offset.PlayerController.HasHelmet, HasHelmet);
-					
-					if (ESPConfig::ShowHealthBar)
-						ArmorBarPos = { Rect.x - 10.f, Rect.y };
-					else
-						ArmorBarPos = { Rect.x - 6.f, Rect.y };
-					
-					ImVec2 ArmorBarSize = { 4.f, Rect.w };
-					Render::DrawArmorBar(entity.Controller.Address, entity.Pawn.Armor > 100 ? entity.Pawn.Armor : 100, entity.Pawn.Armor, HasHelmet, ArmorBarPos, ArmorBarSize);
-				}
-			}
+			
 		}
 	}
 }
@@ -426,6 +495,7 @@ void MiscFuncs(CEntity& LocalEntity)
 {
     SpecList::SpectatorWindowList(LocalEntity);
     bmb::RenderWindow(LocalEntity.Controller.TeamID);
+    
     
 
     Misc::HitManager(LocalEntity, PreviousTotalHits);

@@ -1,16 +1,8 @@
-﻿//______                            ______                  
-//|  _  \                           | ___ \                 
-//| | | |_ __ __ _  __ _  ___  _ __ | |_/ /_   _ _ __ _ __  
-//| | | | '__/ _` |/ _` |/ _ \| '_ \| ___ \ | | | '__| '_ \ 
-//| |/ /| | | (_| | (_| | (_) | | | | |_/ / |_| | |  | | | |
-//|___/ |_|  \__,_|\__, |\___/|_| |_\____/ \__,_|_|  |_| |_|
-//                  __/ |                                   
-//                 |___/                                    
-//
-//https://discord.gg/5WcvdzFybD
-//https://github.com/ByteCorum/DragonBurn
+﻿
 
 #include "Core/Cheats.h"
+#include "Core/DI.h"
+#include "Core/Metrics.h"
 #include "Offsets/Offsets.h"
 #include "Resources/Language.h"
 #include "Core/Init.h"
@@ -242,10 +234,16 @@ UPDATE_OFFSETS://UPDATE_OFFSETS
 	}
 
 	g_globalVars = std::make_unique<globalvars>();
-	if (!g_globalVars->UpdateGlobalvars()) {
-		Log::PreviousLine();
-		Log::Error("Offsets are not updated, wait until the menu updates!");
-	}
+    if (!g_globalVars->UpdateGlobalvars()) {
+        Log::PreviousLine();
+        Log::Error("Offsets are not updated, wait until the menu updates!");
+    }
+
+    static Core::Metrics metrics;
+    Core::Container::Set(&memoryManager);
+    Core::Container::Set(&gGame);
+    Core::Container::Set(g_globalVars.get());
+    Core::Container::Set(&metrics);
 
 	Log::PreviousLine();
 	Log::Fine("VAC pwned!");
@@ -257,9 +255,9 @@ UPDATE_OFFSETS://UPDATE_OFFSETS
 	ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
 
-	try
-	{
-		Gui.AttachAnotherWindow("Counter-Strike 2", "SDL_app", Cheats::Run);
+    try
+    {
+        Gui.AttachAnotherWindow("Counter-Strike 2", "SDL_app", Cheats::Run);
 	}
 	catch (std::exception& error)
 	{

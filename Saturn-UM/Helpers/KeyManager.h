@@ -95,7 +95,7 @@ namespace KeyMgr
                 *keyName = GetKeyName(hotkey);
                 break;
             }
-            //Sleep(1);
+            Sleep(1);
         }
     }
 }

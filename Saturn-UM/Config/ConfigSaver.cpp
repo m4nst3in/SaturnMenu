@@ -15,6 +15,21 @@ using json = nlohmann::json;
 
 namespace MyConfigSaver 
 {
+    template <typename T>
+    static void Clamp(T& v, const T& a, const T& b) { if (v < a) v = a; else if (v > b) v = b; }
+
+    static void ValidateConfig() {
+        Clamp(AimControl::AimFov, 1.f, 90.f);
+        Clamp(AimControl::AimFovMin, 0.f, AimControl::AimFov);
+        Clamp(AimControl::Smooth, 0.f, 20.f);
+        Clamp(AimControl::HumanizationStrength, 0, 100);
+        Clamp(RCS::RCSScale.x, 0.f, 3.f);
+        Clamp(RCS::RCSScale.y, 0.f, 3.f);
+        Clamp(RadarCFG::RadarRange, 50.f, 500.f);
+        Clamp(RadarCFG::Proportion, 1000.f, 5000.f);
+        Clamp(RadarCFG::RadarPointSizeProportion, 0.5f, 5.f);
+        Clamp(RadarCFG::RadarBgAlpha, 0.f, 1.f);
+    }
     void SaveConfig(const std::string& filename, const std::string& author) {
         std::ofstream configFile(MenuConfig::path + '\\' + filename);
         if (!configFile.is_open()) {
@@ -25,6 +40,7 @@ namespace MyConfigSaver
 
         ConfigData["0"]["Name"] = MenuConfig::name;
         ConfigData["0"]["Version"] = MenuConfig::version;
+        ConfigData["0"]["ConfigVersion"] = 1;
         ConfigData["0"]["Author"] = author;
 
         ConfigData["ESP"]["Hotkey"] =               ESPConfig::HotKey;
@@ -207,6 +223,12 @@ namespace MyConfigSaver
 
         ConfigData["MenuConfig"]["SpecWinPos"]["x"] = MenuConfig::SpecWinPos.x;
         ConfigData["MenuConfig"]["SpecWinPos"]["y"] = MenuConfig::SpecWinPos.y;
+
+        ConfigData["MenuConfig"]["DiagThrVisual"] = MenuConfig::DiagThrVisual;
+        ConfigData["MenuConfig"]["DiagThrRadar"] = MenuConfig::DiagThrRadar;
+        ConfigData["MenuConfig"]["DiagThrFeatures"] = MenuConfig::DiagThrFeatures;
+        ConfigData["MenuConfig"]["DiagThrTrigger"] = MenuConfig::DiagThrTrigger;
+        ConfigData["MenuConfig"]["DiagThrAim"] = MenuConfig::DiagThrAim;
 
         configFile << ConfigData.dump(4);
         configFile.close();
@@ -443,6 +465,14 @@ namespace MyConfigSaver
             MenuConfig::BombWinChengePos = true;
             MenuConfig::RadarWinChengePos = true;
             MenuConfig::SpecWinChengePos = true;
+
+            MenuConfig::DiagThrVisual = ReadData(ConfigData["MenuConfig"], { "DiagThrVisual" }, MenuConfig::DiagThrVisual);
+            MenuConfig::DiagThrRadar = ReadData(ConfigData["MenuConfig"], { "DiagThrRadar" }, MenuConfig::DiagThrRadar);
+            MenuConfig::DiagThrFeatures = ReadData(ConfigData["MenuConfig"], { "DiagThrFeatures" }, MenuConfig::DiagThrFeatures);
+            MenuConfig::DiagThrTrigger = ReadData(ConfigData["MenuConfig"], { "DiagThrTrigger" }, MenuConfig::DiagThrTrigger);
+            MenuConfig::DiagThrAim = ReadData(ConfigData["MenuConfig"], { "DiagThrAim" }, MenuConfig::DiagThrAim);
         }
+
+        ValidateConfig();
     }
 }

@@ -18,6 +18,9 @@
 #include "..\Resources\IconsFontAwesome.h"
 
 #include "../Features/ESP.h"
+#include "../Core/DI.h"
+#include "../Core/Metrics.h"
+#include <string>
 
 inline ID3D11ShaderResourceView* Logo = NULL;
 inline ID3D11ShaderResourceView* MenuButton1 = NULL;
@@ -49,6 +52,140 @@ inline bool checkbox5 = false;
 
 namespace GUI
 {
+    struct VM_ESP {
+        bool enabled;
+        bool showBox;
+        bool outline;
+        bool isBoxStyle;
+        bool showBone;
+        bool showOutOfFOV;
+        float outOfFOVRadius;
+        bool showHealthBar;
+        bool armorBar;
+        bool showWeapon;
+        bool ammoBar;
+        bool showDistance;
+        bool showPlayerName;
+        bool showScoped;
+        bool visibleCheck;
+    };
+    inline VM_ESP BuildVM_ESP() {
+        VM_ESP vm{};
+        vm.enabled = ESPConfig::ESPenabled;
+        vm.showBox = ESPConfig::ShowBoxESP;
+        vm.outline = ESPConfig::OutLine;
+        vm.isBoxStyle = (ESPConfig::BoxType == 0);
+        vm.showBone = ESPConfig::ShowBoneESP;
+        vm.showOutOfFOV = ESPConfig::ShowOutOfFOVArrow;
+        vm.outOfFOVRadius = ESPConfig::OutOfFOVRadiusFactor;
+        vm.showHealthBar = ESPConfig::ShowHealthBar;
+        vm.armorBar = ESPConfig::ArmorBar;
+        vm.showWeapon = ESPConfig::ShowWeaponESP;
+        vm.ammoBar = ESPConfig::AmmoBar;
+        vm.showDistance = ESPConfig::ShowDistance;
+        vm.showPlayerName = ESPConfig::ShowPlayerName;
+        vm.showScoped = ESPConfig::ShowIsScoped;
+        vm.visibleCheck = ESPConfig::VisibleCheck;
+        return vm;
+    }
+    inline void ApplyVM_ESP(const VM_ESP& vm) {
+        ESPConfig::ESPenabled = vm.enabled;
+        ESPConfig::ShowBoxESP = vm.showBox;
+        ESPConfig::OutLine = vm.outline;
+        ESPConfig::BoxType = vm.isBoxStyle ? 0 : 1;
+        ESPConfig::ShowBoneESP = vm.showBone;
+        ESPConfig::ShowOutOfFOVArrow = vm.showOutOfFOV;
+        ESPConfig::OutOfFOVRadiusFactor = vm.outOfFOVRadius;
+        ESPConfig::ShowHealthBar = vm.showHealthBar;
+        ESPConfig::ArmorBar = vm.armorBar;
+        ESPConfig::ShowWeaponESP = vm.showWeapon;
+        ESPConfig::AmmoBar = vm.ammoBar;
+        ESPConfig::ShowDistance = vm.showDistance;
+        ESPConfig::ShowPlayerName = vm.showPlayerName;
+        ESPConfig::ShowIsScoped = vm.showScoped;
+        ESPConfig::VisibleCheck = vm.visibleCheck;
+    }
+
+    struct VM_Trigger {
+        bool enabled;
+        bool autoMode;
+        bool scopeOnly;
+        bool stopOnly;
+        bool ttdTimeout;
+        int delay;
+        int duration;
+    };
+    inline VM_Trigger BuildVM_Trigger() {
+        VM_Trigger vm{};
+        vm.enabled = LegitBotConfig::TriggerBot;
+        vm.autoMode = LegitBotConfig::TriggerAlways;
+        vm.scopeOnly = TriggerBot::ScopeOnly;
+        vm.stopOnly = TriggerBot::StopedOnly;
+        vm.ttdTimeout = TriggerBot::TTDtimeout;
+        vm.delay = TriggerBot::TriggerDelay;
+        vm.duration = TriggerBot::ShotDuration;
+        return vm;
+    }
+    inline void ApplyVM_Trigger(const VM_Trigger& vm) {
+        LegitBotConfig::TriggerBot = vm.enabled;
+        LegitBotConfig::TriggerAlways = vm.autoMode;
+        TriggerBot::ScopeOnly = vm.scopeOnly;
+        TriggerBot::StopedOnly = vm.stopOnly;
+        TriggerBot::TTDtimeout = vm.ttdTimeout;
+        TriggerBot::TriggerDelay = vm.delay;
+        TriggerBot::ShotDuration = vm.duration;
+    }
+    struct VM_RCS {
+        bool enabled;
+        int bullet;
+        float yaw;
+        float pitch;
+    };
+    inline VM_RCS BuildVM_RCS() {
+        VM_RCS vm{};
+        vm.enabled = LegitBotConfig::RCS;
+        vm.bullet = RCS::RCSBullet;
+        vm.yaw = RCS::RCSScale.x;
+        vm.pitch = RCS::RCSScale.y;
+        return vm;
+    }
+    inline void ApplyVM_RCS(const VM_RCS& vm) {
+        LegitBotConfig::RCS = vm.enabled;
+        RCS::RCSBullet = vm.bullet;
+        RCS::RCSScale.x = vm.yaw;
+        RCS::RCSScale.y = vm.pitch;
+    }
+
+    struct VM_Global {
+        bool workInSpec;
+        bool teamCheck;
+        bool bypassOBS;
+        int menuHotKey;
+        std::string menuHotKeyName;
+    };
+    inline VM_Global BuildVM_Global() {
+        VM_Global vm{};
+        vm.workInSpec = MenuConfig::WorkInSpec;
+        vm.teamCheck = MenuConfig::TeamCheck;
+        vm.bypassOBS = MenuConfig::BypassOBS;
+        vm.menuHotKey = MenuConfig::HotKey;
+        vm.menuHotKeyName = Text::Misc::HotKey;
+        return vm;
+    }
+    inline void ApplyVM_Global(const VM_Global& vm) {
+        MenuConfig::WorkInSpec = vm.workInSpec;
+        MenuConfig::TeamCheck = vm.teamCheck;
+        MenuConfig::BypassOBS = vm.bypassOBS;
+        MenuConfig::HotKey = vm.menuHotKey;
+        Text::Misc::HotKey = vm.menuHotKeyName;
+    }
+    inline void UpdateHotkeyLabels()
+    {
+        Text::ESP::HotKey = KeyMgr::GetKeyName(ESPConfig::HotKey);
+        Text::Aimbot::HotKey = KeyMgr::GetKeyName(AimControl::HotKey);
+        Text::Trigger::HotKey = KeyMgr::GetKeyName(TriggerBot::HotKey);
+        Text::Misc::HotKey = KeyMgr::GetKeyName(MenuConfig::HotKey);
+    }
     inline void LoadDefaultConfig()
 	{
 		if (!MenuConfig::defaultConfig)
@@ -484,7 +621,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                 ImGui::PopStyleVar();
 
 			// Área de conteúdo abaixo das abas
-			ImGui::BeginChild("Page", ImVec2(0, 0), false, ImGuiWindowFlags_NoScrollbar);
+			ImGui::BeginChild("Page", ImVec2(0, 0), false, 0);
 		{
 			// Layout por página
 			if (MenuConfig::WCS.MenuPage == 1)
@@ -503,46 +640,46 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                         }).detach();
                     }
                 });
-					{
-						PutSwitch(Text::ESP::Enable.c_str(), 0.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ESPenabled);
+                    {
+                        auto vmEsp = BuildVM_ESP();
+                        PutSwitch(Text::ESP::Enable.c_str(), 0.f, ImGui::GetFrameHeight() * 1.7, &vmEsp.enabled);
                         
                         
 
-                        if (ESPConfig::ESPenabled)
+                        if (vmEsp.enabled)
                         {
-                            PutSwitch(Text::ESP::Box.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowBoxESP, true, "###BoxCol", reinterpret_cast<float*>(&ESPConfig::BoxColor));
-                            if (ESPConfig::ShowBoxESP)
+                            PutSwitch(Text::ESP::Box.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vmEsp.showBox, true, "###BoxCol", reinterpret_cast<float*>(&ESPConfig::BoxColor));
+                            if (vmEsp.showBox)
                             {
-                                PutSwitch(Text::ESP::Outline.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::OutLine);
+                                PutSwitch(Text::ESP::Outline.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vmEsp.outline);
                                 {
-                                    bool isBoxStyle = (ESPConfig::BoxType == 0);
-                                    PutSwitch(Text::ESP::BoxType.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7f, &isBoxStyle);
-                                    ESPConfig::BoxType = isBoxStyle ? 0 : 1;
+                                    PutSwitch(Text::ESP::BoxType.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7f, &vmEsp.isBoxStyle);
                                 }
                             }
                             
-                            PutSwitch(Text::ESP::Skeleton.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowBoneESP, true, "###BoneCol", reinterpret_cast<float*>(&ESPConfig::BoneColor));
+                            PutSwitch(Text::ESP::Skeleton.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vmEsp.showBone, true, "###BoneCol", reinterpret_cast<float*>(&ESPConfig::BoneColor));
                             
                             
-                            PutSwitch(Text::ESP::OutOfFOVArrow.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowOutOfFOVArrow, true, "###OutFOVCol", reinterpret_cast<float*>(&ESPConfig::OutOfFOVArrowColor));
-                            if(ESPConfig::ShowOutOfFOVArrow)
-                            PutSliderFloat(Text::ESP::OutOfFOVRadius.c_str(), .5f, &ESPConfig::OutOfFOVRadiusFactor, &MinFovFactor, &MaxFovFactor, "%.1f");
+                            PutSwitch(Text::ESP::OutOfFOVArrow.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vmEsp.showOutOfFOV, true, "###OutFOVCol", reinterpret_cast<float*>(&ESPConfig::OutOfFOVArrowColor));
+                            if(vmEsp.showOutOfFOV)
+                            PutSliderFloat(Text::ESP::OutOfFOVRadius.c_str(), .5f, &vmEsp.outOfFOVRadius, &MinFovFactor, &MaxFovFactor, "%.1f");
 
                             
-                            PutSwitch(Text::ESP::HealthBar.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowHealthBar);
+                            PutSwitch(Text::ESP::HealthBar.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vmEsp.showHealthBar);
                             
-                            PutSwitch(Text::ESP::ShowArmorBar.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ArmorBar);
+                            PutSwitch(Text::ESP::ShowArmorBar.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vmEsp.armorBar);
                             
-                            PutSwitch(Text::ESP::Weapon.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowWeaponESP);
-                            PutSwitch(Text::ESP::Ammo.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::AmmoBar);
-                            PutSwitch(Text::ESP::Distance.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowDistance);
-                            PutSwitch(Text::ESP::PlayerName.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowPlayerName);
-                            PutSwitch(Text::ESP::ScopedESP.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::ShowIsScoped);
+                            PutSwitch(Text::ESP::Weapon.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vmEsp.showWeapon);
+                            PutSwitch(Text::ESP::Ammo.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vmEsp.ammoBar);
+                            PutSwitch(Text::ESP::Distance.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vmEsp.showDistance);
+                            PutSwitch(Text::ESP::PlayerName.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vmEsp.showPlayerName);
+                            PutSwitch(Text::ESP::ScopedESP.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vmEsp.showScoped);
                             
-                            PutSwitch(Text::ESP::VisCheck.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::VisibleCheck, true, "###VisibleCol", reinterpret_cast<float*>(&ESPConfig::VisibleColor));
+                            PutSwitch(Text::ESP::VisCheck.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vmEsp.visibleCheck, true, "###VisibleCol", reinterpret_cast<float*>(&ESPConfig::VisibleColor));
                         }
-					}
-					EndSection();
+                        ApplyVM_ESP(vmEsp);
+                    }
+                    EndSection();
 
                 // Coluna 2: Preview
                 ImGui::NextColumn();
@@ -629,33 +766,30 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                         }).detach();
                     }
                 });
-					{
-						static const float FovMin = 0.f, FovMax = 30.f, MinFovMax = 1.f;
-						static const int BulletMin = 0, BulletMax = 5;
-						static const float SmoothMin = 0.f, SmoothMax = 10.f;
-						static const int MinHumanize = 0;
-						static const int MaxHumanize = 15;
-						PutSwitch(Text::Aimbot::Enable.c_str(), 0.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::AimBot);
-						if (LegitBotConfig::AimBot)
-						{
-                            
-                            
-                            
-							PutSwitch(Text::Aimbot::Toggle.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::AimToggleMode, false, NULL, NULL, Text::Aimbot::OffTip.c_str());
-							PutSwitch(Text::Aimbot::DrawFov.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &ESPConfig::DrawFov, true, "###FOVcol", reinterpret_cast<float*>(&LegitBotConfig::FovCircleColor));
-							PutSwitch(Text::Aimbot::VisCheck.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::VisibleCheck, false, NULL, NULL, Text::Aimbot::OnTip.c_str());
-                            
-							PutSwitch(Text::Aimbot::ScopeOnly.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &AimControl::ScopeOnly);
-
-                            PutSliderInt(Text::Aimbot::HumanizationStrength.c_str(), 10.f, &AimControl::HumanizationStrength, &MinHumanize, &MaxHumanize, "%d");
-
-							PutSliderFloat(Text::Aimbot::FovSlider.c_str(), 10.f, &AimControl::AimFov, &AimControl::AimFovMin, &FovMax, "%.1f");
-							PutSliderFloat(Text::Aimbot::FovMinSlider.c_str(), 10.f, &AimControl::AimFovMin, &FovMin, &MinFovMax, "%.2f");
-                            PutSliderFloat(Text::Aimbot::SmoothSlider.c_str(), 10.f, &AimControl::Smooth, &SmoothMin, &SmoothMax, "%.1f", Text::Aimbot::OnlyAutoTip.c_str());
-                            PutSliderInt(Text::Aimbot::BulletSlider.c_str(), 10.f, &AimControl::AimBullet, &BulletMin, &BulletMax, "%d", Text::Aimbot::StartBulletTip.c_str());
-						}
-					}
-					EndSection();
+                    {
+                        static const float FovMin = 0.f, FovMax = 30.f, MinFovMax = 1.f;
+                        static const int BulletMin = 0, BulletMax = 5;
+                        static const float SmoothMin = 0.f, SmoothMax = 10.f;
+                        static const int MinHumanize = 0;
+                        static const int MaxHumanize = 15;
+                        struct VM_Aimbot { bool enabled; bool toggleMode; bool drawFov; bool visibleCheck; bool scopeOnly; int humanizationStrength; float aimFov; float aimFovMin; float smooth; int aimBullet; };
+                        VM_Aimbot vm{}; vm.enabled = LegitBotConfig::AimBot; vm.toggleMode = LegitBotConfig::AimToggleMode; vm.drawFov = ESPConfig::DrawFov; vm.visibleCheck = LegitBotConfig::VisibleCheck; vm.scopeOnly = AimControl::ScopeOnly; vm.humanizationStrength = AimControl::HumanizationStrength; vm.aimFov = AimControl::AimFov; vm.aimFovMin = AimControl::AimFovMin; vm.smooth = AimControl::Smooth; vm.aimBullet = AimControl::AimBullet;
+                        PutSwitch(Text::Aimbot::Enable.c_str(), 0.f, ImGui::GetFrameHeight() * 1.7, &vm.enabled);
+                        if (vm.enabled)
+                        {
+                            PutSwitch(Text::Aimbot::Toggle.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vm.toggleMode, false, NULL, NULL, Text::Aimbot::OffTip.c_str());
+                            PutSwitch(Text::Aimbot::DrawFov.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vm.drawFov, true, "###FOVcol", reinterpret_cast<float*>(&LegitBotConfig::FovCircleColor));
+                            PutSwitch(Text::Aimbot::VisCheck.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vm.visibleCheck, false, NULL, NULL, Text::Aimbot::OnTip.c_str());
+                            PutSwitch(Text::Aimbot::ScopeOnly.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vm.scopeOnly);
+                            PutSliderInt(Text::Aimbot::HumanizationStrength.c_str(), 10.f, &vm.humanizationStrength, &MinHumanize, &MaxHumanize, "%d");
+                            PutSliderFloat(Text::Aimbot::FovSlider.c_str(), 10.f, &vm.aimFov, &vm.aimFovMin, &FovMax, "%.1f");
+                            PutSliderFloat(Text::Aimbot::FovMinSlider.c_str(), 10.f, &vm.aimFovMin, &FovMin, &MinFovMax, "%.2f");
+                            PutSliderFloat(Text::Aimbot::SmoothSlider.c_str(), 10.f, &vm.smooth, &SmoothMin, &SmoothMax, "%.1f", Text::Aimbot::OnlyAutoTip.c_str());
+                            PutSliderInt(Text::Aimbot::BulletSlider.c_str(), 10.f, &vm.aimBullet, &BulletMin, &BulletMax, "%d", Text::Aimbot::StartBulletTip.c_str());
+                        }
+                        LegitBotConfig::AimBot = vm.enabled; LegitBotConfig::AimToggleMode = vm.toggleMode; ESPConfig::DrawFov = vm.drawFov; LegitBotConfig::VisibleCheck = vm.visibleCheck; AimControl::ScopeOnly = vm.scopeOnly; AimControl::HumanizationStrength = vm.humanizationStrength; AimControl::AimFov = vm.aimFov; AimControl::AimFovMin = vm.aimFovMin; AimControl::Smooth = vm.smooth; AimControl::AimBullet = vm.aimBullet;
+                    }
+                    EndSection();
 
 				// Coluna 2: Triggerbot
                 ImGui::NextColumn();
@@ -668,23 +802,25 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                         }).detach();
                     }
                 });
-					{
-						static const int DelayMin = 0, DelayMax = 300;
-						static const int DurationMin = 0, DurationMax = 1000;
+                    {
+                        static const int DelayMin = 0, DelayMax = 300;
+                        static const int DurationMin = 0, DurationMax = 1000;
 
-						PutSwitch(Text::Trigger::Enable.c_str(), 0.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::TriggerBot);
-						if (LegitBotConfig::TriggerBot)
-						{
-                            PutSwitch(Text::Trigger::Toggle.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::TriggerAlways, false, NULL, NULL, Text::Aimbot::OffTip.c_str());
-							PutSwitch(Text::Trigger::ScopeOnly.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &TriggerBot::ScopeOnly);
+                        auto vmTrig = BuildVM_Trigger();
+                        PutSwitch(Text::Trigger::Enable.c_str(), 0.f, ImGui::GetFrameHeight() * 1.7, &vmTrig.enabled);
+                        if (vmTrig.enabled)
+                        {
+                            PutSwitch(Text::Trigger::Toggle.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &vmTrig.autoMode, false, NULL, NULL, Text::Aimbot::OffTip.c_str());
+                            PutSwitch(Text::Trigger::ScopeOnly.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &vmTrig.scopeOnly);
                             
-							PutSwitch(Text::Trigger::StopOnly.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &TriggerBot::StopedOnly);
-							PutSwitch(Text::Trigger::TTDtimeout.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &TriggerBot::TTDtimeout, false, NULL, NULL, Text::Aimbot::OnTip.c_str());
-							PutSliderInt(Text::Trigger::DelaySlider.c_str(), 5.f, &TriggerBot::TriggerDelay, &DelayMin, &DelayMax, "%d ms", Text::Trigger::DelayTip.c_str());
-							PutSliderInt(Text::Trigger::FakeShotSlider.c_str(), 5.f, &TriggerBot::ShotDuration, &DurationMin, &DurationMax, "%d ms");
-						}
-					}
-					EndSection();
+                            PutSwitch(Text::Trigger::StopOnly.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &vmTrig.stopOnly);
+                            PutSwitch(Text::Trigger::TTDtimeout.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &vmTrig.ttdTimeout, false, NULL, NULL, Text::Aimbot::OnTip.c_str());
+                            PutSliderInt(Text::Trigger::DelaySlider.c_str(), 5.f, &vmTrig.delay, &DelayMin, &DelayMax, "%d ms", Text::Trigger::DelayTip.c_str());
+                            PutSliderInt(Text::Trigger::FakeShotSlider.c_str(), 5.f, &vmTrig.duration, &DurationMin, &DurationMax, "%d ms");
+                        }
+                        ApplyVM_Trigger(vmTrig);
+                    }
+                    EndSection();
 
 					// Coluna 3: RCS (Recoil)
                 ImGui::NextColumn();
@@ -693,14 +829,15 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
 					{
 						static const float recoilMin = 0.f, recoilMax = 2.f;
 						static const int RCSBulletMin = 0, RCSBulletMax = 5;
-						PutSwitch(Text::RCS::Toggle.c_str(), 0.f, ImGui::GetFrameHeight() * 1.7, &LegitBotConfig::RCS);
-						if (LegitBotConfig::RCS)
+						auto vmRcs = BuildVM_RCS();
+						PutSwitch(Text::RCS::Toggle.c_str(), 0.f, ImGui::GetFrameHeight() * 1.7, &vmRcs.enabled);
+						if (vmRcs.enabled)
 						{
-							PutSliderInt(Text::RCS::BulletSlider.c_str(), 5.f, &RCS::RCSBullet, &RCSBulletMin, &RCSBulletMax, "%d");
-							PutSliderFloat(Text::RCS::Yaw.c_str(), 5.f, &RCS::RCSScale.x, &recoilMin, &recoilMax, "%.2f");
-							PutSliderFloat(Text::RCS::Pitch.c_str(), 5.f, &RCS::RCSScale.y, &recoilMin, &recoilMax, "%.2f");
-							float scalex = (2.22 - RCS::RCSScale.x) *.5f;
-							float scaley = (2.12 - RCS::RCSScale.y) *.5f;//Simulate reasonable error values
+							PutSliderInt(Text::RCS::BulletSlider.c_str(), 5.f, &vmRcs.bullet, &RCSBulletMin, &RCSBulletMax, "%d");
+							PutSliderFloat(Text::RCS::Yaw.c_str(), 5.f, &vmRcs.yaw, &recoilMin, &recoilMax, "%.2f");
+							PutSliderFloat(Text::RCS::Pitch.c_str(), 5.f, &vmRcs.pitch, &recoilMin, &recoilMax, "%.2f");
+							float scalex = (2.22 - vmRcs.yaw) *.5f;
+							float scaley = (2.12 - vmRcs.pitch) *.5f;
 							ImVec2 BulletPos = ImGui::GetCursorScreenPos();
 
                             // Example Preview
@@ -740,6 +877,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
 
 							ImGui::SetCursorScreenPos(ImVec2(BulletPos.x, BulletPos.y + 10));
 						}
+						ApplyVM_RCS(vmRcs);
 					}
 					EndSection();
 					// Encerrar grade de 3 colunas
@@ -772,8 +910,9 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
 
 					ImGui::NextColumn();
 					ImGui::SetCursorPosY(24.f);
-					BeginSection("Global Settings", ImVec2(ImGui::GetColumnWidth(), 0));
-					{
+                    BeginSection("Global Settings", ImVec2(ImGui::GetColumnWidth(), 0));
+                    {
+                        auto vmGlobal = BuildVM_Global();
                         ImGui::TextDisabled(Text::Misc::MenuKey.c_str());
                         ImGui::SameLine(0.0f, 6.0f);
                         float miscHotkeyRowY = ImGui::GetCursorPosY();
@@ -782,17 +921,63 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                         if (CenteredHotkeyButton(Text::Misc::HotKey.c_str(), ImVec2(60.f, 24.f)))
                         {
                             std::thread([&]() {
-                                KeyMgr::GetPressedKey(MenuConfig::HotKey, &Text::Misc::HotKey);
+                                KeyMgr::GetPressedKey(vmGlobal.menuHotKey, &vmGlobal.menuHotKeyName);
                                 }).detach();
                         }
-						PutSwitch(Text::Misc::SpecCheck.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &MenuConfig::WorkInSpec);
-						PutSwitch(Text::Misc::TeamCheck.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &MenuConfig::TeamCheck);
-						PutSwitch(Text::Misc::AntiRecord.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &MenuConfig::BypassOBS);
+                        PutSwitch(Text::Misc::SpecCheck.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &vmGlobal.workInSpec);
+                        PutSwitch(Text::Misc::TeamCheck.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &vmGlobal.teamCheck);
+                        PutSwitch(Text::Misc::AntiRecord.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &vmGlobal.bypassOBS);
 
-                        // Removed external and maintenance buttons per user request
-                        // (Source Code, Contact Author, Unhook, Clear Traces)
-					}
-					EndSection();
+                        ApplyVM_Global(vmGlobal);
+                    }
+                    EndSection();
+
+                    BeginSection("Diagnostics", ImVec2(ImGui::GetColumnWidth(), 0));
+                    {
+                        auto metrics = Core::Container::Get<Core::Metrics>();
+                        if (metrics)
+                        {
+                            long long vLast = metrics->Get("Visual");
+                            long long vAvg = metrics->Average("Visual");
+                            long long vMed = metrics->Median("Visual");
+                            long long vP95 = metrics->P95("Visual");
+                            long long rLast = metrics->Get("Radar");
+                            long long rAvg = metrics->Average("Radar");
+                            long long rMed = metrics->Median("Radar");
+                            long long rP95 = metrics->P95("Radar");
+                            long long fLast = metrics->Get("Features");
+                            long long fAvg = metrics->Average("Features");
+                            long long fMed = metrics->Median("Features");
+                            long long fP95 = metrics->P95("Features");
+                            long long tLast = metrics->Get("Trigger");
+                            long long tAvg = metrics->Average("Trigger");
+                            long long tMed = metrics->Median("Trigger");
+                            long long tP95 = metrics->P95("Trigger");
+                            long long aLast = metrics->Get("Aim");
+                            long long aAvg = metrics->Average("Aim");
+                            long long aMed = metrics->Median("Aim");
+                            long long aP95 = metrics->P95("Aim");
+                            auto colorFor = [](long long last, long long thr){ return ImColor(last>thr? ImVec4(0.9f,0.2f,0.2f,1.f): ImVec4(0.5f,0.9f,0.5f,1.f)); };
+                            ImGui::TextColored(colorFor(vLast, MenuConfig::DiagThrVisual), "Visual: %lld ms (avg %lld, med %lld, p95 %lld)", vLast, vAvg, vMed, vP95);
+                            ImGui::TextColored(colorFor(rLast, MenuConfig::DiagThrRadar), "Radar: %lld ms (avg %lld, med %lld, p95 %lld)", rLast, rAvg, rMed, rP95);
+                            ImGui::TextColored(colorFor(fLast, MenuConfig::DiagThrFeatures), "Features: %lld ms (avg %lld, med %lld, p95 %lld)", fLast, fAvg, fMed, fP95);
+                            ImGui::TextColored(colorFor(tLast, MenuConfig::DiagThrTrigger), "Trigger: %lld ms (avg %lld, med %lld, p95 %lld)", tLast, tAvg, tMed, tP95);
+                            ImGui::TextColored(colorFor(aLast, MenuConfig::DiagThrAim), "Aim: %lld ms (avg %lld, med %lld, p95 %lld)", aLast, aAvg, aMed, aP95);
+                            long long rcsFb = metrics->Get("RCS_FallbacksPerSec");
+                            ImGui::Text("RCS Fallbacks/s: %lld", rcsFb);
+                            if (ImGui::Button("Reset Metrics")) { metrics->Reset(); }
+                            bool paused = metrics->IsPaused();
+                            PutSwitch("Pause metrics", 5.f, ImGui::GetFrameHeight() * 1.7, &paused);
+                            metrics->SetPaused(paused);
+                            int minThr=0, maxThr=50;
+                            PutSliderInt("Visual thr", 5.f, &MenuConfig::DiagThrVisual, &minThr, &maxThr, "%d ms");
+                            PutSliderInt("Radar thr", 5.f, &MenuConfig::DiagThrRadar, &minThr, &maxThr, "%d ms");
+                            PutSliderInt("Features thr", 5.f, &MenuConfig::DiagThrFeatures, &minThr, &maxThr, "%d ms");
+                            PutSliderInt("Trigger thr", 5.f, &MenuConfig::DiagThrTrigger, &minThr, &maxThr, "%d ms");
+                            PutSliderInt("Aim thr", 5.f, &MenuConfig::DiagThrAim, &minThr, &maxThr, "%d ms");
+                        }
+                    }
+                    EndSection();
 
 					ImGui::Columns(1);
 				}
@@ -802,10 +987,9 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
 			} ImGui::EndChild();
 		} ImGui::End();
 
-        // Reverter cores de fundo apenas para esta janela
         ImGui::PopStyleColor(2);
-
-		LoadDefaultConfig();
-	}
+        UpdateHotkeyLabels();
+        LoadDefaultConfig();
+    }
 }
 #include <functional>
