@@ -225,6 +225,35 @@ namespace MyConfigSaver
         ConfigData["MenuConfig"]["SpecWinPos"]["y"] = MenuConfig::SpecWinPos.y;
 
 
+        json Weapons;
+        for (const auto& kv : WeaponConfig::WeaponConfigs) {
+            const auto& key = kv.first; const auto& p = kv.second;
+            json W;
+            W["Aimbot"]["Enable"] = p.aimEnabled;
+            W["Aimbot"]["ToggleMode"] = p.toggleMode;
+            W["Aimbot"]["VisibleCheck"] = p.visibleCheck;
+            W["Aimbot"]["ScopeOnly"] = p.scopeOnly;
+            W["Aimbot"]["HumanizationStrength"] = p.humanizationStrength;
+            W["Aimbot"]["Fov"] = p.aimFov;
+            W["Aimbot"]["FovMin"] = p.aimFovMin;
+            W["Aimbot"]["Smooth"] = p.smooth;
+            W["Aimbot"]["AimBullet"] = p.aimBullet;
+            W["Aimbot"]["Hitboxes"] = p.hitboxes;
+            W["Triggerbot"]["Enable"] = p.triggerEnabled;
+            W["Triggerbot"]["AutoMode"] = p.autoMode;
+            W["Triggerbot"]["ScopeOnly"] = p.t_scopeOnly;
+            W["Triggerbot"]["StopedOnly"] = p.stopOnly;
+            W["Triggerbot"]["TTDtimeout"] = p.ttdTimeout;
+            W["Triggerbot"]["Delay"] = p.delay;
+            W["Triggerbot"]["FakeShot"] = p.duration;
+            W["RCS"]["Enable"] = p.rcsEnabled;
+            W["RCS"]["RCSBullet"] = p.rcsBullet;
+            W["RCS"]["Yaw"] = p.rcsYaw;
+            W["RCS"]["Pitch"] = p.rcsPitch;
+            Weapons[key] = W;
+        }
+        if (!Weapons.empty()) ConfigData["Weapons"] = Weapons;
+
         configFile << ConfigData.dump(4);
         configFile.close();
     }
@@ -461,6 +490,46 @@ namespace MyConfigSaver
             MenuConfig::RadarWinChengePos = true;
             MenuConfig::SpecWinChengePos = true;
 
+        }
+
+        if (ConfigData.contains("Weapons"))
+        {
+            for (auto it = ConfigData["Weapons"].begin(); it != ConfigData["Weapons"].end(); ++it) {
+                std::string key = it.key();
+                const auto& W = it.value();
+                WeaponConfig::WeaponProfile p;
+                if (W.contains("Aimbot")) {
+                    const auto& A = W["Aimbot"];
+                    p.aimEnabled = A.value("Enable", LegitBotConfig::AimBot);
+                    p.toggleMode = A.value("ToggleMode", LegitBotConfig::AimToggleMode);
+                    p.visibleCheck = A.value("VisibleCheck", LegitBotConfig::VisibleCheck);
+                    p.scopeOnly = A.value("ScopeOnly", AimControl::ScopeOnly);
+                    p.humanizationStrength = A.value("HumanizationStrength", AimControl::HumanizationStrength);
+                    p.aimFov = A.value("Fov", AimControl::AimFov);
+                    p.aimFovMin = A.value("FovMin", AimControl::AimFovMin);
+                    p.smooth = A.value("Smooth", AimControl::Smooth);
+                    p.aimBullet = A.value("AimBullet", AimControl::AimBullet);
+                    if (A.contains("Hitboxes")) p.hitboxes = LoadVector(A, "Hitboxes", { BONEINDEX::head });
+                }
+                if (W.contains("Triggerbot")) {
+                    const auto& T = W["Triggerbot"];
+                    p.triggerEnabled = T.value("Enable", LegitBotConfig::TriggerBot);
+                    p.autoMode = T.value("AutoMode", LegitBotConfig::TriggerAlways);
+                    p.t_scopeOnly = T.value("ScopeOnly", TriggerBot::ScopeOnly);
+                    p.stopOnly = T.value("StopedOnly", TriggerBot::StopedOnly);
+                    p.ttdTimeout = T.value("TTDtimeout", TriggerBot::TTDtimeout);
+                    p.delay = T.value("Delay", TriggerBot::TriggerDelay);
+                    p.duration = T.value("FakeShot", TriggerBot::ShotDuration);
+                }
+                if (W.contains("RCS")) {
+                    const auto& R = W["RCS"];
+                    p.rcsEnabled = R.value("Enable", LegitBotConfig::RCS);
+                    p.rcsBullet = R.value("RCSBullet", RCS::RCSBullet);
+                    p.rcsYaw = R.value("Yaw", RCS::RCSScale.x);
+                    p.rcsPitch = R.value("Pitch", RCS::RCSScale.y);
+                }
+                WeaponConfig::WeaponConfigs[key] = p;
+            }
         }
 
         ValidateConfig();

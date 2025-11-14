@@ -14,12 +14,14 @@
 #include <vector>
 
 #pragma comment(lib,"dwmapi.lib")
+#pragma comment(lib,"urlmon.lib")
 
 namespace OSImGui
 {
     // Fonte grande para títulos (exposta para uso no GUI)
     extern ImFont* TitleFont;
     extern ImFont* TitleFontLarge;
+    extern bool FontAwesome6Available;
 	class D3DDevice
 	{
 	public:

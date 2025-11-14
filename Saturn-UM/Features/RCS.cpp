@@ -2,7 +2,6 @@
 #include "../Helpers/Logger.h"
 #include "../Core/DI.h"
 
-
 namespace
 {
     bool GetPunchFromCache(const CEntity& local, Vec2& outPunch)
@@ -25,28 +24,31 @@ namespace
 
 void RCS::RecoilControl(const CEntity& LocalPlayer)
 {
-
     static Vec2 oldPunch{ 0.f, 0.f };
+    static int lastShotsFired = 0;
     char buf[256];
-
     static DWORD lastResetLogTick = 0;
 
-    if (LocalPlayer.Pawn.ShotsFired <= RCSBullet)
-    {
-        oldPunch.x = 0.f;
-        oldPunch.y = 0.f;
-        DWORD nowTick = GetTickCount64();
-        return;
-    }
-
-    static DWORD lastTick = GetTickCount64();
-    static int fallbackCount = 0;
     Vec2 punch{};
     if (!GetPunchFromCache(LocalPlayer, punch)) {
         Vec2 ap = LocalPlayer.Pawn.AimPunchAngle;
         punch.x = ap.x;
         punch.y = ap.y;
-        fallbackCount++;
+    }
+
+    int shotsFired = LocalPlayer.Pawn.ShotsFired;
+
+    if (lastShotsFired == 0 && shotsFired > 0)
+    {
+        oldPunch = punch;
+    }
+
+    if (shotsFired <= 0)
+    {
+        oldPunch.x = 0.f;
+        oldPunch.y = 0.f;
+        lastShotsFired = shotsFired;
+        return;
     }
 
     Vec2 viewAngles = LocalPlayer.Pawn.ViewAngle;
@@ -56,11 +58,8 @@ void RCS::RecoilControl(const CEntity& LocalPlayer)
         viewAngles.y + oldPunch.y - punch.y * 2.f
     };
 
-    // Clamp pitch
     if (newAngles.x > 89.f)  newAngles.x = 89.f;
     if (newAngles.x < -89.f) newAngles.x = -89.f;
-
-    // Normalizar yaw
     while (newAngles.y > 180.f)  newAngles.y -= 360.f;
     while (newAngles.y < -180.f) newAngles.y += 360.f;
 
@@ -82,15 +81,15 @@ void RCS::RecoilControl(const CEntity& LocalPlayer)
         mouse_event(MOUSEEVENTF_MOVE, mouseX, -mouseY, 0, 0);
         oldPunch = punch;
     }
-    else
-    {
-        oldPunch.x = 0.f;
-        oldPunch.y = 0.f;
-	    }
 
+    lastShotsFired = shotsFired;
+
+    static DWORD lastTick = GetTickCount64();
+    static int fallbackCount = 0;
     DWORD now = GetTickCount64();
     if (now - lastTick >= 1000) { fallbackCount = 0; lastTick = now; }
 }
+
 
 void RCS::UpdateAngles(const CEntity& Local, Vec2& Angles)
 {
@@ -103,7 +102,7 @@ void RCS::UpdateAngles(const CEntity& Local, Vec2& Angles)
     {
         oldPunch.x = 0.f;
         oldPunch.y = 0.f;
-		return;
+        return;
     }
 
     static DWORD lastTick = GetTickCount64();

@@ -21,7 +21,7 @@ namespace AimControl
 {
     inline int HotKey = VK_XBUTTON2;
     inline int AimBullet = 0;
-    inline bool ScopeOnly = true;
+    inline bool ScopeOnly = false;
     inline bool HumanizeVar = true;
     inline int HumanizationStrength = 0;
     inline float AimFov = 10;

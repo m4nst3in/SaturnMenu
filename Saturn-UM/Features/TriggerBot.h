@@ -10,7 +10,7 @@ namespace TriggerBot
     // Configuration
 	inline int TriggerDelay = 10; // ms
 	inline int ShotDuration = 400; // ms
-	inline bool ScopeOnly = true;
+    inline bool ScopeOnly = false;
     
 	inline bool StopedOnly = false;
 	inline bool TTDtimeout = false;

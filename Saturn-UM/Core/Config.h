@@ -1,6 +1,9 @@
 #pragma once
 #include "../Game/Bone.h"
 #include "../Game/Game.h"
+#include <unordered_map>
+#include <string>
+#include <vector>
 
 namespace MenuConfig
 {
@@ -55,19 +58,48 @@ namespace LegitBotConfig
 	// 0: head 1: neck 3: spine
 	inline int  AimPosition = 0;
 	inline DWORD  AimPositionIndex = BONEINDEX::head;
-	inline bool VisibleCheck = true;
+    inline bool VisibleCheck = false;
 	inline bool HitboxUpdated = false;
 	inline bool ShowFovLine = false;
 	inline ImColor FovCircleColor = ImColor(131, 137, 150, 180);
 	inline ImColor FovLineColor = ImColor(0, 98, 98, 220);
 	inline float FovLineSize = 60.f;
 
-	inline bool TriggerBot = true;
+    inline bool TriggerBot = false;
 	inline bool TriggerAlways = false;
 
 	inline bool RCS = true;
 
 
+}
+
+namespace WeaponConfig
+{
+    struct WeaponProfile {
+        bool aimEnabled = false;
+        bool toggleMode = false;
+        bool visibleCheck = true;
+        bool scopeOnly = false;
+        int humanizationStrength = 0;
+        float aimFov = 5.f;
+        float aimFovMin = 0.5f;
+        float smooth = 2.f;
+        int aimBullet = 0;
+        std::vector<int> hitboxes{};
+        bool triggerEnabled = false;
+        bool autoMode = false;
+        bool t_scopeOnly = false;
+        bool stopOnly = false;
+        bool ttdTimeout = false;
+        int delay = 20;
+        int duration = 200;
+        bool rcsEnabled = true;
+        int rcsBullet = 1;
+        float rcsYaw = 1.f;
+        float rcsPitch = 1.f;
+    };
+    inline std::unordered_map<std::string, WeaponProfile> WeaponConfigs;
+    inline std::string SelectedWeaponKey = "";
 }
 
 namespace ESPConfig

@@ -107,8 +107,51 @@ struct TriggerAimFeatureAdapter : Core::IFeature {
     std::vector<Vec3>* aimList;
     void OnFrame(const Core::FrameContext& ctx) override {
         local = ctx.local; localIndex = ctx.localControllerIndex; aimList = ctx.aimPosList;
-        if (local) Trigger(*local, localIndex);
-        if (local && aimList) AIM(*local, *aimList);
+        if (local) {
+            struct Snap {
+                bool AimBot, AimToggleMode, VisibleCheck;
+                bool ScopeOnly; int HumanizationStrength; float AimFov, AimFovMin, Smooth; int AimBullet; std::vector<int> HitboxList;
+                bool TriggerBot, TriggerAlways; bool tScopeOnly, tStopOnly, tTTD; int tDelay, tDuration;
+                bool RCS; int RCSBullet; float RCYaw, RCPitch;
+            } s;
+            s.AimBot = LegitBotConfig::AimBot; s.AimToggleMode = LegitBotConfig::AimToggleMode; s.VisibleCheck = LegitBotConfig::VisibleCheck;
+            s.ScopeOnly = AimControl::ScopeOnly; s.HumanizationStrength = AimControl::HumanizationStrength; s.AimFov = AimControl::AimFov; s.AimFovMin = AimControl::AimFovMin; s.Smooth = AimControl::Smooth; s.AimBullet = AimControl::AimBullet; s.HitboxList = AimControl::HitboxList;
+            s.TriggerBot = LegitBotConfig::TriggerBot; s.TriggerAlways = LegitBotConfig::TriggerAlways; s.tScopeOnly = TriggerBot::ScopeOnly; s.tStopOnly = TriggerBot::StopedOnly; s.tTTD = TriggerBot::TTDtimeout; s.tDelay = TriggerBot::TriggerDelay; s.tDuration = TriggerBot::ShotDuration;
+            s.RCS = LegitBotConfig::RCS; s.RCSBullet = RCS::RCSBullet; s.RCYaw = RCS::RCSScale.x; s.RCPitch = RCS::RCSScale.y;
+
+            std::string curWeapon = TriggerBot::GetWeapon(*local);
+            auto it = WeaponConfig::WeaponConfigs.find(curWeapon);
+            if (it != WeaponConfig::WeaponConfigs.end()) {
+                const auto& p = it->second;
+                LegitBotConfig::AimBot = p.aimEnabled;
+                LegitBotConfig::AimToggleMode = p.toggleMode;
+                LegitBotConfig::VisibleCheck = p.visibleCheck;
+                AimControl::ScopeOnly = p.scopeOnly;
+                AimControl::HumanizationStrength = p.humanizationStrength;
+                AimControl::AimFov = p.aimFov;
+                AimControl::AimFovMin = p.aimFovMin;
+                AimControl::Smooth = p.smooth;
+                AimControl::AimBullet = p.aimBullet;
+                AimControl::HitboxList = p.hitboxes;
+                LegitBotConfig::TriggerBot = p.triggerEnabled;
+                LegitBotConfig::TriggerAlways = p.autoMode;
+                TriggerBot::ScopeOnly = p.t_scopeOnly;
+                TriggerBot::StopedOnly = p.stopOnly;
+                TriggerBot::TTDtimeout = p.ttdTimeout;
+                TriggerBot::TriggerDelay = p.delay;
+                TriggerBot::ShotDuration = p.duration;
+                LegitBotConfig::RCS = p.rcsEnabled;
+                RCS::RCSBullet = p.rcsBullet;
+                RCS::RCSScale.x = p.rcsYaw;
+                RCS::RCSScale.y = p.rcsPitch;
+            }
+            Trigger(*local, localIndex);
+            if (aimList) AIM(*local, *aimList);
+            LegitBotConfig::AimBot = s.AimBot; LegitBotConfig::AimToggleMode = s.AimToggleMode; LegitBotConfig::VisibleCheck = s.VisibleCheck;
+            AimControl::ScopeOnly = s.ScopeOnly; AimControl::HumanizationStrength = s.HumanizationStrength; AimControl::AimFov = s.AimFov; AimControl::AimFovMin = s.AimFovMin; AimControl::Smooth = s.Smooth; AimControl::AimBullet = s.AimBullet; AimControl::HitboxList = s.HitboxList;
+            LegitBotConfig::TriggerBot = s.TriggerBot; LegitBotConfig::TriggerAlways = s.TriggerAlways; TriggerBot::ScopeOnly = s.tScopeOnly; TriggerBot::StopedOnly = s.tStopOnly; TriggerBot::TTDtimeout = s.tTTD; TriggerBot::TriggerDelay = s.tDelay; TriggerBot::ShotDuration = s.tDuration;
+            LegitBotConfig::RCS = s.RCS; RCS::RCSBullet = s.RCSBullet; RCS::RCSScale.x = s.RCYaw; RCS::RCSScale.y = s.RCPitch;
+        }
     }
     void OnRender() override {}
 };
@@ -186,6 +229,27 @@ void Cheats::Run()
         g_features_render.emplace_back(std::make_unique<RadarFeatureAdapter>());
         g_features_render.emplace_back(std::make_unique<ESPFeatureAdapter>());
         g_features_render.emplace_back(std::make_unique<MiscFeatureAdapter>());
+        auto ensureRifle = [](const char* k){
+            if (WeaponConfig::WeaponConfigs.find(k) == WeaponConfig::WeaponConfigs.end()) {
+                WeaponConfig::WeaponProfile p;
+                p.rcsEnabled = LegitBotConfig::RCS;
+                p.rcsBullet = RCS::RCSBullet;
+                p.rcsYaw = 1.40f;
+                p.rcsPitch = 1.40f;
+                WeaponConfig::WeaponConfigs[k] = p;
+            } else {
+                auto& p = WeaponConfig::WeaponConfigs[k];
+                p.rcsYaw = 1.40f;
+                p.rcsPitch = 1.40f;
+            }
+        };
+        ensureRifle("famas");
+        ensureRifle("galilar");
+        ensureRifle("ak47");
+        ensureRifle("m4a1");
+        ensureRifle("m4a4");
+        ensureRifle("aug");
+        ensureRifle("sg556");
         g_featuresInitialized = true;
     }
 

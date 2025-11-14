@@ -2,7 +2,7 @@
 // Range padrão do FontAwesome Free (PUA)
 #pragma once
 
-#define ICON_MIN_FA 0xf000
+#define ICON_MIN_FA 0xe000
 #define ICON_MAX_FA 0xf8ff
 
 // Ícones solicitados
@@ -14,3 +14,5 @@
 #define ICON_FA_WRENCH     "\xef\x82\xad"
 // U+F11C: keyboard
 #define ICON_FA_KEYBOARD   "\xef\x84\x9c"
+// U+E19B: gun (FA)
+#define ICON_FA_GUN        "\xee\x86\x9b"

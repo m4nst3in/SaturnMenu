@@ -5,6 +5,7 @@
 #include "imgui/imgui_impl_win32.h"
 #include "imgui/imgui_impl_dx11.h"
 #include <filesystem>
+#include <urlmon.h>
 
 #include "..\Resources\WeaponIcon.h"
 #include "..\Resources\Font.h"
@@ -16,6 +17,7 @@ namespace OSImGui
 {
     ImFont* TitleFont = nullptr;
     ImFont* TitleFontLarge = nullptr;
+    bool FontAwesome6Available = false;
     bool OSImGui_Base::InitImGui(ID3D11Device* device, ID3D11DeviceContext* device_context)
     {
         namespace fs = std::filesystem;
@@ -54,6 +56,27 @@ namespace OSImGui
                 uiFont = fontAtlas->AddFontFromMemoryTTF((void*)MainFont, sizeof(MainFont), 20.0f, &memCfg, fontAtlas->GetGlyphRangesDefault());
             }
         }
+        // Mesclar FA6 adicionalmente (mesmo se já mesclado via recurso), para garantir ícones novos
+        {
+            ImFontConfig faConfig;
+            faConfig.MergeMode = true;
+            faConfig.PixelSnapH = true;
+            faConfig.OversampleH = 3;
+            faConfig.OversampleV = 3;
+            faConfig.GlyphMinAdvanceX = 15.0f;
+            faConfig.GlyphOffset = ImVec2(0.0f, 1.0f);
+            static const ImWchar fa_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+            const wchar_t* url = L"https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.x/webfonts/fa-solid-900.ttf";
+            std::wstring dest = StringToWstring("Saturn-UM/Resources/fa6-solid.ttf");
+            std::error_code ec;
+            std::filesystem::create_directories("Saturn-UM/Resources", ec);
+            URLDownloadToFileW(nullptr, url, dest.c_str(), 0, nullptr);
+            if (std::filesystem::exists("Saturn-UM/Resources/fa6-solid.ttf"))
+            {
+                if (fontAtlas->AddFontFromFileTTF("Saturn-UM/Resources/fa6-solid.ttf", 18.0f, &faConfig, fa_ranges))
+                    FontAwesome6Available = true;
+            }
+        }
         
         // Mesclar a fonte FontAwesome na fonte padrão para uso de ícones nas labels
         // A fonte é embutida como recurso RCDATA (IDR_FONT_AWESOME_SOLID) em Resources/Resource.rc
@@ -84,7 +107,6 @@ namespace OSImGui
                 }
             }
         }
-        // Fallback: tentar carregar o TTF do disco caso o recurso não esteja acessível no binário
         if (!faMerged)
         {
             ImFontConfig faConfig;
@@ -94,22 +116,35 @@ namespace OSImGui
             faConfig.OversampleV = 3;
             faConfig.GlyphMinAdvanceX = 15.0f;
             faConfig.GlyphOffset = ImVec2(0.0f, 1.0f);
-
             static const ImWchar fa_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
-            // Tentativas comuns de caminho relativo durante desenvolvimento
-            const char* faPaths[] = {
-                "Resources/fa-solid-900.ttf",
-                "Saturn-UM/Resources/fa-solid-900.ttf",
-                "../Saturn-UM/Resources/fa-solid-900.ttf"
-            };
-            for (const char* p : faPaths)
+
+            const wchar_t* url = L"https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.x/webfonts/fa-solid-900.ttf";
+            std::wstring dest = StringToWstring("Saturn-UM/Resources/fa6-solid.ttf");
+            fs::create_directories("Saturn-UM/Resources");
+            URLDownloadToFileW(nullptr, url, dest.c_str(), 0, nullptr);
+            if (fs::exists("Saturn-UM/Resources/fa6-solid.ttf"))
             {
-                if (fs::exists(p))
+                if (fontAtlas->AddFontFromFileTTF("Saturn-UM/Resources/fa6-solid.ttf", 18.0f, &faConfig, fa_ranges))
                 {
-                    if (fontAtlas->AddFontFromFileTTF(p, 18.0f, &faConfig, fa_ranges))
+                    faMerged = true;
+                }
+            }
+            if (!faMerged)
+            {
+                const char* faPaths[] = {
+                    "Resources/fa-solid-900.ttf",
+                    "Saturn-UM/Resources/fa-solid-900.ttf",
+                    "../Saturn-UM/Resources/fa-solid-900.ttf"
+                };
+                for (const char* p : faPaths)
+                {
+                    if (fs::exists(p))
                     {
-                        faMerged = true;
-                        break;
+                        if (fontAtlas->AddFontFromFileTTF(p, 18.0f, &faConfig, fa_ranges))
+                        {
+                            faMerged = true;
+                            break;
+                        }
                     }
                 }
             }

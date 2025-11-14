@@ -115,23 +115,59 @@ namespace GUI
     };
     inline VM_Trigger BuildVM_Trigger() {
         VM_Trigger vm{};
-        vm.enabled = LegitBotConfig::TriggerBot;
-        vm.autoMode = LegitBotConfig::TriggerAlways;
-        vm.scopeOnly = TriggerBot::ScopeOnly;
-        vm.stopOnly = TriggerBot::StopedOnly;
-        vm.ttdTimeout = TriggerBot::TTDtimeout;
-        vm.delay = TriggerBot::TriggerDelay;
-        vm.duration = TriggerBot::ShotDuration;
+        if (!WeaponConfig::SelectedWeaponKey.empty()) {
+            auto key = WeaponConfig::SelectedWeaponKey;
+            auto it = WeaponConfig::WeaponConfigs.find(key);
+            if (it == WeaponConfig::WeaponConfigs.end()) {
+                WeaponConfig::WeaponProfile p;
+                p.triggerEnabled = LegitBotConfig::TriggerBot;
+                p.autoMode = LegitBotConfig::TriggerAlways;
+                p.t_scopeOnly = TriggerBot::ScopeOnly;
+                p.stopOnly = TriggerBot::StopedOnly;
+                p.ttdTimeout = TriggerBot::TTDtimeout;
+                p.delay = TriggerBot::TriggerDelay;
+                p.duration = TriggerBot::ShotDuration;
+                WeaponConfig::WeaponConfigs[key] = p;
+                it = WeaponConfig::WeaponConfigs.find(key);
+            }
+            const auto& p = it->second;
+            vm.enabled = p.triggerEnabled;
+            vm.autoMode = p.autoMode;
+            vm.scopeOnly = p.t_scopeOnly;
+            vm.stopOnly = p.stopOnly;
+            vm.ttdTimeout = p.ttdTimeout;
+            vm.delay = p.delay;
+            vm.duration = p.duration;
+        } else {
+            vm.enabled = LegitBotConfig::TriggerBot;
+            vm.autoMode = LegitBotConfig::TriggerAlways;
+            vm.scopeOnly = TriggerBot::ScopeOnly;
+            vm.stopOnly = TriggerBot::StopedOnly;
+            vm.ttdTimeout = TriggerBot::TTDtimeout;
+            vm.delay = TriggerBot::TriggerDelay;
+            vm.duration = TriggerBot::ShotDuration;
+        }
         return vm;
     }
     inline void ApplyVM_Trigger(const VM_Trigger& vm) {
-        LegitBotConfig::TriggerBot = vm.enabled;
-        LegitBotConfig::TriggerAlways = vm.autoMode;
-        TriggerBot::ScopeOnly = vm.scopeOnly;
-        TriggerBot::StopedOnly = vm.stopOnly;
-        TriggerBot::TTDtimeout = vm.ttdTimeout;
-        TriggerBot::TriggerDelay = vm.delay;
-        TriggerBot::ShotDuration = vm.duration;
+        if (!WeaponConfig::SelectedWeaponKey.empty()) {
+            auto& p = WeaponConfig::WeaponConfigs[WeaponConfig::SelectedWeaponKey];
+            p.triggerEnabled = vm.enabled;
+            p.autoMode = vm.autoMode;
+            p.t_scopeOnly = vm.scopeOnly;
+            p.stopOnly = vm.stopOnly;
+            p.ttdTimeout = vm.ttdTimeout;
+            p.delay = vm.delay;
+            p.duration = vm.duration;
+        } else {
+            LegitBotConfig::TriggerBot = vm.enabled;
+            LegitBotConfig::TriggerAlways = vm.autoMode;
+            TriggerBot::ScopeOnly = vm.scopeOnly;
+            TriggerBot::StopedOnly = vm.stopOnly;
+            TriggerBot::TTDtimeout = vm.ttdTimeout;
+            TriggerBot::TriggerDelay = vm.delay;
+            TriggerBot::ShotDuration = vm.duration;
+        }
     }
     struct VM_RCS {
         bool enabled;
@@ -141,17 +177,44 @@ namespace GUI
     };
     inline VM_RCS BuildVM_RCS() {
         VM_RCS vm{};
-        vm.enabled = LegitBotConfig::RCS;
-        vm.bullet = RCS::RCSBullet;
-        vm.yaw = RCS::RCSScale.x;
-        vm.pitch = RCS::RCSScale.y;
+        if (!WeaponConfig::SelectedWeaponKey.empty()) {
+            auto key = WeaponConfig::SelectedWeaponKey;
+            auto it = WeaponConfig::WeaponConfigs.find(key);
+            if (it == WeaponConfig::WeaponConfigs.end()) {
+                WeaponConfig::WeaponProfile p;
+                p.rcsEnabled = LegitBotConfig::RCS;
+                p.rcsBullet = RCS::RCSBullet;
+                p.rcsYaw = RCS::RCSScale.x;
+                p.rcsPitch = RCS::RCSScale.y;
+                WeaponConfig::WeaponConfigs[key] = p;
+                it = WeaponConfig::WeaponConfigs.find(key);
+            }
+            const auto& p = it->second;
+            vm.enabled = p.rcsEnabled;
+            vm.bullet = p.rcsBullet;
+            vm.yaw = p.rcsYaw;
+            vm.pitch = p.rcsPitch;
+        } else {
+            vm.enabled = LegitBotConfig::RCS;
+            vm.bullet = RCS::RCSBullet;
+            vm.yaw = RCS::RCSScale.x;
+            vm.pitch = RCS::RCSScale.y;
+        }
         return vm;
     }
     inline void ApplyVM_RCS(const VM_RCS& vm) {
-        LegitBotConfig::RCS = vm.enabled;
-        RCS::RCSBullet = vm.bullet;
-        RCS::RCSScale.x = vm.yaw;
-        RCS::RCSScale.y = vm.pitch;
+        if (!WeaponConfig::SelectedWeaponKey.empty()) {
+            auto& p = WeaponConfig::WeaponConfigs[WeaponConfig::SelectedWeaponKey];
+            p.rcsEnabled = vm.enabled;
+            p.rcsBullet = vm.bullet;
+            p.rcsYaw = vm.yaw;
+            p.rcsPitch = vm.pitch;
+        } else {
+            LegitBotConfig::RCS = vm.enabled;
+            RCS::RCSBullet = vm.bullet;
+            RCS::RCSScale.x = vm.yaw;
+            RCS::RCSScale.y = vm.pitch;
+        }
     }
 
     struct VM_Global {
@@ -611,6 +674,81 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                         // Config tab removida temporariamente
                         ImGui::EndTabBar();
                     }
+                    if (MenuConfig::WCS.MenuPage == 0)
+                    {
+                        float tab_frame_h2 = ImGui::GetFrameHeight();
+                        float tabs_y2 = top_pad_y + (title_size - tab_frame_h2) * 0.5f;
+                        ImGui::SetCursorPosY(tabs_y2);
+                        const float iconSize = ImGui::GetFontSize() * 1.15f;
+                        const float iconW = ImGui::CalcTextSize(ICON_FA_GUN).x * (iconSize / ImGui::GetFontSize());
+                        const float comboW = 160.0f;
+                        AlignRight(iconW + comboW + 12.0f);
+                        ImDrawList* dl = ImGui::GetWindowDrawList();
+                        ImVec2 p = ImGui::GetCursorScreenPos();
+                        float fh = ImGui::GetFrameHeight();
+                        p.y += (fh - iconSize) * 0.5f;
+                        ImU32 col = ImGui::GetColorU32(ImVec4(1,1,1,1));
+                        const char* iconTxt = ICON_FA_GUN;
+                        if (!OSImGui::FontAwesome6Available)
+                            iconTxt = ICON_FA_CROSSHAIRS;
+                        dl->AddText(ImGui::GetFont(), iconSize, p, col, iconTxt);
+                        ImGui::Dummy(ImVec2(iconW, iconSize));
+                        ImGui::SameLine(0.0f, 4.0f);
+                        std::string currentLabel = "Weapons";
+                        if (!WeaponConfig::SelectedWeaponKey.empty()) {
+                            const std::string& k = WeaponConfig::SelectedWeaponKey;
+                            if (k=="usp") currentLabel = "USP-S"; else if (k=="p2000") currentLabel = "P2000"; else if (k=="glock") currentLabel = "Glock-18"; else if (k=="elite") currentLabel = "Dual Berettas"; else if (k=="p250") currentLabel = "P250"; else if (k=="fiveseven") currentLabel = "Five-SeveN"; else if (k=="cz75a") currentLabel = "CZ75-Auto"; else if (k=="tec9") currentLabel = "Tec-9"; else if (k=="deagle") currentLabel = "Desert Eagle"; else if (k=="revolver") currentLabel = "R8 Revolver"; else if (k=="mp9") currentLabel = "MP9"; else if (k=="mac10") currentLabel = "MAC-10"; else if (k=="mp7") currentLabel = "MP7"; else if (k=="mp5sd") currentLabel = "MP5-SD"; else if (k=="ump45") currentLabel = "UMP-45"; else if (k=="p90") currentLabel = "P90"; else if (k=="bizon") currentLabel = "PP-Bizon"; else if (k=="famas") currentLabel = "FAMAS"; else if (k=="galilar") currentLabel = "Galil AR"; else if (k=="ak47") currentLabel = "AK-47"; else if (k=="m4a1") currentLabel = "M4A1-S"; else if (k=="m4a4") currentLabel = "M4A4"; else if (k=="aug") currentLabel = "AUG"; else if (k=="sg556") currentLabel = "SG 553"; else if (k=="ssg08") currentLabel = "SSG 08"; else if (k=="awp") currentLabel = "AWP"; else if (k=="g3Sg1") currentLabel = "G3SG1"; else if (k=="scar20") currentLabel = "SCAR-20"; else if (k=="nova") currentLabel = "Nova"; else if (k=="xm1014") currentLabel = "XM1014"; else if (k=="mag7") currentLabel = "MAG-7"; else if (k=="sawedoff") currentLabel = "Sawed-Off"; else if (k=="m249") currentLabel = "M249"; else if (k=="negev") currentLabel = "Negev"; else currentLabel = k;
+                        }
+                        ImGui::SetNextItemWidth(comboW);
+                        if (ImGui::BeginCombo("##Weapons", currentLabel.c_str()))
+                        {
+                            auto addItem = [&](const char* label, const char* key){ bool selected = (WeaponConfig::SelectedWeaponKey == key); if (ImGui::Selectable(label, selected)) WeaponConfig::SelectedWeaponKey = key; };
+                            ImGui::TextDisabled("Pistols");
+                            addItem("USP-S", "usp");
+                            addItem("P2000", "p2000");
+                            addItem("Glock-18", "glock");
+                            addItem("Dual Berettas", "elite");
+                            addItem("P250", "p250");
+                            addItem("Five-SeveN", "fiveseven");
+                            addItem("CZ75-Auto", "cz75a");
+                            addItem("Tec-9", "tec9");
+                            addItem("Desert Eagle", "deagle");
+                            addItem("R8 Revolver", "revolver");
+                            ImGui::Separator();
+                            ImGui::TextDisabled("SMG");
+                            addItem("MP9", "mp9");
+                            addItem("MAC-10", "mac10");
+                            addItem("MP7", "mp7");
+                            addItem("MP5-SD", "mp5sd");
+                            addItem("UMP-45", "ump45");
+                            addItem("P90", "p90");
+                            addItem("PP-Bizon", "bizon");
+                            ImGui::Separator();
+                            ImGui::TextDisabled("Rifles");
+                            addItem("FAMAS", "famas");
+                            addItem("Galil AR", "galilar");
+                            addItem("AK-47", "ak47");
+                            addItem("M4A1-S", "m4a1");
+                            addItem("M4A4", "m4a4");
+                            addItem("AUG", "aug");
+                            addItem("SG 553", "sg556");
+                            ImGui::Separator();
+                            ImGui::TextDisabled("Snipers");
+                            addItem("SSG 08", "ssg08");
+                            addItem("AWP", "awp");
+                            addItem("G3SG1", "g3Sg1");
+                            addItem("SCAR-20", "scar20");
+                            ImGui::Separator();
+                            ImGui::TextDisabled("Heavy Weapons");
+                            addItem("Nova", "nova");
+                            addItem("XM1014", "xm1014");
+                            addItem("MAG-7", "mag7");
+                            addItem("Sawed-Off", "sawedoff");
+                            addItem("M249", "m249");
+                            addItem("Negev", "negev");
+                            ImGui::EndCombo();
+                        }
+                    }
                     ImGui::PopStyleVar(2);
                     ImGui::PopStyleColor(2);
                     ImGui::PopStyleVar();
@@ -771,7 +909,48 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                         static const int MinHumanize = 0;
                         static const int MaxHumanize = 15;
                         struct VM_Aimbot { bool enabled; bool toggleMode; bool drawFov; bool visibleCheck; bool scopeOnly; int humanizationStrength; float aimFov; float aimFovMin; float smooth; int aimBullet; };
-                        VM_Aimbot vm{}; vm.enabled = LegitBotConfig::AimBot; vm.toggleMode = LegitBotConfig::AimToggleMode; vm.drawFov = ESPConfig::DrawFov; vm.visibleCheck = LegitBotConfig::VisibleCheck; vm.scopeOnly = AimControl::ScopeOnly; vm.humanizationStrength = AimControl::HumanizationStrength; vm.aimFov = AimControl::AimFov; vm.aimFovMin = AimControl::AimFovMin; vm.smooth = AimControl::Smooth; vm.aimBullet = AimControl::AimBullet;
+                        VM_Aimbot vm{};
+                        if (!WeaponConfig::SelectedWeaponKey.empty()) {
+                            auto key = WeaponConfig::SelectedWeaponKey;
+                            auto it = WeaponConfig::WeaponConfigs.find(key);
+                            if (it == WeaponConfig::WeaponConfigs.end()) {
+                                WeaponConfig::WeaponProfile p;
+                                p.aimEnabled = LegitBotConfig::AimBot;
+                                p.toggleMode = LegitBotConfig::AimToggleMode;
+                                p.visibleCheck = LegitBotConfig::VisibleCheck;
+                                p.scopeOnly = AimControl::ScopeOnly;
+                                p.humanizationStrength = AimControl::HumanizationStrength;
+                                p.aimFov = AimControl::AimFov;
+                                p.aimFovMin = AimControl::AimFovMin;
+                                p.smooth = AimControl::Smooth;
+                                p.aimBullet = AimControl::AimBullet;
+                                p.hitboxes = AimControl::HitboxList;
+                                WeaponConfig::WeaponConfigs[key] = p;
+                                it = WeaponConfig::WeaponConfigs.find(key);
+                            }
+                            const auto& p = it->second;
+                            vm.enabled = p.aimEnabled;
+                            vm.toggleMode = p.toggleMode;
+                            vm.drawFov = ESPConfig::DrawFov;
+                            vm.visibleCheck = p.visibleCheck;
+                            vm.scopeOnly = p.scopeOnly;
+                            vm.humanizationStrength = p.humanizationStrength;
+                            vm.aimFov = p.aimFov;
+                            vm.aimFovMin = p.aimFovMin;
+                            vm.smooth = p.smooth;
+                            vm.aimBullet = p.aimBullet;
+                        } else {
+                            vm.enabled = LegitBotConfig::AimBot;
+                            vm.toggleMode = LegitBotConfig::AimToggleMode;
+                            vm.drawFov = ESPConfig::DrawFov;
+                            vm.visibleCheck = LegitBotConfig::VisibleCheck;
+                            vm.scopeOnly = AimControl::ScopeOnly;
+                            vm.humanizationStrength = AimControl::HumanizationStrength;
+                            vm.aimFov = AimControl::AimFov;
+                            vm.aimFovMin = AimControl::AimFovMin;
+                            vm.smooth = AimControl::Smooth;
+                            vm.aimBullet = AimControl::AimBullet;
+                        }
                         PutSwitch(Text::Aimbot::Enable.c_str(), 0.f, ImGui::GetFrameHeight() * 1.7, &vm.enabled);
                         if (vm.enabled)
                         {
@@ -785,7 +964,21 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                             PutSliderFloat(Text::Aimbot::SmoothSlider.c_str(), 10.f, &vm.smooth, &SmoothMin, &SmoothMax, "%.1f", Text::Aimbot::OnlyAutoTip.c_str());
                             PutSliderInt(Text::Aimbot::BulletSlider.c_str(), 10.f, &vm.aimBullet, &BulletMin, &BulletMax, "%d", Text::Aimbot::StartBulletTip.c_str());
                         }
-                        LegitBotConfig::AimBot = vm.enabled; LegitBotConfig::AimToggleMode = vm.toggleMode; ESPConfig::DrawFov = vm.drawFov; LegitBotConfig::VisibleCheck = vm.visibleCheck; AimControl::ScopeOnly = vm.scopeOnly; AimControl::HumanizationStrength = vm.humanizationStrength; AimControl::AimFov = vm.aimFov; AimControl::AimFovMin = vm.aimFovMin; AimControl::Smooth = vm.smooth; AimControl::AimBullet = vm.aimBullet;
+                        if (!WeaponConfig::SelectedWeaponKey.empty()) {
+                            auto& p = WeaponConfig::WeaponConfigs[WeaponConfig::SelectedWeaponKey];
+                            p.aimEnabled = vm.enabled;
+                            p.toggleMode = vm.toggleMode;
+                            ESPConfig::DrawFov = vm.drawFov;
+                            p.visibleCheck = vm.visibleCheck;
+                            p.scopeOnly = vm.scopeOnly;
+                            p.humanizationStrength = vm.humanizationStrength;
+                            p.aimFov = vm.aimFov;
+                            p.aimFovMin = vm.aimFovMin;
+                            p.smooth = vm.smooth;
+                            p.aimBullet = vm.aimBullet;
+                        } else {
+                            LegitBotConfig::AimBot = vm.enabled; LegitBotConfig::AimToggleMode = vm.toggleMode; ESPConfig::DrawFov = vm.drawFov; LegitBotConfig::VisibleCheck = vm.visibleCheck; AimControl::ScopeOnly = vm.scopeOnly; AimControl::HumanizationStrength = vm.humanizationStrength; AimControl::AimFov = vm.aimFov; AimControl::AimFovMin = vm.aimFovMin; AimControl::Smooth = vm.smooth; AimControl::AimBullet = vm.aimBullet;
+                        }
                     }
                     EndSection();
 
@@ -827,13 +1020,13 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
 					{
 						static const float recoilMin = 0.f, recoilMax = 2.f;
 						static const int RCSBulletMin = 0, RCSBulletMax = 5;
-						auto vmRcs = BuildVM_RCS();
-						PutSwitch(Text::RCS::Toggle.c_str(), 0.f, ImGui::GetFrameHeight() * 1.7, &vmRcs.enabled);
-						if (vmRcs.enabled)
-						{
-							PutSliderInt(Text::RCS::BulletSlider.c_str(), 5.f, &vmRcs.bullet, &RCSBulletMin, &RCSBulletMax, "%d");
-							PutSliderFloat(Text::RCS::Yaw.c_str(), 5.f, &vmRcs.yaw, &recoilMin, &recoilMax, "%.2f");
-							PutSliderFloat(Text::RCS::Pitch.c_str(), 5.f, &vmRcs.pitch, &recoilMin, &recoilMax, "%.2f");
+                        auto vmRcs = BuildVM_RCS();
+                        PutSwitch(Text::RCS::Toggle.c_str(), 0.f, ImGui::GetFrameHeight() * 1.7, &vmRcs.enabled);
+                        if (vmRcs.enabled)
+                        {
+                            PutSliderInt(Text::RCS::BulletSlider.c_str(), 5.f, &vmRcs.bullet, &RCSBulletMin, &RCSBulletMax, "%d");
+                            PutSliderFloat(Text::RCS::Yaw.c_str(), 5.f, &vmRcs.yaw, &recoilMin, &recoilMax, "%.2f");
+                            PutSliderFloat(Text::RCS::Pitch.c_str(), 5.f, &vmRcs.pitch, &recoilMin, &recoilMax, "%.2f");
 							float scalex = (2.22 - vmRcs.yaw) *.5f;
 							float scaley = (2.12 - vmRcs.pitch) *.5f;
 							ImVec2 BulletPos = ImGui::GetCursorScreenPos();
@@ -875,7 +1068,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
 
 							ImGui::SetCursorScreenPos(ImVec2(BulletPos.x, BulletPos.y + 10));
 						}
-						ApplyVM_RCS(vmRcs);
+                        ApplyVM_RCS(vmRcs);
 					}
 					EndSection();
 					// Encerrar grade de 3 colunas
