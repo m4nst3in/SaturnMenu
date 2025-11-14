@@ -100,9 +100,7 @@ void AimControl::AimBot(const CEntity& Local, Vec3 LocalPos,std::vector<Vec3>& A
     if (MenuConfig::ShowMenu)
         return;
 
-    std::string curWeapon = TriggerBot::GetWeapon(Local);
-    if (!TriggerBot::CheckWeapon(curWeapon))
-        return;
+    // Run independently of TriggerBot: do not gate by weapon type
 
     
 
@@ -114,9 +112,9 @@ void AimControl::AimBot(const CEntity& Local, Vec3 LocalPos,std::vector<Vec3>& A
 
     if (AimControl::ScopeOnly)
     {
-        bool isScoped;
+        bool isScoped = false;
         memoryManager.ReadMemory<bool>(Local.Pawn.Address + Offset.Pawn.isScoped, isScoped);
-        if (!isScoped && TriggerBot::CheckScopeWeapon(curWeapon))
+        if (!isScoped)
         {
             HasTarget = false;
             return;
@@ -191,8 +189,8 @@ void AimControl::AimBot(const CEntity& Local, Vec3 LocalPos,std::vector<Vec3>& A
 
     auto [TargetX, TargetY] = CalculateTargetOffset(ScreenPos, ScreenCenterX, ScreenCenterY);
 
-    TargetX /= Local.Client.Sensitivity /4;
-    TargetY /= Local.Client.Sensitivity /4;
+    TargetX /= Local.Client.Sensitivity;
+    TargetY /= Local.Client.Sensitivity;
     if (Smooth > 0.0f)
     {
         const float DistanceRatio = BestNorm / AimFov;
@@ -209,11 +207,21 @@ void AimControl::AimBot(const CEntity& Local, Vec3 LocalPos,std::vector<Vec3>& A
     }
 
     static DWORD lastAimTime = GetTickCount64();
+    static float accumX = 0.f;
+    static float accumY = 0.f;
     DWORD currentTick = GetTickCount64();
 
     if (currentTick - lastAimTime >= MenuConfig::AimDelay)
     {
-        mouse_event(MOUSEEVENTF_MOVE, TargetX, TargetY, NULL, NULL);
+        accumX += TargetX;
+        accumY += TargetY;
+        int outX = static_cast<int>(std::round(accumX));
+        int outY = static_cast<int>(std::round(accumY));
+        if (outX != 0 || outY != 0) {
+            mouse_event(MOUSEEVENTF_MOVE, outX, outY, 0, 0);
+            accumX -= outX;
+            accumY -= outY;
+        }
         lastAimTime = currentTick;
     }
 }

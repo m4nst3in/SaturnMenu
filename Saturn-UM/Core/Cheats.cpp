@@ -360,47 +360,56 @@ void Cheats::HandleEnts(const std::vector<EntityResult>& entities, CEntity& loca
 			continue;
 		}
 
-		// process aimbot data
-		if (!AimControl::HitboxList.empty()) {
-			float minDistance = FLT_MAX;
-			Vec3 bestAimPos = { 0, 0, 0 };
-
-			ImVec2 screenCenter{ Gui.Window.Size.x / 2, Gui.Window.Size.y / 2 };
-
-			constexpr float DEG_TO_RAD = M_PI / 180.f;
-			constexpr float STATIC_FOV = 90.0f;
-			float halfWindowSize = Gui.Window.Size.x / 2.f;
-			float staticFovTan = tan(STATIC_FOV * DEG_TO_RAD / 2.f);
-			float aimFovTan = tan(AimControl::AimFov * DEG_TO_RAD / 2.f);
-			float aimFovRadius = (aimFovTan / staticFovTan) * halfWindowSize;
+        // process aimbot data
+        if (!AimControl::HitboxList.empty()) {
+            ImVec2 screenCenter{ Gui.Window.Size.x / 2, Gui.Window.Size.y / 2 };
+            constexpr float DEG_TO_RAD = M_PI / 180.f;
+            constexpr float STATIC_FOV = 90.0f;
+            float halfWindowSize = Gui.Window.Size.x / 2.f;
+            float staticFovTan = tan(STATIC_FOV * DEG_TO_RAD / 2.f);
+            float aimFovTan = tan(AimControl::AimFov * DEG_TO_RAD / 2.f);
+            float aimFovRadius = (aimFovTan / staticFovTan) * halfWindowSize;
 
             const auto& bones = entity.GetBone().BonePosList;
             if (!bones.empty()) {
-                for (size_t i = 0; i < AimControl::HitboxList.size(); ++i) {
-                    int hitboxID = AimControl::HitboxList[i];
-                    if (hitboxID < 0 || static_cast<size_t>(hitboxID) >= bones.size()) {
-                        continue;
-                    }
-
-                    float distanceToSight = bones[hitboxID].ScreenPos.DistanceTo(
-                        { screenCenter.x, screenCenter.y });
-
-                    if (distanceToSight < minDistance && distanceToSight <= aimFovRadius) {
-                        minDistance = distanceToSight;
-
+                // prefer head if present
+                auto headIt = std::find(AimControl::HitboxList.begin(), AimControl::HitboxList.end(), BONEINDEX::head);
+                if (headIt != AimControl::HitboxList.end() && static_cast<size_t>(BONEINDEX::head) < bones.size()) {
+                    float distanceToSight = bones[BONEINDEX::head].ScreenPos.DistanceTo({ screenCenter.x, screenCenter.y });
+                    if (distanceToSight <= aimFovRadius) {
                         if (!LegitBotConfig::VisibleCheck ||
                             entity.Pawn.bSpottedByMask & (DWORD64(1) << (localPlayerControllerIndex)) ||
                             localEntity.Pawn.bSpottedByMask & (DWORD64(1) << (entityIndex))) {
-                            Vec3 tempPos = bones[hitboxID].Pos;
-
-                            bestAimPos = tempPos;
-                            aimPosList.push_back(bestAimPos);
+                            aimPosList.push_back(bones[BONEINDEX::head].Pos);
                             MaxAimDistance = distanceToSight;
                         }
                     }
                 }
+                else {
+                    float minDistance = FLT_MAX;
+                    Vec3 bestAimPos = { 0, 0, 0 };
+                    for (size_t i = 0; i < AimControl::HitboxList.size(); ++i) {
+                        int hitboxID = AimControl::HitboxList[i];
+                        if (hitboxID < 0 || static_cast<size_t>(hitboxID) >= bones.size()) {
+                            continue;
+                        }
+                        float distanceToSight = bones[hitboxID].ScreenPos.DistanceTo({ screenCenter.x, screenCenter.y });
+                        if (distanceToSight < minDistance && distanceToSight <= aimFovRadius) {
+                            minDistance = distanceToSight;
+                            if (!LegitBotConfig::VisibleCheck ||
+                                entity.Pawn.bSpottedByMask & (DWORD64(1) << (localPlayerControllerIndex)) ||
+                                localEntity.Pawn.bSpottedByMask & (DWORD64(1) << (entityIndex))) {
+                                bestAimPos = bones[hitboxID].Pos;
+                            }
+                        }
+                    }
+                    if (minDistance < FLT_MAX) {
+                        aimPosList.push_back(bestAimPos);
+                        MaxAimDistance = minDistance;
+                    }
+                }
             }
-		}
+        }
 
 		// render esp
         if (false)
@@ -460,9 +469,11 @@ void AIM(const CEntity& LocalEntity, std::vector<Vec3> AimPosList)
 		return;
 	}
 
-	bool shouldAim = LegitBotConfig::AimAlways || GetAsyncKeyState(AimControl::HotKey);
-	if (shouldAim && !AimPosList.empty())
-		AimControl::AimBot(LocalEntity, LocalEntity.Pawn.CameraPos, AimPosList);
+    bool shouldAim = LegitBotConfig::AimAlways || GetAsyncKeyState(AimControl::HotKey);
+    if (shouldAim && !AimPosList.empty()) {
+        AimControl::AimBot(LocalEntity, LocalEntity.Pawn.CameraPos, AimPosList);
+    }
+    RCS::RecoilControl(LocalEntity);
 
 	if (LegitBotConfig::AimToggleMode && (GetAsyncKeyState(AimControl::HotKey) & 0x8000) &&
 		currentTick - lastTick >= 200) {

@@ -10,19 +10,17 @@
 #include <iostream>
 #include "..\Game\View.h"
 #include "..\Features/RCS.h"
-#include "TriggerBot.h"
 #include <random>
 
 extern "C" {
 #include "..\Helpers\Mouse.h"
-#include "..\Game\Entity.h"
 }
 
 
 namespace AimControl
 {
     inline int HotKey = VK_XBUTTON2;
-    inline int AimBullet = 1;
+    inline int AimBullet = 0;
     inline bool ScopeOnly = true;
     inline bool HumanizeVar = true;
     inline int HumanizationStrength = 0;
