@@ -1,8 +1,8 @@
 #include "RCS.h"
 #include "../Helpers/Logger.h"
 #include "../Core/DI.h"
-#include "../Core/Config.h" // Certifique-se que esse header dá acesso ao WeaponConfig::WeaponConfigs
-#include "TriggerBot.h"
+#include "../Core/Config.h"
+#include "../Game/Weapon.h"
 
 namespace
 {
@@ -26,13 +26,13 @@ namespace
 
 void RCS::RecoilControl(const CEntity& LocalPlayer)
 {
+    // we have to be careful here, or the recoil will have big issues :v
     static Vec2 oldPunch{ 0.f, 0.f };
     static int lastShotsFired = 0;
 
-    std::string weaponName = TriggerBot::GetWeapon(LocalPlayer);
+    std::string weaponName = Weapon::GetWeapon(LocalPlayer);
     WeaponRCSConfig defaultConfig = GetWeaponRCSConfig(weaponName);
 
-    // Pegue config do usuário se existir
     float yaw = defaultConfig.yaw;
     float pitch = defaultConfig.pitch;
 
@@ -67,6 +67,7 @@ void RCS::RecoilControl(const CEntity& LocalPlayer)
     constexpr float m_yaw = 0.022f;
     constexpr float m_pitch = 0.022f;
 
+    // calculating the control using the deltaPunch.xy * 2.f * yaw/pitch formula
     Vec2 deltaPunch{ punch.x - oldPunch.x, punch.y - oldPunch.y };
     int mouseX = static_cast<int>(std::round((deltaPunch.y * 2.f * yaw) / (sens * m_yaw)));
     int mouseY = static_cast<int>(std::round((deltaPunch.x * 2.f * pitch) / (sens * m_pitch)));
@@ -84,10 +85,10 @@ void RCS::UpdateAngles(const CEntity& Local, Vec2& Angles)
 {
     static Vec2 oldPunch{ 0.f, 0.f };
 
-    std::string weaponName = TriggerBot::GetWeapon(Local);
+    std::string weaponName = Weapon::GetWeapon(Local);
     WeaponRCSConfig defaultConfig = GetWeaponRCSConfig(weaponName);
 
-    // Pegue config do usuário se existir
+    // here we gonna read yaw and pitch from the config
     float yaw = defaultConfig.yaw;
     float pitch = defaultConfig.pitch;
 
@@ -115,7 +116,6 @@ void RCS::UpdateAngles(const CEntity& Local, Vec2& Angles)
 
     Vec2 deltaPunch{ punch.x - oldPunch.x, punch.y - oldPunch.y };
 
-    // Aplica yaw/pitch (user ou padrão)
     Angles.x -= deltaPunch.x * 2.f * pitch;
     Angles.y -= deltaPunch.y * 2.f * yaw;
 

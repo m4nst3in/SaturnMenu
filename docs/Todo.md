@@ -2,14 +2,19 @@
 
 ### Height Priority
 
-- [ ] Refactor AimBot & RCS
+- [x] Refactor AimBot & RCS
+- [ ] Implement Semirage Aimbot
+- [ ] Refactor Console and Logging
+- [ ] Improve ESP stability
+- [ ] Remove/add new small features on the menu, such as better config for ESP
 
 ### Medium Priority
 
 - [ ] Use binds from game instead const keys
-- [ ] Different config for each of weapon type
+- [x] Different config for each of weapon type
 - [ ] Make UEFI mapper
 - [ ] Make menu usable during gameplay
+- [ ] Improve kernel driver for better performance
 
 ### Low Priority
 

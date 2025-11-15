@@ -90,8 +90,18 @@ inline void RenderPlayerESP(const CEntity& LocalEntity, const CEntity& Entity, I
 		bool bIsVisible = (Entity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & playerMask);
 		bool bIsVisibleIndex = (Entity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & (DWORD64(1) << Index));
 
-        // Render bones and head circle
-        Render::DrawBone(Entity, ESPConfig::BoneColor, 1.3f);
+        {
+            float distm = Entity.Pawn.Pos.DistanceTo(LocalEntity.Pawn.Pos) / 100.0f;
+            int fc = ImGui::GetFrameCount();
+            static int lastFc = -1;
+            static int skeletonCount = 0;
+            const int skeletonBudget = 6;
+            if (fc != lastFc) { lastFc = fc; skeletonCount = 0; }
+            if (distm <= 40.0f && fc >= 120 && skeletonCount < skeletonBudget) {
+                Render::DrawBone(Entity, ESPConfig::BoneColor, 1.3f);
+                skeletonCount++;
+            }
+        }
 
         
 
@@ -149,45 +159,35 @@ inline void RenderPlayerESP(const CEntity& LocalEntity, const CEntity& Entity, I
 
 		Render::LineToEnemy(Rect, ESPConfig::LineToEnemyColor, 1.2f);
 
-		if (ESPConfig::ShowWeaponESP) {
-			WeaponIconSize iconSize = weaponIconSizes[Entity.Pawn.WeaponName];
-			ImVec2 textPosition = { Rect.x + (Rect.z - iconSize.width) / 2 + iconSize.offsetX,
-									  Rect.y + Rect.w + 1 + iconSize.offsetY };
-			if (ESPConfig::AmmoBar)
-				textPosition.y += 6;
-
-			const ImVec2 offsets[4] = { { -1, -1 }, { -1, 1 }, { 1, 1 }, { 1, -1 } };
-			for (const auto& off : offsets) {
-				ImVec2 pos = { textPosition.x + off.x, textPosition.y + off.y };
-				ImGui::GetBackgroundDrawList()->AddText(ioFonts, 10.0f, pos, ImColor(0, 0, 0, 255), weaponIcon.c_str());
-			}
-			ImGui::GetBackgroundDrawList()->AddText(ioFonts, 10.0f, textPosition, ImColor(255, 255, 255, 255), weaponIcon.c_str());
-		}
+        if (ESPConfig::ShowWeaponESP) {
+            int fc = ImGui::GetFrameCount();
+            if ((fc % 2) == 0) {
+                WeaponIconSize iconSize = weaponIconSizes[Entity.Pawn.WeaponName];
+                ImVec2 textPosition = { Rect.x + (Rect.z - iconSize.width) / 2 + iconSize.offsetX,
+                                          Rect.y + Rect.w + 1 + iconSize.offsetY };
+                if (ESPConfig::AmmoBar)
+                    textPosition.y += 6;
+                ImGui::GetBackgroundDrawList()->AddText(ioFonts, 10.0f, textPosition, ImColor(255, 255, 255, 255), weaponIcon.c_str());
+            }
+        }
 
 		// check and display C4 icon
-		if (ESPConfig::ShowWeaponESP) {
-			auto weaponInventory = Entity.Pawn.GetWeaponInventory(gGame.GetEntityListAddress());
-			bool hasC4 = false;
-			for (short weaponID : weaponInventory) {
-				if (weaponID == 49) { // 49 is the weapon ID for C4
-					hasC4 = true;
-					break;
-				}
-			}
-
-			if (hasC4 && Entity.Pawn.WeaponName != "c4") {
-				WeaponIconSize iconSize = weaponIconSizes["c4"];
-				ImVec2 c4TextPosition = { Rect.x + (Rect.z - iconSize.width) / 2 + iconSize.offsetX,
-										  Rect.y + Rect.w + 1 + iconSize.offsetY + (ESPConfig::AmmoBar ? 6.f : 0.f) + (ESPConfig::ShowWeaponESP && Entity.Pawn.WeaponName != "Weapon_None" ? 13.f : 0.f) };
-
-				const ImVec2 offsets[4] = { { -1, -1 }, { -1, 1 }, { 1, 1 }, { 1, -1 } };
-				for (const auto& off : offsets) {
-					ImVec2 pos = { c4TextPosition.x + off.x, c4TextPosition.y + off.y };
-					ImGui::GetBackgroundDrawList()->AddText(ioFonts, 10.0f, pos, ImColor(0, 0, 0, 255), GunIcon("c4"));
-				}
-				ImGui::GetBackgroundDrawList()->AddText(ioFonts, 10.0f, c4TextPosition, ImColor(255, 255, 255, 255), GunIcon("c4"));
-			}
-		}
+        if (ESPConfig::ShowWeaponESP) {
+            int fc = ImGui::GetFrameCount();
+            if ((fc % 2) == 0) {
+                auto weaponInventory = Entity.Pawn.GetWeaponInventory(gGame.GetEntityListAddress());
+                bool hasC4 = false;
+                for (short weaponID : weaponInventory) {
+                    if (weaponID == 49) { hasC4 = true; break; }
+                }
+                if (hasC4 && Entity.Pawn.WeaponName != "c4") {
+                    WeaponIconSize iconSize = weaponIconSizes["c4"];
+                    ImVec2 c4TextPosition = { Rect.x + (Rect.z - iconSize.width) / 2 + iconSize.offsetX,
+                                              Rect.y + Rect.w + 1 + iconSize.offsetY + (ESPConfig::AmmoBar ? 6.f : 0.f) + (ESPConfig::ShowWeaponESP && Entity.Pawn.WeaponName != "Weapon_None" ? 13.f : 0.f) };
+                    ImGui::GetBackgroundDrawList()->AddText(ioFonts, 10.0f, c4TextPosition, ImColor(255, 255, 255, 255), GunIcon("c4"));
+                }
+            }
+        }
 
         if (ESPConfig::ShowIsScoped) {
             bool isScoped;
@@ -217,9 +217,12 @@ inline void RenderPlayerESP(const CEntity& LocalEntity, const CEntity& Entity, I
             }
         }
 
-		if (ESPConfig::ShowPlayerName) {
-			Gui.StrokeText(Entity.Controller.PlayerName, { Rect.x + Rect.z / 2, Rect.y - 10 }, ImColor(255, 255, 255, 255), 10, true);
-		}
+        if (ESPConfig::ShowPlayerName) {
+            int fc = ImGui::GetFrameCount();
+            if (fc >= 90 && (fc % 2) == 0) {
+                Gui.StrokeText(Entity.Controller.PlayerName, { Rect.x + Rect.z / 2, Rect.y - 10 }, ImColor(255, 255, 255, 255), 10, true);
+            }
+        }
 	}
 
 inline void DrawPreviewBox(const ImVec2& startPos, const ImVec2& endPos, ImColor boxColor, float rounding, float thickness, bool filled) {

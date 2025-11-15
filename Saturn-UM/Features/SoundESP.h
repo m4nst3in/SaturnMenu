@@ -2,6 +2,7 @@
 #include "../Game/Entity.h"
 #include "../Core/Config.h"
 
+// currently SoundESP is not an option on the menu, im planning in adding it back on the future
 namespace SoundESP {
     struct SoundEffect {
         Vec3 origin;

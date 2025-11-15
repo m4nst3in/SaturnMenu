@@ -126,6 +126,7 @@
     <ClInclude Include="Game\Entity.h" />
     <ClInclude Include="Game\Game.h" />
     <ClInclude Include="Game\View.h" />
+    <ClInclude Include="Game\Weapon.h" />
     <ClInclude Include="Helpers\GetWeaponIcon.h" />
     <ClInclude Include="Helpers\KeyManager.h" />
     <ClInclude Include="Helpers\Logger.h" />
@@ -170,6 +171,7 @@
     <ClCompile Include="Features\RCS.cpp" />
     <ClCompile Include="Features\TriggerBot.cpp" />
     <ClCompile Include="Game\Bone.cpp" />
+    <ClCompile Include="Game\Weapon.cpp" />
     <ClCompile Include="Game\Entity.cpp" />
     <ClCompile Include="Game\Game.cpp" />
     <ClCompile Include="Helpers\Mouse.cpp" />

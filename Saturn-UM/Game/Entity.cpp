@@ -490,13 +490,12 @@ bool EntityBatchProcessor::ProcessAllEntities(
 	if (!ProcessDependenciesData(entities, weaponDataAddresses, cameraAddresses)) {
 		return false;
 	}
-	// Phase 4: Bone Data (process individually for now)
-	for (auto& [entityIndex, entity] : entities) {
-
-		if (entity.Pawn.Address != 0) {
-			entity.Pawn.BoneData.UpdateAllBoneData(entity.Pawn.Address);
-		}
-	}
+    // Phase 4: Bone Data (batch method)
+    for (auto& [entityIndex, entity] : entities) {
+        if (entity.Pawn.Address != 0) {
+            entity.Pawn.BoneData.UpdateAllBoneDataBatch(entity.Pawn.Address);
+        }
+    }
 
 	return true;
 }
