@@ -90,17 +90,11 @@ inline void RenderPlayerESP(const CEntity& LocalEntity, const CEntity& Entity, I
 		bool bIsVisible = (Entity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & playerMask);
 		bool bIsVisibleIndex = (Entity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & (DWORD64(1) << Index));
 
+        if (ESPConfig::ShowBoneESP)
         {
             float distm = Entity.Pawn.Pos.DistanceTo(LocalEntity.Pawn.Pos) / 100.0f;
-            int fc = ImGui::GetFrameCount();
-            static int lastFc = -1;
-            static int skeletonCount = 0;
-            const int skeletonBudget = 6;
-            if (fc != lastFc) { lastFc = fc; skeletonCount = 0; }
-            if (distm <= 40.0f && fc >= 120 && skeletonCount < skeletonBudget) {
+            if (distm <= 100.0f)
                 Render::DrawBone(Entity, ESPConfig::BoneColor, 1.3f);
-                skeletonCount++;
-            }
         }
 
         

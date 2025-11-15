@@ -336,6 +336,50 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(st.ItemSpacing.x, 4.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(st.FramePadding.x, 5.0f));
     ImGui::TextDisabled(title);
+    if (strcmp(title, "Aimbot") == 0 || strcmp(title, "Recoil Control") == 0)
+    {
+        ImGui::SameLine(0.0f, 6.0f);
+        auto UnsafeBadgeTitle = [&](const char* id, const char* tooltip){
+            ImVec4 accent = ImVec4(0.486f, 0.227f, 0.929f, 1.0f);
+            const float iconSize = ImGui::GetFontSize() * 0.80f;
+            const char* sym = OSImGui::FontAwesome6Available ? ICON_FA_EXCLAMATION_TRIANGLE : "-";
+            float iconW = ImGui::CalcTextSize(sym).x * (iconSize / ImGui::GetFontSize());
+            ImDrawList* dl = ImGui::GetWindowDrawList();
+            ImVec2 p = ImGui::GetCursorScreenPos();
+            p.y += (ImGui::GetTextLineHeight() - iconSize) * 0.5f;
+            ImU32 col = ImGui::GetColorU32(accent);
+            dl->AddText(ImGui::GetFont(), iconSize, p, col, sym);
+            ImGui::Dummy(ImVec2(iconW, iconSize));
+            bool hovered = ImGui::IsItemHovered();
+            ImGuiStorage* stg = ImGui::GetStateStorage();
+            ImGuiID key = ImGui::GetID(id);
+            float* alpha = stg->GetFloatRef(key, 0.0f);
+            float target = hovered ? 1.0f : 0.0f;
+            float dt = ImGui::GetIO().DeltaTime;
+            float k = ImClamp(dt * 12.0f, 0.0f, 1.0f);
+            *alpha = (*alpha) + (target - (*alpha)) * k;
+            if (*alpha > 0.01f && hovered)
+            {
+                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, *alpha);
+                ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.06f, 0.06f, 0.08f, 0.97f));
+                ImGui::PushStyleColor(ImGuiCol_Border, accent);
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10, 8));
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);
+                ImGui::BeginTooltip();
+                ImGui::TextColored(accent, "Unsafe Feature");
+                ImGui::Separator();
+                ImGui::TextUnformatted(tooltip);
+                ImGui::EndTooltip();
+                ImGui::PopStyleVar(2);
+                ImGui::PopStyleColor(2);
+                ImGui::PopStyleVar();
+            }
+        };
+        if (strcmp(title, "Aimbot") == 0)
+            UnsafeBadgeTitle("aimbot-unsafe-title", "Using an aimbot can get you a VAC Live cooldown if you don't use a good config. Make some adjustments before using it.");
+        else
+            UnsafeBadgeTitle("rcs-unsafe-title", "VAC Live has some mechanisms to detect this type of feature. Don't abuse it — try to humanize your gameplay as much as possible.");
+    }
     ImGui::Separator();
 }
 
@@ -352,6 +396,44 @@ inline void BeginSectionWithHeaderActions(const char* title, ImVec2 size, bool b
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(st.ItemSpacing.x, 4.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(st.FramePadding.x, 5.0f));
     ImGui::TextDisabled(title);
+    if (strcmp(title, "Aimbot") == 0)
+    {
+        ImGui::SameLine(0.0f, 6.0f);
+        ImVec4 accent = ImVec4(0.486f, 0.227f, 0.929f, 1.0f);
+        const float iconSize = ImGui::GetFontSize() * 0.80f;
+        const char* sym = OSImGui::FontAwesome6Available ? ICON_FA_EXCLAMATION_TRIANGLE : "-";
+        float iconW = ImGui::CalcTextSize(sym).x * (iconSize / ImGui::GetFontSize());
+        ImDrawList* dl = ImGui::GetWindowDrawList();
+        ImVec2 p = ImGui::GetCursorScreenPos();
+        p.y += (ImGui::GetTextLineHeight() - iconSize) * 0.5f;
+        ImU32 col = ImGui::GetColorU32(accent);
+        dl->AddText(ImGui::GetFont(), iconSize, p, col, sym);
+        ImGui::Dummy(ImVec2(iconW, iconSize));
+        bool hovered = ImGui::IsItemHovered();
+        ImGuiStorage* stg = ImGui::GetStateStorage();
+        ImGuiID key = ImGui::GetID("aimbot-unsafe-title");
+        float* alpha = stg->GetFloatRef(key, 0.0f);
+        float target = hovered ? 1.0f : 0.0f;
+        float dt = ImGui::GetIO().DeltaTime;
+        float k = ImClamp(dt * 12.0f, 0.0f, 1.0f);
+        *alpha = (*alpha) + (target - (*alpha)) * k;
+        if (*alpha > 0.01f && hovered)
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, *alpha);
+            ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.06f, 0.06f, 0.08f, 0.97f));
+            ImGui::PushStyleColor(ImGuiCol_Border, accent);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10, 8));
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);
+            ImGui::BeginTooltip();
+            ImGui::TextColored(accent, "Unsafe Feature");
+            ImGui::Separator();
+            ImGui::TextUnformatted("Using an aimbot can get you a VAC Live cooldown if you don't use a good config. Make some adjustments before using it.");
+            ImGui::EndTooltip();
+            ImGui::PopStyleVar(2);
+            ImGui::PopStyleColor(2);
+            ImGui::PopStyleVar();
+        }
+    }
     ImGui::SameLine(0.0f, 6.0f);
     const float btnW = 54.f, btnH = 22.f;
     const float iconSize = ImGui::GetFontSize() * 0.85f;

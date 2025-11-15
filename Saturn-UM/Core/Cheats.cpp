@@ -431,7 +431,16 @@ void Cheats::HandleEnts(const std::vector<EntityResult>& entities, CEntity& loca
                         if (!LegitBotConfig::VisibleCheck ||
                             entity.Pawn.bSpottedByMask & (DWORD64(1) << (localPlayerControllerIndex)) ||
                             localEntity.Pawn.bSpottedByMask & (DWORD64(1) << (entityIndex))) {
-                            aimPosList.push_back(bones[BONEINDEX::head].Pos);
+                            Vec3 pos = bones[BONEINDEX::head].Pos;
+                            if (static_cast<size_t>(BONEINDEX::neck_0) < bones.size()) {
+                                Vec3 neck = bones[BONEINDEX::neck_0].Pos;
+                                Vec3 headToNeck = Vec3{ neck.x - pos.x, neck.y - pos.y, neck.z - pos.z };
+                                // Mover cerca de 40% do vetor head->neck para ficar no centro da cabeça
+                                pos.x += headToNeck.x * 0.15f;
+                                pos.y += headToNeck.y * 0.15f;
+                                pos.z += headToNeck.z * 0.15f;
+                            }
+                            aimPosList.push_back(pos);
                             MaxAimDistance = distanceToSight;
                         }
                     }
@@ -451,6 +460,13 @@ void Cheats::HandleEnts(const std::vector<EntityResult>& entities, CEntity& loca
                                 entity.Pawn.bSpottedByMask & (DWORD64(1) << (localPlayerControllerIndex)) ||
                                 localEntity.Pawn.bSpottedByMask & (DWORD64(1) << (entityIndex))) {
                                 bestAimPos = bones[hitboxID].Pos;
+                                if (hitboxID == BONEINDEX::head && static_cast<size_t>(BONEINDEX::neck_0) < bones.size()) {
+                                    Vec3 neck = bones[BONEINDEX::neck_0].Pos;
+                                    Vec3 headToNeck = Vec3{ neck.x - bestAimPos.x, neck.y - bestAimPos.y, neck.z - bestAimPos.z };
+                                    bestAimPos.x += headToNeck.x * 0.07f;
+                                    bestAimPos.y += headToNeck.y * 0.07f;
+                                    bestAimPos.z += headToNeck.z * 0.07f;
+                                }
                             }
                         }
                     }
@@ -529,13 +545,13 @@ void Trigger(const CEntity& LocalEntity, const int& LocalPlayerControllerIndex)
 
 void AIM(const CEntity& LocalEntity, std::vector<Vec3> AimPosList)
 {
-	DWORD lastTick = 0;
-	DWORD currentTick = GetTickCount64();
+    DWORD lastTick = 0;
+    DWORD currentTick = GetTickCount64();
 
-	if (!LegitBotConfig::AimBot) {
-		RCS::RecoilControl(LocalEntity);
-		return;
-	}
+    if (!LegitBotConfig::AimBot) {
+        RCS::RecoilControl(LocalEntity);
+        return;
+    }
 
     static bool prevPressed = false;
     static DWORD lastToggleTick = 0;
@@ -553,11 +569,18 @@ void AIM(const CEntity& LocalEntity, std::vector<Vec3> AimPosList)
     } else {
         shouldAim = pressed;
     }
+    if (MenuConfig::ShowMenu) {
+        shouldAim = false;
+    }
     prevPressed = pressed;
+    bool aimed = false;
     if (shouldAim && !AimPosList.empty()) {
         AimControl::AimBot(LocalEntity, LocalEntity.Pawn.CameraPos, AimPosList);
+        aimed = true;
     }
-    RCS::RecoilControl(LocalEntity);
+    if (!aimed) {
+        RCS::RecoilControl(LocalEntity);
+    }
 
     (void)lastTick; (void)currentTick;
 }

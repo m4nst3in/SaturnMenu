@@ -16,3 +16,5 @@
 #define ICON_FA_KEYBOARD   "\xef\x84\x9c"
 // U+E19B: gun (FA)
 #define ICON_FA_GUN        "\xef\x81\x9b"
+// U+F06A: exclamation-triangle (warn)
+#define ICON_FA_EXCLAMATION_TRIANGLE "\xef\x81\xaa"

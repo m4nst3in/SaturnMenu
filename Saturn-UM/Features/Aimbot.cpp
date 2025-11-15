@@ -1,4 +1,5 @@
 #include "Aimbot.h"
+#include <algorithm>
 #undef max()
 #undef min()
 
@@ -194,11 +195,12 @@ void AimControl::AimBot(const CEntity& Local, Vec3 LocalPos,std::vector<Vec3>& A
     {
         const float DistanceRatio = BestNorm / AimFov;
         const float SpeedFactor = 1.0f + (1.0f - DistanceRatio);
-        TargetX /= (Smooth * SpeedFactor);
-        TargetY /= (Smooth * SpeedFactor);
+        const float effectiveSmooth = Smooth;
+        TargetX /= (effectiveSmooth * SpeedFactor);
+        TargetY /= (effectiveSmooth * SpeedFactor);
     }
 
-    if (HumanizeVar)
+    if (HumanizeVar && Smooth > 0.0f)
     {
         auto [HumanizedX, HumanizedY] = Humanize(TargetX, TargetY);
         TargetX = HumanizedX;
@@ -212,14 +214,35 @@ void AimControl::AimBot(const CEntity& Local, Vec3 LocalPos,std::vector<Vec3>& A
 
     if (currentTick - lastAimTime >= MenuConfig::AimDelay)
     {
-        accumX += TargetX;
-        accumY += TargetY;
-        int outX = static_cast<int>(std::round(accumX));
-        int outY = static_cast<int>(std::round(accumY));
-        if (outX != 0 || outY != 0) {
+        int outX;
+        int outY;
+        if (Smooth <= 0.0f)
+        {
+            outX = static_cast<int>(std::round(TargetX));
+            outY = static_cast<int>(std::round(TargetY));
+            accumX = 0.f;
+            accumY = 0.f;
+        }
+        else
+        {
+            accumX += TargetX;
+            accumY += TargetY;
+            outX = static_cast<int>(std::round(accumX));
+            outY = static_cast<int>(std::round(accumY));
+            float dynamicStep = std::clamp(BestNorm / AimFov, 0.0f, 1.0f);
+            float s_norm = std::clamp(Smooth / 5.0f, 0.0f, 1.0f);
+            int maxStep = static_cast<int>(std::round(1.0f + (1.0f - s_norm) * 4.0f + dynamicStep * 2.0f));
+            outX = std::clamp(outX, -maxStep, maxStep);
+            outY = std::clamp(outY, -maxStep, maxStep);
+        }
+        if (outX != 0 || outY != 0)
+        {
             mouse_event(MOUSEEVENTF_MOVE, outX, outY, 0, 0);
-            accumX -= outX;
-            accumY -= outY;
+            if (Smooth > 0.0f)
+            {
+                accumX -= outX;
+                accumY -= outY;
+            }
         }
         lastAimTime = currentTick;
     }
