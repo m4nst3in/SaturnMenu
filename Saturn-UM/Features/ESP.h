@@ -154,32 +154,32 @@ inline void RenderPlayerESP(const CEntity& LocalEntity, const CEntity& Entity, I
 		Render::LineToEnemy(Rect, ESPConfig::LineToEnemyColor, 1.2f);
 
         if (ESPConfig::ShowWeaponESP) {
-            int fc = ImGui::GetFrameCount();
-            if ((fc % 2) == 0) {
-                WeaponIconSize iconSize = weaponIconSizes[Entity.Pawn.WeaponName];
-                ImVec2 textPosition = { Rect.x + (Rect.z - iconSize.width) / 2 + iconSize.offsetX,
-                                          Rect.y + Rect.w + 1 + iconSize.offsetY };
-                if (ESPConfig::AmmoBar)
-                    textPosition.y += 6;
-                ImGui::GetBackgroundDrawList()->AddText(ioFonts, 10.0f, textPosition, ImColor(255, 255, 255, 255), weaponIcon.c_str());
-            }
+            auto& io = ImGui::GetIO();
+            ImFont* weaponFont = io.Fonts->Fonts.size() > 3 ? io.Fonts->Fonts[3] : ImGui::GetFont();
+            WeaponIconSize iconSize = weaponIconSizes[Entity.Pawn.WeaponName];
+            // compute name position first
+            ImVec2 nameSize = ImGui::CalcTextSize(Entity.Controller.PlayerName.c_str());
+            ImVec2 namePos = { Rect.x + Rect.z / 2 - nameSize.x * 0.5f, Rect.y - nameSize.y - 2 };
+            ImVec2 iconPos = { Rect.x + (Rect.z - iconSize.width) / 2 + iconSize.offsetX, namePos.y - 14.0f };
+            ImGui::GetBackgroundDrawList()->AddText(weaponFont, 12.0f, iconPos, ImColor(255, 255, 255, 255), weaponIcon.c_str());
         }
 
 		// check and display C4 icon
         if (ESPConfig::ShowWeaponESP) {
-            int fc = ImGui::GetFrameCount();
-            if ((fc % 2) == 0) {
-                auto weaponInventory = Entity.Pawn.GetWeaponInventory(gGame.GetEntityListAddress());
-                bool hasC4 = false;
-                for (short weaponID : weaponInventory) {
-                    if (weaponID == 49) { hasC4 = true; break; }
-                }
-                if (hasC4 && Entity.Pawn.WeaponName != "c4") {
-                    WeaponIconSize iconSize = weaponIconSizes["c4"];
-                    ImVec2 c4TextPosition = { Rect.x + (Rect.z - iconSize.width) / 2 + iconSize.offsetX,
-                                              Rect.y + Rect.w + 1 + iconSize.offsetY + (ESPConfig::AmmoBar ? 6.f : 0.f) + (ESPConfig::ShowWeaponESP && Entity.Pawn.WeaponName != "Weapon_None" ? 13.f : 0.f) };
-                    ImGui::GetBackgroundDrawList()->AddText(ioFonts, 10.0f, c4TextPosition, ImColor(255, 255, 255, 255), GunIcon("c4"));
-                }
+            auto weaponInventory = Entity.Pawn.GetWeaponInventory(gGame.GetEntityListAddress());
+            bool hasC4 = false;
+            for (short weaponID : weaponInventory) {
+                if (weaponID == 49) { hasC4 = true; break; }
+            }
+            if (hasC4 && Entity.Pawn.WeaponName != "c4") {
+                auto& io = ImGui::GetIO();
+                ImFont* weaponFont = io.Fonts->Fonts.size() > 3 ? io.Fonts->Fonts[3] : ImGui::GetFont();
+                WeaponIconSize iconSize = weaponIconSizes["c4"];
+                ImVec2 nameSize = ImGui::CalcTextSize(Entity.Controller.PlayerName.c_str());
+                ImVec2 namePos = { Rect.x + Rect.z / 2 - nameSize.x * 0.5f, Rect.y - nameSize.y - 2 };
+                ImVec2 c4TextPosition = { Rect.x + (Rect.z - iconSize.width) / 2 + iconSize.offsetX,
+                                          namePos.y - 14.0f };
+                ImGui::GetBackgroundDrawList()->AddText(weaponFont, 12.0f, c4TextPosition, ImColor(255, 255, 255, 255), GunIcon("c4"));
             }
         }
 
@@ -212,10 +212,10 @@ inline void RenderPlayerESP(const CEntity& LocalEntity, const CEntity& Entity, I
         }
 
         if (ESPConfig::ShowPlayerName) {
-            int fc = ImGui::GetFrameCount();
-            if (fc >= 90 && (fc % 2) == 0) {
-                Gui.StrokeText(Entity.Controller.PlayerName, { Rect.x + Rect.z / 2, Rect.y - 10 }, ImColor(255, 255, 255, 255), 10, true);
-            }
+            ImVec2 nameSize = ImGui::CalcTextSize(Entity.Controller.PlayerName.c_str());
+            ImVec2 namePos = { Rect.x + Rect.z / 2 - nameSize.x * 0.5f, Rect.y - nameSize.y - 2 };
+            ImGui::GetBackgroundDrawList()->AddText(ImGui::GetFont(), 14.0f, { namePos.x + 1, namePos.y + 1 }, ImColor(0,0,0,180), Entity.Controller.PlayerName.c_str());
+            ImGui::GetBackgroundDrawList()->AddText(ImGui::GetFont(), 14.0f, namePos, ImColor(255,255,255,255), Entity.Controller.PlayerName.c_str());
         }
 	}
 

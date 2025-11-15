@@ -263,7 +263,7 @@ namespace ConfigMenu {
 		ESPConfig::ShowDistance = false;
 		ESPConfig::ShowBoneESP = true;
 		ESPConfig::HotKey = VK_F6;
-		ESPConfig::ShowBoxESP = true;
+        ESPConfig::ShowBoxESP = false;
 		ESPConfig::ShowHealthBar = true;
 		ESPConfig::ShowWeaponESP = true;
         
@@ -280,8 +280,8 @@ namespace ConfigMenu {
 		LegitBotConfig::HitboxUpdated = false;
 
 		ESPConfig::BoxType = 0;
-		ESPConfig::BoneColor = ImColor(131, 137, 150, 180);
-		ESPConfig::BoxColor = ImColor(59, 71, 148, 180);
+        ESPConfig::BoneColor = ImColor(124, 58, 237, 220);
+        ESPConfig::BoxColor = ImColor(124, 58, 237, 180);
         
 
 		MenuConfig::ShowMenu = true;
@@ -334,7 +334,7 @@ namespace ConfigMenu {
 		AimControl::AimBullet = 1;
 
 		LegitBotConfig::FovLineColor = ImVec4(0, 98, 98, 220);
-		ESPConfig::LineToEnemyColor = ImVec4(59, 71, 148, 180);
+        ESPConfig::LineToEnemyColor = ImVec4(124, 58, 237, 180);
 
 		//CrosshairsCFG::ShowCrossHair = false;
 		//CrosshairsCFG::CrossHairColor = ImColor(0, 255, 0, 255);
