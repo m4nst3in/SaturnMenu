@@ -1,4 +1,4 @@
-﻿
+
 
 #include "Core/Cheats.h"
 #include "Core/DI.h"
@@ -7,6 +7,7 @@
 #include "Core/Init.h"
 #include "Config/ConfigSaver.h"
 #include "Helpers/Logger.h"
+#include "Core/Logging/logging.h"
 #include "Helpers/UIAccess.h"
 #include <filesystem>
 #include <KnownFolders.h>
@@ -23,7 +24,8 @@ bool CheckArg(const int&, char**, const std::string&);
 
 int main(int argc, char* argv[])
 {
-	secureMode = CheckArg(argc, argv, "securemode");
+    SaturnLogging::init_default();
+    secureMode = CheckArg(argc, argv, "securemode");
 	legacyImg = CheckArg(argc, argv, "legacyimg");
 
 //do not use uaicess for debugging/profiling (uiacess restarts the cheat)

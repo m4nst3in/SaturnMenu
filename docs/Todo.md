@@ -4,10 +4,10 @@
 
 - [x] Refactor AimBot & RCS
 - [+-] Implement Semirage Aimbot
-- [ ] Refactor Console and Logging
+- [x] Refactor Console and Logging
 - [x] Improve ESP stability
 - [+-] Remove/add new small features on the menu, such as better config for ESP
-- [ ] Indicate unsafe options (vulnerable to VAC Live)
+- [x] Indicate unsafe options (vulnerable to VAC Live)
 
 ### Medium Priority
 

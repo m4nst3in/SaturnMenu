@@ -1,113 +1,14 @@
 #pragma once
 #include <string>
-#include <iostream>
-#include <Windows.h>
-#include <fstream>
+#include "../Core/Logging/logging.h"
 
-namespace Log 
-{
-	const HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	const std::string LogFile = "Logs.txt";
-	const bool fullOutput = true;
-
-	inline bool WriteLog(std::string ctx)
-	{
-		std::ofstream file(LogFile, std::ios::app);
-		if (!file.is_open())
-			return false;
-
-		file << ctx;
-		file.close();
-
-		return true;
-
-	}
-
-	inline void Info(std::string ctx) 
-	{
-		SetConsoleTextAttribute(hConsole, 11);
-		std::cout << "[INFO]";
-
-		SetConsoleTextAttribute(hConsole, 7);
-		std::cout << ctx << '\n';
-	}
-
-	inline void Warning(std::string ctx, bool pause = false)
-	{
-		SetConsoleTextAttribute(hConsole, 14);
-		std::cout << "[WARNING]";
-
-		SetConsoleTextAttribute(hConsole, 7);
-		std::cout << ctx << '\n';
-
-		if (pause) 
-		{
-			SetConsoleTextAttribute(hConsole, 8);
-			system("pause");
-		}
-	}
-
-	inline void Error(std::string ctx, bool fatal = true, bool pause = true)
-	{
-		SetConsoleTextAttribute(hConsole, 12);
-		std::cout << "[ERROR]";
-
-		SetConsoleTextAttribute(hConsole, 7);
-		std::cout << ctx << '\n';
-
-		if (pause) 
-		{
-			SetConsoleTextAttribute(hConsole, 8);
-			system("pause");
-		}
-
-		if (fatal)
-			exit(-1);
-	}
-
-	inline void Fine(std::string ctx)
-	{
-		SetConsoleTextAttribute(hConsole, 2);
-		std::cout << "[OKAY]";
-
-		SetConsoleTextAttribute(hConsole, 7);
-		std::cout << ctx << '\n';
-	}
-
-	inline void Debug(std::string ctx, bool write = false)
-	{
-#ifdef DBDEBUG
-		std::string line = "[Debug]" + ctx + '\n';
-
-		SetConsoleTextAttribute(hConsole, 9);
-		std::cout << line;
-
-		if (write)
-			WriteLog(line);
-#endif
-	}
-
-	inline void Custom(std::string ctx, int color)
-	{
-		SetConsoleTextAttribute(hConsole, color);
-		std::cout << ctx << '\n';
-	}
-
-	inline void PreviousLine()
-	{
-		if (fullOutput)
-			return;
-
-		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-		CONSOLE_SCREEN_BUFFER_INFO csbi;
-
-		if (GetConsoleScreenBufferInfo(hConsole, &csbi)) {
-			csbi.dwCursorPosition.Y--;
-			SetConsoleCursorPosition(hConsole, csbi.dwCursorPosition);
-
-			DWORD written;
-			FillConsoleOutputCharacter(hConsole, ' ', 80, csbi.dwCursorPosition, &written);
-			SetConsoleCursorPosition(hConsole, csbi.dwCursorPosition);
-		}
-	}
+namespace Log {
+    inline bool WriteLog(std::string ctx) { SATURN_LOG_INFO("File", ctx); return true; }
+    inline void Info(std::string ctx) { SATURN_LOG_INFO("Core", ctx); }
+    inline void Warning(std::string ctx, bool pause = false) { SATURN_LOG_WARN("Core", ctx); }
+    inline void Error(std::string ctx, bool fatal = true, bool pause = true) { if (fatal) SATURN_LOG_FATAL("Core", ctx); else SATURN_LOG_ERROR("Core", ctx); }
+    inline void Fine(std::string ctx) { SATURN_LOG_INFO("Core", ctx); }
+    inline void Debug(std::string ctx, bool write = false) { SATURN_LOG_DEBUG("Core", ctx); }
+    inline void Custom(std::string ctx, int color) { SATURN_LOG_INFO("Core", ctx); }
+    inline void PreviousLine() {}
 }

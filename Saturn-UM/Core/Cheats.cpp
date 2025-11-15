@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "Cheats.h"
+#include "../Core/Logging/logging.h"
 #include "Render.h"
 #include "../Core/Config.h"
 #include "../Core/Interfaces.h"
@@ -148,8 +149,10 @@ static std::vector<std::unique_ptr<Core::IFeature>> g_features_tick;
 static std::vector<std::unique_ptr<Core::IFeature>> g_features_render;
 
 void Cheats::Run()
-{	
+{
 	Menu();
+
+    SaturnLogging::render_overlay();
 
 	Misc::AutoAccept::UpdateAutoAccept();
 
