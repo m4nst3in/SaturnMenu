@@ -296,8 +296,8 @@ namespace ConfigMenu {
 		RadarCFG::RadarBgAlpha = 0.1f;
 		RadarCFG::Proportion = 2700.f;
 
-		LegitBotConfig::TriggerBot = true;
-		LegitBotConfig::TriggerAlways = false;
+        LegitBotConfig::TriggerBot = true;
+        TriggerBot::ActivationMode = 0;
 		TriggerBot::HotKey = 6;
 		TriggerBot::TTDtimeout = false;
 		Text::Trigger::HotKey = KeyMgr::GetKeyName(TriggerBot::HotKey);
@@ -313,7 +313,8 @@ namespace ConfigMenu {
 
         MiscCFG::AntiAFKKick = false;
 
-		AimControl::HotKey = 1;
+        AimControl::HotKey = 1;
+        AimControl::ActivationMode = 0;
 		Text::Aimbot::HotKey = KeyMgr::GetKeyName(AimControl::HotKey);
 		AimControl::AimFov = 10;
 		AimControl::AimFovMin = 0.4f;

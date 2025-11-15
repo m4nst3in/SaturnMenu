@@ -4,7 +4,7 @@
 
 void AimControl::switchToggle()
 {
-    LegitBotConfig::AimAlways = !LegitBotConfig::AimAlways;
+    AimControl::ToggledActive = !AimControl::ToggledActive;
 }
 
 std::pair<float, float> AimControl::CalculateTargetOffset(const Vec2& ScreenPos, int ScreenCenterX, int ScreenCenterY)
@@ -97,8 +97,7 @@ std::pair<float, float> AimControl::Humanize(float TargetX, float TargetY) {
 
 void AimControl::AimBot(const CEntity& Local, Vec3 LocalPos,std::vector<Vec3>& AimPosList)
 {
-    if (MenuConfig::ShowMenu)
-        return;
+    
 
     // Run independently of TriggerBot: do not gate by weapon type
 

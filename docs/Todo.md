@@ -5,7 +5,7 @@
 - [x] Refactor AimBot & RCS
 - [ ] Implement Semirage Aimbot
 - [ ] Refactor Console and Logging
-- [ ] Improve ESP stability
+- [x] Improve ESP stability
 - [ ] Remove/add new small features on the menu, such as better config for ESP
 
 ### Medium Priority

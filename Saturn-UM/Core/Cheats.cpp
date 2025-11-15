@@ -112,8 +112,7 @@ struct TriggerAimFeatureAdapter : Core::IFeature {
             auto it = WeaponConfig::WeaponConfigs.find(curWeapon);
             if (it != WeaponConfig::WeaponConfigs.end()) {
                 const auto& p = it->second;
-                LegitBotConfig::AimBot = p.aimEnabled;
-                LegitBotConfig::AimToggleMode = p.toggleMode;
+                LegitBotConfig::AimBot = s.AimBot || p.aimEnabled;
                 LegitBotConfig::VisibleCheck = p.visibleCheck;
                 AimControl::ScopeOnly = p.scopeOnly;
                 AimControl::HumanizationStrength = p.humanizationStrength;
@@ -122,8 +121,7 @@ struct TriggerAimFeatureAdapter : Core::IFeature {
                 AimControl::Smooth = p.smooth;
                 AimControl::AimBullet = p.aimBullet;
                 AimControl::HitboxList = p.hitboxes;
-                LegitBotConfig::TriggerBot = p.triggerEnabled;
-                LegitBotConfig::TriggerAlways = p.autoMode;
+                LegitBotConfig::TriggerBot = s.TriggerBot || p.triggerEnabled;
                 TriggerBot::ScopeOnly = p.t_scopeOnly;
                 TriggerBot::StopedOnly = p.stopOnly;
                 TriggerBot::TTDtimeout = p.ttdTimeout;
@@ -507,9 +505,26 @@ void Radar(Base_Radar Radar, const CEntity& LocalEntity)
 
 void Trigger(const CEntity& LocalEntity, const int& LocalPlayerControllerIndex)
 {
-	// TriggerBot
-	if (LegitBotConfig::TriggerBot && (GetAsyncKeyState(TriggerBot::HotKey) || LegitBotConfig::TriggerAlways))
-		TriggerBot::Run(LocalEntity, LocalPlayerControllerIndex);
+    if (!LegitBotConfig::TriggerBot) return;
+    static bool prevPressed = false;
+    static DWORD lastToggleTick = 0;
+    bool pressed = (GetAsyncKeyState(TriggerBot::HotKey) & 0x8000) != 0;
+    bool active = false;
+    if (TriggerBot::ActivationMode == 2) {
+        active = true;
+    } else if (TriggerBot::ActivationMode == 1) {
+        DWORD now = GetTickCount64();
+        if (pressed && !prevPressed && (now - lastToggleTick) >= 200) {
+            TriggerBot::ToggledActive = !TriggerBot::ToggledActive;
+            lastToggleTick = now;
+        }
+        active = TriggerBot::ToggledActive;
+    } else {
+        active = pressed;
+    }
+    prevPressed = pressed;
+    if (active)
+        TriggerBot::Run(LocalEntity, LocalPlayerControllerIndex);
 }
 
 void AIM(const CEntity& LocalEntity, std::vector<Vec3> AimPosList)
@@ -522,17 +537,29 @@ void AIM(const CEntity& LocalEntity, std::vector<Vec3> AimPosList)
 		return;
 	}
 
-    bool shouldAim = LegitBotConfig::AimAlways || GetAsyncKeyState(AimControl::HotKey);
+    static bool prevPressed = false;
+    static DWORD lastToggleTick = 0;
+    bool pressed = (GetAsyncKeyState(AimControl::HotKey) & 0x8000) != 0;
+    bool shouldAim = false;
+    if (AimControl::ActivationMode == 2) {
+        shouldAim = true;
+    } else if (AimControl::ActivationMode == 1) {
+        DWORD now = GetTickCount64();
+        if (pressed && !prevPressed && (now - lastToggleTick) >= 200) {
+            AimControl::ToggledActive = !AimControl::ToggledActive;
+            lastToggleTick = now;
+        }
+        shouldAim = AimControl::ToggledActive;
+    } else {
+        shouldAim = pressed;
+    }
+    prevPressed = pressed;
     if (shouldAim && !AimPosList.empty()) {
         AimControl::AimBot(LocalEntity, LocalEntity.Pawn.CameraPos, AimPosList);
     }
     RCS::RecoilControl(LocalEntity);
 
-	if (LegitBotConfig::AimToggleMode && (GetAsyncKeyState(AimControl::HotKey) & 0x8000) &&
-		currentTick - lastTick >= 200) {
-		AimControl::switchToggle();
-		lastTick = currentTick;
-	}
+    (void)lastTick; (void)currentTick;
 }
 
 void MiscFuncs(CEntity& LocalEntity)
@@ -544,7 +571,6 @@ void MiscFuncs(CEntity& LocalEntity)
 
     Misc::HitManager(LocalEntity, PreviousTotalHits);
     Misc::BunnyHop(LocalEntity);
-    Misc::Watermark(LocalEntity);
     Misc::AntiAFKKickUpdate();
     
 }

@@ -53,8 +53,8 @@ namespace MenuConfig
 namespace LegitBotConfig
 {
     inline bool AimBot = false;
-	inline bool AimAlways = false;
-	inline bool AimToggleMode = false;
+    inline bool AimAlways = false;
+    inline bool AimToggleMode = false;
 	// 0: head 1: neck 3: spine
 	inline int  AimPosition = 0;
 	inline DWORD  AimPositionIndex = BONEINDEX::head;
@@ -66,7 +66,7 @@ namespace LegitBotConfig
 	inline float FovLineSize = 60.f;
 
     inline bool TriggerBot = false;
-	inline bool TriggerAlways = false;
+    inline bool TriggerAlways = false;
 
 	inline bool RCS = true;
 
@@ -77,7 +77,8 @@ namespace WeaponConfig
 {
     struct WeaponProfile {
         bool aimEnabled = false;
-        bool toggleMode = false;
+        int activationMode = 0;
+        bool toggledActive = false;
         bool visibleCheck = true;
         bool scopeOnly = false;
         int humanizationStrength = 0;
@@ -87,7 +88,8 @@ namespace WeaponConfig
         int aimBullet = 0;
         std::vector<int> hitboxes{};
         bool triggerEnabled = false;
-        bool autoMode = false;
+        int trigActivationMode = 0;
+        bool trigToggledActive = false;
         bool t_scopeOnly = false;
         bool stopOnly = false;
         bool ttdTimeout = false;
@@ -199,7 +201,7 @@ namespace RadarCFG
 namespace MiscCFG
 {
     inline bool BunnyHop = false;
-    inline bool WaterMark = true;
+    inline bool WaterMark = false;
     inline bool SniperCrosshair = false; // removed feature
     inline ImColor SniperCrosshairColor = ImColor(32, 178, 170, 255);
     inline int	HitSound = 0;

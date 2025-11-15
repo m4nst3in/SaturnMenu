@@ -5,11 +5,9 @@
 
 void TriggerBot::Run(const CEntity& LocalEntity, const int& LocalPlayerControllerIndex)
 {
-    if (MenuConfig::ShowMenu)
-        return;
+    
 
-    if (LocalEntity.Controller.AliveStatus == 0)
-        return;
+    if (LocalEntity.Controller.AliveStatus == 0) { return; }
 
     // Get the entity under the crosshair
     DWORD uHandle = 0;
@@ -17,6 +15,7 @@ void TriggerBot::Run(const CEntity& LocalEntity, const int& LocalPlayerControlle
     {
         g_HasValidTarget = false;
         g_TargetFoundTime = std::chrono::system_clock::now();
+        
         return;
     }
 
@@ -24,6 +23,7 @@ void TriggerBot::Run(const CEntity& LocalEntity, const int& LocalPlayerControlle
     {
         g_HasValidTarget = false;
         g_TargetFoundTime = std::chrono::system_clock::now();
+        
         return;
     }
 
@@ -32,6 +32,7 @@ void TriggerBot::Run(const CEntity& LocalEntity, const int& LocalPlayerControlle
     {
         g_HasValidTarget = false;
         g_TargetFoundTime = std::chrono::system_clock::now();
+        
         return;
     }
 
@@ -40,6 +41,7 @@ void TriggerBot::Run(const CEntity& LocalEntity, const int& LocalPlayerControlle
     {
         g_HasValidTarget = false;
         g_TargetFoundTime = std::chrono::system_clock::now();
+        
         return;
     }
 
@@ -48,6 +50,7 @@ void TriggerBot::Run(const CEntity& LocalEntity, const int& LocalPlayerControlle
     {
         g_HasValidTarget = false;
         g_TargetFoundTime = std::chrono::system_clock::now();
+        
         return;
     }
 
@@ -65,55 +68,58 @@ void TriggerBot::Run(const CEntity& LocalEntity, const int& LocalPlayerControlle
     long long timeSinceTargetFound = std::chrono::duration_cast<std::chrono::milliseconds>(
         now - g_TargetFoundTime).count();
 
-    // check conditions to shoot
-    if ((GetAsyncKeyState(TriggerBot::HotKey) || LegitBotConfig::TriggerAlways) &&
+    // check conditions to shoot using ActivationMode
+    bool pressed = (GetAsyncKeyState(TriggerBot::HotKey) & 0x8000) != 0;
+    bool shouldShoot = false;
+    if (TriggerBot::ActivationMode == 2) {
+        shouldShoot = true;
+    } else if (TriggerBot::ActivationMode == 1) {
+        shouldShoot = TriggerBot::ToggledActive;
+    } else {
+        shouldShoot = pressed;
+    }
+    
+    if (shouldShoot &&
         timeSinceLastShot >= ShotDuration &&
         timeSinceTargetFound >= TriggerDelay)
     { ExecuteShot(); }
+    
 }
 
 bool TriggerBot::CanTrigger(const CEntity& LocalEntity, const CEntity& TargetEntity, const int& LocalPlayerControllerIndex)
 {
     // Check if target is in a valid state
-    if (TargetEntity.Pawn.Address == 0)
-        return false;
+    if (TargetEntity.Pawn.Address == 0) { return false; }
 
     // Check team
-    if (MenuConfig::TeamCheck && LocalEntity.Pawn.TeamID == TargetEntity.Pawn.TeamID)
-        return false;
+    if (MenuConfig::TeamCheck && LocalEntity.Pawn.TeamID == TargetEntity.Pawn.TeamID) { return false; }
 
     // Check if weapon is ready
     bool waitForNoAttack = false;
-    if (!memoryManager.ReadMemory<bool>(LocalEntity.Pawn.Address + Offset.Pawn.m_bWaitForNoAttack, waitForNoAttack))
-        return false;
+    if (!memoryManager.ReadMemory<bool>(LocalEntity.Pawn.Address + Offset.Pawn.m_bWaitForNoAttack, waitForNoAttack)) { return false; }
 
-    if (waitForNoAttack)
-        return false;
+    if (waitForNoAttack) { return false; }
 
     // Check weapon type
     std::string currentWeapon = GetWeapon(LocalEntity);
-    if (!CheckWeapon(currentWeapon))
-        return false;
+    if (!CheckWeapon(currentWeapon)) { return false; }
 
     //check is velocity == 0
-    if(StopedOnly && LocalEntity.Pawn.Speed != 0)
-        return false;
+    if(StopedOnly && LocalEntity.Pawn.Speed != 0) { return false; }
 
     
 
     // Check TTD timout
     DWORD64 playerMask = (DWORD64(1) << LocalPlayerControllerIndex);
     bool bIsVisible = (TargetEntity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & playerMask);
-    if (TTDtimeout && !bIsVisible)
-        return false;
+    if (TTDtimeout && !bIsVisible) { return false; }
 
     // Check scope requirement
     if (ScopeOnly && CheckScopeWeapon(currentWeapon))
     {
         bool isScoped = false;
         memoryManager.ReadMemory<bool>(LocalEntity.Pawn.Address + Offset.Pawn.isScoped, isScoped);
-        if (!isScoped)
-            return false;
+        if (!isScoped) { return false; }
     }
 
     return true;

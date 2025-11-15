@@ -20,6 +20,8 @@ extern "C" {
 namespace AimControl
 {
     inline int HotKey = VK_XBUTTON2;
+    inline int ActivationMode = 0;
+    inline bool ToggledActive = false;
     inline int AimBullet = 0;
     inline bool ScopeOnly = false;
     inline bool HumanizeVar = true;

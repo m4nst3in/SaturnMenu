@@ -183,7 +183,7 @@ namespace MyConfigSaver
         ConfigData["Triggerbot"]["ScopeOnly"]=    TriggerBot::ScopeOnly;
         ConfigData["Triggerbot"]["StopedOnly"] = TriggerBot::StopedOnly;
         ConfigData["Triggerbot"]["TTDtimeout"] = TriggerBot::TTDtimeout;
-        ConfigData["Triggerbot"]["AutoMode"]=     LegitBotConfig::TriggerAlways;
+        ConfigData["Triggerbot"]["ActivationMode"]= TriggerBot::ActivationMode;
 
 
 
@@ -230,7 +230,7 @@ namespace MyConfigSaver
             const auto& key = kv.first; const auto& p = kv.second;
             json W;
             W["Aimbot"]["Enable"] = p.aimEnabled;
-            W["Aimbot"]["ToggleMode"] = p.toggleMode;
+            W["Aimbot"]["ActivationMode"] = p.activationMode;
             W["Aimbot"]["VisibleCheck"] = p.visibleCheck;
             W["Aimbot"]["ScopeOnly"] = p.scopeOnly;
             W["Aimbot"]["HumanizationStrength"] = p.humanizationStrength;
@@ -240,7 +240,7 @@ namespace MyConfigSaver
             W["Aimbot"]["AimBullet"] = p.aimBullet;
             W["Aimbot"]["Hitboxes"] = p.hitboxes;
             W["Triggerbot"]["Enable"] = p.triggerEnabled;
-            W["Triggerbot"]["AutoMode"] = p.autoMode;
+            W["Triggerbot"]["ActivationMode"] = p.trigActivationMode;
             W["Triggerbot"]["ScopeOnly"] = p.t_scopeOnly;
             W["Triggerbot"]["StopedOnly"] = p.stopOnly;
             W["Triggerbot"]["TTDtimeout"] = p.ttdTimeout;
@@ -397,7 +397,7 @@ namespace MyConfigSaver
         if (ConfigData.contains("Aimbot"))
         {
             LegitBotConfig::AimBot = ReadData(ConfigData["Aimbot"],{"Enable"}, false);
-            LegitBotConfig::AimToggleMode = ReadData(ConfigData["Aimbot"],{"ToggleMode"}, false);
+            AimControl::ActivationMode = ReadData(ConfigData["Aimbot"],{"ActivationMode"}, 0);
             AimControl::HotKey = ReadData(ConfigData["Aimbot"],{"Hotkey"}, 0);
             AimControl::AimBullet = ReadData(ConfigData["Aimbot"],{"AimBullet"}, 0);
             AimControl::AimFov = ReadData(ConfigData["Aimbot"],{"Fov"}, 5.f);
@@ -437,7 +437,7 @@ namespace MyConfigSaver
             
             TriggerBot::StopedOnly = ReadData(ConfigData["Triggerbot"], { "StopedOnly" }, false);
             TriggerBot::TTDtimeout = ReadData(ConfigData["Triggerbot"], { "TTDtimeout" }, false);
-            LegitBotConfig::TriggerAlways = ReadData(ConfigData["Triggerbot"],{"AutoMode"}, false);
+            TriggerBot::ActivationMode = ReadData(ConfigData["Triggerbot"],{"ActivationMode"}, 0);
             Text::Trigger::HotKey = KeyMgr::GetKeyName(TriggerBot::HotKey);
         }
 
@@ -501,7 +501,7 @@ namespace MyConfigSaver
                 if (W.contains("Aimbot")) {
                     const auto& A = W["Aimbot"];
                     p.aimEnabled = A.value("Enable", LegitBotConfig::AimBot);
-                    p.toggleMode = A.value("ToggleMode", LegitBotConfig::AimToggleMode);
+                    p.activationMode = A.value("ActivationMode", AimControl::ActivationMode);
                     p.visibleCheck = A.value("VisibleCheck", LegitBotConfig::VisibleCheck);
                     p.scopeOnly = A.value("ScopeOnly", AimControl::ScopeOnly);
                     p.humanizationStrength = A.value("HumanizationStrength", AimControl::HumanizationStrength);
@@ -514,7 +514,7 @@ namespace MyConfigSaver
                 if (W.contains("Triggerbot")) {
                     const auto& T = W["Triggerbot"];
                     p.triggerEnabled = T.value("Enable", LegitBotConfig::TriggerBot);
-                    p.autoMode = T.value("AutoMode", LegitBotConfig::TriggerAlways);
+                    p.trigActivationMode = T.value("ActivationMode", TriggerBot::ActivationMode);
                     p.t_scopeOnly = T.value("ScopeOnly", TriggerBot::ScopeOnly);
                     p.stopOnly = T.value("StopedOnly", TriggerBot::StopedOnly);
                     p.ttdTimeout = T.value("TTDtimeout", TriggerBot::TTDtimeout);

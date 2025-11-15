@@ -106,7 +106,6 @@ namespace GUI
 
     struct VM_Trigger {
         bool enabled;
-        bool autoMode;
         bool scopeOnly;
         bool stopOnly;
         bool ttdTimeout;
@@ -121,7 +120,7 @@ namespace GUI
             if (it == WeaponConfig::WeaponConfigs.end()) {
                 WeaponConfig::WeaponProfile p;
                 p.triggerEnabled = LegitBotConfig::TriggerBot;
-                p.autoMode = LegitBotConfig::TriggerAlways;
+                p.trigActivationMode = TriggerBot::ActivationMode;
                 p.t_scopeOnly = TriggerBot::ScopeOnly;
                 p.stopOnly = TriggerBot::StopedOnly;
                 p.ttdTimeout = TriggerBot::TTDtimeout;
@@ -132,7 +131,6 @@ namespace GUI
             }
             const auto& p = it->second;
             vm.enabled = p.triggerEnabled;
-            vm.autoMode = p.autoMode;
             vm.scopeOnly = p.t_scopeOnly;
             vm.stopOnly = p.stopOnly;
             vm.ttdTimeout = p.ttdTimeout;
@@ -140,7 +138,6 @@ namespace GUI
             vm.duration = p.duration;
         } else {
             vm.enabled = LegitBotConfig::TriggerBot;
-            vm.autoMode = LegitBotConfig::TriggerAlways;
             vm.scopeOnly = TriggerBot::ScopeOnly;
             vm.stopOnly = TriggerBot::StopedOnly;
             vm.ttdTimeout = TriggerBot::TTDtimeout;
@@ -153,7 +150,6 @@ namespace GUI
         if (!WeaponConfig::SelectedWeaponKey.empty()) {
             auto& p = WeaponConfig::WeaponConfigs[WeaponConfig::SelectedWeaponKey];
             p.triggerEnabled = vm.enabled;
-            p.autoMode = vm.autoMode;
             p.t_scopeOnly = vm.scopeOnly;
             p.stopOnly = vm.stopOnly;
             p.ttdTimeout = vm.ttdTimeout;
@@ -161,7 +157,6 @@ namespace GUI
             p.duration = vm.duration;
         } else {
             LegitBotConfig::TriggerBot = vm.enabled;
-            LegitBotConfig::TriggerAlways = vm.autoMode;
             TriggerBot::ScopeOnly = vm.scopeOnly;
             TriggerBot::StopedOnly = vm.stopOnly;
             TriggerBot::TTDtimeout = vm.ttdTimeout;
@@ -370,6 +365,41 @@ inline void BeginSectionWithHeaderActions(const char* title, ImVec2 size, bool b
         ImU32 col = ImGui::GetColorU32(ImVec4(0.7f,0.7f,0.7f,1.0f));
         dl->AddText(ImGui::GetFont(), iconSize, p, col, ICON_FA_KEYBOARD);
         ImGui::Dummy(ImVec2(iconW, iconSize));
+        if (ImGui::IsItemClicked()) {
+            std::string pop = std::string(title) + "##ModePopup";
+            ImGui::OpenPopup(pop.c_str());
+        }
+        std::string popName = std::string(title) + "##ModePopup";
+        if (ImGui::BeginPopup(popName.c_str())) {
+            auto setMode = [&](int mode){
+                if (strcmp(title, "Aimbot") == 0) {
+                    AimControl::ActivationMode = mode;
+                    if (!WeaponConfig::SelectedWeaponKey.empty()) {
+                        auto& p = WeaponConfig::WeaponConfigs[WeaponConfig::SelectedWeaponKey];
+                        p.activationMode = mode;
+                    }
+                } else if (strcmp(title, "Triggerbot") == 0) {
+                    TriggerBot::ActivationMode = mode;
+                    if (!WeaponConfig::SelectedWeaponKey.empty()) {
+                        auto& p = WeaponConfig::WeaponConfigs[WeaponConfig::SelectedWeaponKey];
+                        p.trigActivationMode = mode;
+                    }
+                }
+            };
+            int current = 0;
+            if (strcmp(title, "Aimbot") == 0) {
+                current = !WeaponConfig::SelectedWeaponKey.empty() ? WeaponConfig::WeaponConfigs[WeaponConfig::SelectedWeaponKey].activationMode : AimControl::ActivationMode;
+            } else if (strcmp(title, "Triggerbot") == 0) {
+                current = !WeaponConfig::SelectedWeaponKey.empty() ? WeaponConfig::WeaponConfigs[WeaponConfig::SelectedWeaponKey].trigActivationMode : TriggerBot::ActivationMode;
+            }
+            bool selHold = (current == 0);
+            bool selToggle = (current == 1);
+            bool selAlways = (current == 2);
+            if (ImGui::Selectable("Toggle Key", selToggle)) setMode(1);
+            if (ImGui::Selectable("Hold Key", selHold)) setMode(0);
+            if (ImGui::Selectable("Always Active", selAlways)) setMode(2);
+            ImGui::EndPopup();
+        }
     }
     ImGui::SameLine(0.0f, 4.0f);
     ImGui::SetCursorPosY(yBase + (ImGui::GetTextLineHeight() - btnH) * 0.5f);
@@ -908,7 +938,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                         static const float SmoothMin = 0.f, SmoothMax = 10.f;
                         static const int MinHumanize = 0;
                         static const int MaxHumanize = 15;
-                        struct VM_Aimbot { bool enabled; bool toggleMode; bool drawFov; bool visibleCheck; bool scopeOnly; int humanizationStrength; float aimFov; float aimFovMin; float smooth; int aimBullet; };
+                        struct VM_Aimbot { bool enabled; bool drawFov; bool visibleCheck; bool scopeOnly; int humanizationStrength; float aimFov; float aimFovMin; float smooth; int aimBullet; };
                         VM_Aimbot vm{};
                         if (!WeaponConfig::SelectedWeaponKey.empty()) {
                             auto key = WeaponConfig::SelectedWeaponKey;
@@ -916,7 +946,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                             if (it == WeaponConfig::WeaponConfigs.end()) {
                                 WeaponConfig::WeaponProfile p;
                                 p.aimEnabled = LegitBotConfig::AimBot;
-                                p.toggleMode = LegitBotConfig::AimToggleMode;
+                                p.activationMode = AimControl::ActivationMode;
                                 p.visibleCheck = LegitBotConfig::VisibleCheck;
                                 p.scopeOnly = AimControl::ScopeOnly;
                                 p.humanizationStrength = AimControl::HumanizationStrength;
@@ -930,7 +960,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                             }
                             const auto& p = it->second;
                             vm.enabled = p.aimEnabled;
-                            vm.toggleMode = p.toggleMode;
+                            // activation mode handled via popup
                             vm.drawFov = ESPConfig::DrawFov;
                             vm.visibleCheck = p.visibleCheck;
                             vm.scopeOnly = p.scopeOnly;
@@ -941,7 +971,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                             vm.aimBullet = p.aimBullet;
                         } else {
                             vm.enabled = LegitBotConfig::AimBot;
-                            vm.toggleMode = LegitBotConfig::AimToggleMode;
+                            // activation mode handled via popup
                             vm.drawFov = ESPConfig::DrawFov;
                             vm.visibleCheck = LegitBotConfig::VisibleCheck;
                             vm.scopeOnly = AimControl::ScopeOnly;
@@ -954,7 +984,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                         PutSwitch(Text::Aimbot::Enable.c_str(), 0.f, ImGui::GetFrameHeight() * 1.7, &vm.enabled);
                         if (vm.enabled)
                         {
-                            PutSwitch(Text::Aimbot::Toggle.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vm.toggleMode, false, NULL, NULL, Text::Aimbot::OffTip.c_str());
+                        
                             PutSwitch(Text::Aimbot::DrawFov.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vm.drawFov, true, "###FOVcol", reinterpret_cast<float*>(&LegitBotConfig::FovCircleColor));
                             PutSwitch(Text::Aimbot::VisCheck.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vm.visibleCheck, false, NULL, NULL, Text::Aimbot::OnTip.c_str());
                             PutSwitch(Text::Aimbot::ScopeOnly.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vm.scopeOnly);
@@ -967,7 +997,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                         if (!WeaponConfig::SelectedWeaponKey.empty()) {
                             auto& p = WeaponConfig::WeaponConfigs[WeaponConfig::SelectedWeaponKey];
                             p.aimEnabled = vm.enabled;
-                            p.toggleMode = vm.toggleMode;
+                            
                             ESPConfig::DrawFov = vm.drawFov;
                             p.visibleCheck = vm.visibleCheck;
                             p.scopeOnly = vm.scopeOnly;
@@ -977,7 +1007,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                             p.smooth = vm.smooth;
                             p.aimBullet = vm.aimBullet;
                         } else {
-                            LegitBotConfig::AimBot = vm.enabled; LegitBotConfig::AimToggleMode = vm.toggleMode; ESPConfig::DrawFov = vm.drawFov; LegitBotConfig::VisibleCheck = vm.visibleCheck; AimControl::ScopeOnly = vm.scopeOnly; AimControl::HumanizationStrength = vm.humanizationStrength; AimControl::AimFov = vm.aimFov; AimControl::AimFovMin = vm.aimFovMin; AimControl::Smooth = vm.smooth; AimControl::AimBullet = vm.aimBullet;
+                            LegitBotConfig::AimBot = vm.enabled; ESPConfig::DrawFov = vm.drawFov; LegitBotConfig::VisibleCheck = vm.visibleCheck; AimControl::ScopeOnly = vm.scopeOnly; AimControl::HumanizationStrength = vm.humanizationStrength; AimControl::AimFov = vm.aimFov; AimControl::AimFovMin = vm.aimFovMin; AimControl::Smooth = vm.smooth; AimControl::AimBullet = vm.aimBullet;
                         }
                     }
                     EndSection();
@@ -1001,7 +1031,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                         PutSwitch(Text::Trigger::Enable.c_str(), 0.f, ImGui::GetFrameHeight() * 1.7, &vmTrig.enabled);
                         if (vmTrig.enabled)
                         {
-                            PutSwitch(Text::Trigger::Toggle.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &vmTrig.autoMode, false, NULL, NULL, Text::Aimbot::OffTip.c_str());
+                            
                             PutSwitch(Text::Trigger::ScopeOnly.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &vmTrig.scopeOnly);
                             
                             PutSwitch(Text::Trigger::StopOnly.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &vmTrig.stopOnly);
