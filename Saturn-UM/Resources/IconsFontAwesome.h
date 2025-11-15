@@ -15,4 +15,4 @@
 // U+F11C: keyboard
 #define ICON_FA_KEYBOARD   "\xef\x84\x9c"
 // U+E19B: gun (FA)
-#define ICON_FA_GUN        "\xee\x86\x9b"
+#define ICON_FA_GUN        "\xef\x81\x9b"

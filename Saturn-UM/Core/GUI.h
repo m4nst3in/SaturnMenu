@@ -361,7 +361,7 @@ inline void BeginSectionWithHeaderActions(const char* title, ImVec2 size, bool b
     const float btnW = 54.f, btnH = 22.f;
     const float iconSize = ImGui::GetFontSize() * 0.85f;
     const float iconW = ImGui::CalcTextSize(ICON_FA_KEYBOARD).x * (iconSize / ImGui::GetFontSize());
-    AlignRight(btnW + iconW + 4.0f);
+    AlignRight(btnW + iconW + 4.0f + ImGui::GetStyle().WindowPadding.x + 12.0f);
     float yBase = ImGui::GetCursorPosY();
     ImGui::SetCursorPosY(yBase + (ImGui::GetTextLineHeight() - btnH) * 0.5f + (btnH - iconSize) * 0.5f);
     {
