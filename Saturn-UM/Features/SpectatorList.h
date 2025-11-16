@@ -1,5 +1,6 @@
 #pragma once
 #include "..\Game\Entity.h"
+#include "..\Core\Init.h"
 #include <unordered_set>
 
 namespace SpecList
@@ -82,39 +83,49 @@ namespace SpecList
 
     void SpectatorWindowList(CEntity& LocalEntity)
     {
-        if (!MiscCFG::SpecList || (LocalEntity.Pawn.TeamID == 0 && !MenuConfig::ShowMenu))//&& g_spec_data.current_spectators.empty()
+        if (!MiscCFG::SpecList || (LocalEntity.Pawn.TeamID == 0 && !MenuConfig::ShowMenu))
             return;
+        if (!Init::ShouldRenderESP()) return;
 
-        ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize;
+        ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus;
 
-        static float fontHeight = ImGui::GetFontSize();
-        float requiredHeight = 0.0f;
-        
-        requiredHeight = g_spec_data.current_spectators.size() * (fontHeight + 5) + 20;
+        float lineHeight = ImGui::GetTextLineHeightWithSpacing();
+        float requiredHeight = g_spec_data.current_spectators.size() * lineHeight + 20.0f;
 
-        ImGui::SetNextWindowPos(MenuConfig::SpecWinPos, ImGuiCond_Once);
-        ImGui::SetNextWindowSize({ 150.0f, requiredHeight }, ImGuiCond_Always);
+        const auto& io = ImGui::GetIO();
+        const float margin = 16.0f;
+        float winW = 180.0f;
+        ImVec2 nextPos = ImVec2(margin, (io.DisplaySize.y - requiredHeight) * 0.5f);
+        ImGui::SetNextWindowPos(nextPos, ImGuiCond_Once);
+        ImGui::SetNextWindowSize({ winW, requiredHeight }, ImGuiCond_Always);
         ImGui::GetStyle().WindowRounding = 8.0f;
 
         std::string title = "Spectators";
+        // alpha transition based on list emptiness
+        static float alpha = 0.0f;
+        float target = g_spec_data.current_spectators.empty() ? 0.0f : 1.0f;
+        float dt = io.DeltaTime;
+        float k = ImClamp(dt * 12.0f, 0.0f, 1.0f);
+        alpha = alpha + (target - alpha) * k;
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
         ImGui::Begin(title.c_str(), NULL, flags);
 
-        if (MenuConfig::SpecWinChengePos)
-        {
-            ImGui::SetWindowPos(title.c_str(), MenuConfig::SpecWinPos);
-            MenuConfig::SpecWinChengePos = false;
-        }
+        
 
         if (!g_spec_data.current_spectators.empty())
         {
             for (const auto& spectator : g_spec_data.current_spectators)
             {
                 ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5);
+                ImVec4 accent = ImVec4(0.486f, 0.227f, 0.929f, 1.0f);
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1,1,1,1));
                 ImGui::Text(spectator.c_str());
+                ImGui::PopStyleColor();
             }
         }
 
         MenuConfig::SpecWinPos = ImGui::GetWindowPos();
         ImGui::End();
+        ImGui::PopStyleVar();
     }
 }

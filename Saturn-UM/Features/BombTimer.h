@@ -7,6 +7,7 @@
 #include <string>
 #include "..\Game\Entity.h"
 #include "..\Core\Config.h"
+#include "..\Core\Init.h"
 
 namespace bmb
 {
@@ -38,17 +39,18 @@ namespace bmb
 		
 	}
 
-	void RenderWindow(int inGame)
-	{
-		if ((!MiscCFG::bmbTimer) || (inGame == 0 && !MenuConfig::ShowMenu))
-			return;
+    void RenderWindow(int inGame)
+    {
+        if ((!MiscCFG::bmbTimer) || (inGame == 0 && !MenuConfig::ShowMenu))
+            return;
+        if (!Init::isGameWindowActive() && !MenuConfig::ShowMenu) return;
 
 		uintptr_t bomb;
 		bool isBombPlanted;
 		bool IsBeingDefused;
 		float DefuseTime;
 		float defuseRemaining;
-		ImColor color = MiscCFG::BombTimerCol;
+        
 		auto plantedAddress = gGame.GetClientDLLAddress() + Offset.PlantedC4;
 
 		memoryManager.ReadMemory(plantedAddress, bomb);
@@ -69,51 +71,42 @@ namespace bmb
 		if (!isPlanted && !MenuConfig::ShowMenu)
 			return;
 
-		static float windowWidth = 200.0f;
-		ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize;
-		ImGui::SetNextWindowPos(MenuConfig::BombWinPos, ImGuiCond_Once);
-		ImGui::SetNextWindowSize({ windowWidth, 0 }, ImGuiCond_Once);
+        static float windowWidth = 220.0f;
+        ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus;
+        const auto& io = ImGui::GetIO();
+        const float margin = 16.0f;
+        ImVec2 nextPos = ImVec2(io.DisplaySize.x - windowWidth - margin, io.DisplaySize.y - 120.0f - margin);
+        ImGui::SetNextWindowPos(nextPos, ImGuiCond_Once);
+        ImGui::SetNextWindowSize({ windowWidth, 0 }, ImGuiCond_Once);
 
-		ImGui::Begin("Bomb Timer", nullptr, flags);
+        // alpha transition
+        static float alpha = 0.0f;
+        float target = (isPlanted || MenuConfig::ShowMenu) ? 1.0f : 0.0f;
+        float dt = io.DeltaTime;
+        float k = ImClamp(dt * 12.0f, 0.0f, 1.0f);
+        alpha = alpha + (target - alpha) * k;
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
+        ImGui::Begin("Bomb Timer", nullptr, flags);
 
-		if (MenuConfig::BombWinChengePos)
-		{
-			ImGui::SetWindowPos("Bomb Timer", MenuConfig::BombWinPos);
-			MenuConfig::BombWinChengePos = false;
-		}
+        
 
-		float remaining = (40000 - (int64_t)time + plantTime) / (float)1000;
+        float remaining = (40000 - (int64_t)time + plantTime) / (float)1000;
 
-		float startPosX = ((ImGui::GetWindowSize().x - 180) * 0.5f) + 3;
-		ImGui::SetCursorPosX(startPosX);
-		float barLength = remaining <= 0.0f ? 0.0f : remaining >= 40 ? 1.0f : (remaining / 40.0f);
+        float startPosX = ((ImGui::GetWindowSize().x - 180) * 0.5f) + 3;
+        ImGui::SetCursorPosX(startPosX);
 		
-		if (isPlanted && remaining >= 0)
-		{
-			if (IsBeingDefused && remaining >= 5)
-			{
-				color = ImColor(32, 178, 170);
-			}	
-			else if (remaining <= 10)
-			{
-				color = ImColor(160, 48, 73);
-			}
-			else
-			{
-				color = MiscCFG::BombTimerCol;
-			}
-
-			std::ostringstream ss;
-			ss.precision(3);
-			ss << "Bomb on " << (!getBombSite(isBombPlanted) ? "A" : "B") << ": " << std::fixed << std::round(remaining * 1000.0) / 1000.0 << " s";
-			Gui.MyText(std::move(ss).str().c_str(), true);
-		}
-		else
-		{
-			Gui.MyText("C4 not planted", true);
-			barLength = 0.0f;
-		}
-		Gui.MyProgressBar(barLength, { 180, 15 }, "", color);
+        if (isPlanted && remaining >= 0)
+        {
+            std::ostringstream ss;
+            ss.precision(3);
+            ss << "Bomba no " << (!getBombSite(isBombPlanted) ? "A" : "B") << ": " << std::fixed << std::round(remaining * 1000.0) / 1000.0 << " s";
+            if (IsBeingDefused) ss << " [DESARMANDO]";
+            Gui.MyText(std::move(ss).str().c_str(), true);
+        }
+        else
+        {
+            Gui.MyText("C4 não plantada", true);
+        }
 
 		if (isPlanted && remaining >= 0 && IsBeingDefused)
 		{
@@ -133,15 +126,15 @@ namespace bmb
 				}
 			}
 
-			ImGui::SameLine();
-			ImGui::SetCursorPosX(startPosX);
-			ImGui::TextColored(ImColor(131, 137, 150, 200), "Defusing: %.3f s", defuseRemaining);
+            ImGui::SetCursorPosX(startPosX);
+            ImGui::TextColored(ImColor(131, 137, 150, 200), "Desarmando: %.3f s", defuseRemaining);
 		}
 		if (isPlanted && !isBombPlanted)
 		{
 			isPlanted = false;
 		}
-		MenuConfig::BombWinPos = ImGui::GetWindowPos();
-		ImGui::End();
-	}
+        MenuConfig::BombWinPos = ImGui::GetWindowPos();
+        ImGui::End();
+        ImGui::PopStyleVar();
+    }
 }

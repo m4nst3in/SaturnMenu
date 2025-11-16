@@ -270,7 +270,7 @@ inline void DrawPreviewBox(const ImVec2& startPos, const ImVec2& endPos, ImColor
         }
 
         if (ESPConfig::ShowHeadBox) {
-            drawList->AddCircle({ centerPos.x + 44, centerPos.y + 17 }, 12.0f, ESPConfig::HeadBoxColor, 0, 1.8f);
+            drawList->AddCircle({ centerPos.x + 44, centerPos.y + 17 }, 12.0f, ESPConfig::BoneColor, 0, 1.8f);
         }
 
         if (ESPConfig::FilledBox) {

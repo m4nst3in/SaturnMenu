@@ -39,6 +39,8 @@ void Offsets::SetOffsets(const std::string& offsetsData, const std::string& butt
     this->Pawn.isDefusing = client_dllJson["C_CSPlayerPawn"]["fields"]["m_bIsDefusing"];
     this->Pawn.TotalHit = client_dllJson["CCSPlayer_BulletServices"]["fields"]["m_totalHitsOnServer"];
     this->Pawn.Pos = client_dllJson["C_BasePlayerPawn"]["fields"]["m_vOldOrigin"];
+    this->Pawn.AbsOrigin = client_dllJson["CGameSceneNode"]["fields"]["m_vecAbsOrigin"];
+    this->Pawn.VecOrigin = client_dllJson["CGameSceneNode"]["fields"]["m_vecOrigin"];
     this->Pawn.CurrentArmor = client_dllJson["C_CSPlayerPawn"]["fields"]["m_ArmorValue"];
     this->Pawn.MaxHealth = client_dllJson["C_BaseEntity"]["fields"]["m_iMaxHealth"];
     this->Pawn.CurrentHealth = client_dllJson["C_BaseEntity"]["fields"]["m_iHealth"];

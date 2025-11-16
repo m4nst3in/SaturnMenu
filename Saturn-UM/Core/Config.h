@@ -36,7 +36,6 @@ namespace MenuConfig
 	inline int WindowStyle = 0;
 	inline bool ShowMenu = true;
 	inline bool TeamCheck = true;
-	inline bool BypassOBS = false;
 	inline bool WorkInSpec = true;
 
 	inline ImVec2 MarkWinPos;
@@ -47,7 +46,7 @@ namespace MenuConfig
 	inline bool RadarWinChengePos = false;
 	inline bool SpecWinChengePos = false;
 	inline bool BombWinChengePos = false;
-	inline int HotKey = VK_END;
+    inline int HotKey = VK_INSERT;
 }
 
 namespace LegitBotConfig
@@ -68,7 +67,7 @@ namespace LegitBotConfig
     inline bool TriggerBot = false;
     inline bool TriggerAlways = false;
 
-	inline bool RCS = true;
+    inline bool RCS = false;
 
 
 }
@@ -130,18 +129,18 @@ namespace ESPConfig
 	inline bool ShowIsScoped = true;
 	inline bool ShowIsBlind = false;
 	inline bool FlashCheck = false;
-	// 0: normal 1: Corner
-	inline int BoxType = 0;
+    // 0: normal 1: Corner
+    inline int BoxType = 1;
 	inline float BoxRounding = 5;
 	inline bool ShowLineToEnemy = false;
 	inline ImColor LineToEnemyColor = ImColor(59, 71, 148, 180);
 	// 0: Top 1: Center 2: Bottom
 	inline int LinePos = 0;
 
-	inline ImColor BoneColor = ImColor(131, 137, 150, 180);
-	inline ImColor BoxColor = ImColor(59, 71, 148, 180);
+    inline ImColor BoneColor = ImColor(255, 255, 255, 255);
+    inline ImColor BoxColor = ImColor(124, 58, 237, 180);
     
-	inline ImColor HeadBoxColor = ImColor(131, 137, 150, 180);
+    inline ImColor HeadBoxColor = ImColor(255, 255, 255, 255);
 	inline ImColor VisibleColor = ImColor(59, 71, 148, 180);
 	inline ImColor FilledColor = ImColor(59, 71, 148, 128);
 	inline ImColor BoxFilledVisColor = ImColor(0, 98, 98, 128);
@@ -201,14 +200,11 @@ namespace RadarCFG
 namespace MiscCFG
 {
     inline bool BunnyHop = false;
-    inline bool WaterMark = false;
     inline bool SniperCrosshair = false; // removed feature
     inline ImColor SniperCrosshairColor = ImColor(32, 178, 170, 255);
     inline int	HitSound = 0;
-    inline bool HitMarker = false;
     inline bool bmbTimer = true;
-    inline bool SpecList = false;
+    inline bool SpecList = true;
     inline ImColor BombTimerCol = ImColor(131, 137, 150, 255);
     inline bool AutoAccept = false;
-    inline bool AntiAFKKick = false;
 }

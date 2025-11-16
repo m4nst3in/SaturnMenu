@@ -190,8 +190,6 @@ namespace MyConfigSaver
         
 
         ConfigData["Misc"]["WorkInSpec"]=       MenuConfig::WorkInSpec;
-        ConfigData["Misc"]["Watermark"]=        MiscCFG::WaterMark;
-        ConfigData["Misc"]["HitMarker"]=        MiscCFG::HitMarker;
 
         ConfigData["Misc"]["BombTimer"]=        MiscCFG::bmbTimer;
         ConfigData["Misc"]["TimerColor"]["r"]=  MiscCFG::BombTimerCol.Value.x;
@@ -205,11 +203,7 @@ namespace MyConfigSaver
 
         ConfigData["Misc"]["AutoAccept"] = MiscCFG::AutoAccept;
 
-        
-        ConfigData["Misc"]["AntiAFKKick"] = MiscCFG::AntiAFKKick;
-
         ConfigData["Misc"]["TeamCheck"]=        MenuConfig::TeamCheck;
-        ConfigData["Misc"]["AntiRecord"]=       MenuConfig::BypassOBS;
         ConfigData["Misc"]["MenuKey"] =         MenuConfig::HotKey;
 
         ConfigData["MenuConfig"]["MarkWinPos"]["x"] = MenuConfig::MarkWinPos.x;
@@ -278,7 +272,7 @@ namespace MyConfigSaver
             ESPConfig::ESPenabled = ReadData(ConfigData["ESP"], { "Enable" }, false);
             ESPConfig::ShowBoneESP = ReadData(ConfigData["ESP"], { "BoneESP" }, false);
             ESPConfig::ShowBoxESP = ReadData(ConfigData["ESP"],{"BoxESP"}, false);
-            ESPConfig::BoxType = ReadData(ConfigData["ESP"], { "BoxType" }, 0);
+            ESPConfig::BoxType = ReadData(ConfigData["ESP"], { "BoxType" }, 1);
             
             ESPConfig::ShowHealthBar = ReadData(ConfigData["ESP"], { "HealthBar" }, false);
             ESPConfig::AmmoBar = ReadData(ConfigData["ESP"], { "AmmoBar" }, false);
@@ -445,9 +439,7 @@ namespace MyConfigSaver
         {
             
             MenuConfig::WorkInSpec = ReadData(ConfigData["Misc"],{"WorkInSpec"}, false);
-            MiscCFG::WaterMark = ReadData(ConfigData["Misc"],{"Watermark"}, false);
             
-            MiscCFG::HitMarker = ReadData(ConfigData["Misc"],{"HitMarker"}, false);
             MiscCFG::bmbTimer = ReadData(ConfigData["Misc"],{"BombTimer"}, false);
             MiscCFG::BombTimerCol.Value.x = ReadData(ConfigData["Misc"],{"TimerColor","r"}, 0.f);
             MiscCFG::BombTimerCol.Value.y = ReadData(ConfigData["Misc"],{"TimerColor","g"}, 0.f);
@@ -459,14 +451,8 @@ namespace MyConfigSaver
             
 
             MiscCFG::AutoAccept = ReadData(ConfigData["Misc"], { "AutoAccept" }, false);
-            
-            MiscCFG::AntiAFKKick = ReadData(ConfigData["Misc"], { "AntiAFKKick" }, false);
-
-            
-            MiscCFG::AntiAFKKick = ReadData(ConfigData["Misc"], { "AntiAFKKick" }, false);
 
             MenuConfig::TeamCheck = ReadData(ConfigData["Misc"],{"TeamCheck"}, true);
-            MenuConfig::BypassOBS = ReadData(ConfigData["Misc"],{"AntiRecord"}, false);
             MenuConfig::HotKey = ReadData(ConfigData["Misc"], { "MenuKey" }, VK_END);
             Text::Misc::HotKey = KeyMgr::GetKeyName(MenuConfig::HotKey);
         }

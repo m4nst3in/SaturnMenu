@@ -12,6 +12,9 @@
 #include "..\Resources\Language.h"
 #include <unordered_map>
 #include "..\Resources\Images.h"
+#if __has_include("..\Resources\MenuIcon.h")
+#include "..\Resources\MenuIcon.h"
+#endif
 #include "../Helpers/KeyManager.h"
 #include "..\OS-ImGui\OS-ImGui_Base.h"
 // Ícones FontAwesome nas labels
@@ -30,6 +33,10 @@ inline ID3D11ShaderResourceView* MenuButton2Pressed = NULL;
 inline ID3D11ShaderResourceView* MenuButton3Pressed = NULL;
 inline ID3D11ShaderResourceView* MenuButton4Pressed = NULL;
 inline ID3D11ShaderResourceView* HitboxImage = NULL;
+inline ID3D11ShaderResourceView* MenuTitleIcon = NULL;
+inline int MenuTitleIconW = 0, MenuTitleIconH = 0;
+inline void SetMenuTitleIcon(const unsigned char* data, unsigned int size);
+
 
 inline bool Button1Pressed = true;
 inline bool Button2Pressed = false;
@@ -215,7 +222,6 @@ namespace GUI
     struct VM_Global {
         bool workInSpec;
         bool teamCheck;
-        bool bypassOBS;
         int menuHotKey;
         std::string menuHotKeyName;
     };
@@ -223,7 +229,6 @@ namespace GUI
         VM_Global vm{};
         vm.workInSpec = MenuConfig::WorkInSpec;
         vm.teamCheck = MenuConfig::TeamCheck;
-        vm.bypassOBS = MenuConfig::BypassOBS;
         vm.menuHotKey = MenuConfig::HotKey;
         vm.menuHotKeyName = Text::Misc::HotKey;
         return vm;
@@ -231,7 +236,6 @@ namespace GUI
     inline void ApplyVM_Global(const VM_Global& vm) {
         MenuConfig::WorkInSpec = vm.workInSpec;
         MenuConfig::TeamCheck = vm.teamCheck;
-        MenuConfig::BypassOBS = vm.bypassOBS;
         MenuConfig::HotKey = vm.menuHotKey;
         Text::Misc::HotKey = vm.menuHotKeyName;
     }
@@ -294,7 +298,12 @@ namespace GUI
 		}
 	}
 
-    inline void LoadImages()
+    inline void SetMenuTitleIcon(const unsigned char* data, unsigned int size)
+    {
+        Gui.LoadTextureFromMemoryIcon(const_cast<unsigned char*>(data), size, &MenuTitleIcon, &MenuTitleIconW, &MenuTitleIconH);
+    }
+
+inline void LoadImages()
 	{
 		if (Logo == NULL)
 		{
@@ -315,6 +324,7 @@ namespace GUI
 			MenuConfig::RadarWinPos = ImVec2(25.f, 25.f);
 			MenuConfig::SpecWinPos = ImVec2(10.0f, ImGui::GetIO().DisplaySize.y / 2 - 200);
 			MenuConfig::BombWinPos = ImVec2((ImGui::GetIO().DisplaySize.x - 200.0f) / 2.0f, 80.0f);
+            SetMenuTitleIcon(MenuTitleIconBytes, MenuTitleIconBytes_len);
 		}
 	}
 
@@ -340,7 +350,7 @@ inline void BeginSection(const char* title, ImVec2 size = ImVec2(0.f, 0.f), bool
     {
         ImGui::SameLine(0.0f, 6.0f);
         auto UnsafeBadgeTitle = [&](const char* id, const char* tooltip){
-            ImVec4 accent = ImVec4(0.486f, 0.227f, 0.929f, 1.0f);
+            ImVec4 accent = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
             const float iconSize = ImGui::GetFontSize() * 0.80f;
             const char* sym = OSImGui::FontAwesome6Available ? ICON_FA_EXCLAMATION_TRIANGLE : "-";
             float iconW = ImGui::CalcTextSize(sym).x * (iconSize / ImGui::GetFontSize());
@@ -399,7 +409,7 @@ inline void BeginSectionWithHeaderActions(const char* title, ImVec2 size, bool b
     if (strcmp(title, "Aimbot") == 0)
     {
         ImGui::SameLine(0.0f, 6.0f);
-        ImVec4 accent = ImVec4(0.486f, 0.227f, 0.929f, 1.0f);
+        ImVec4 accent = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
         const float iconSize = ImGui::GetFontSize() * 0.80f;
         const char* sym = OSImGui::FontAwesome6Available ? ICON_FA_EXCLAMATION_TRIANGLE : "-";
         float iconW = ImGui::CalcTextSize(sym).x * (iconSize / ImGui::GetFontSize());
@@ -760,19 +770,33 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                     // alinhar verticalmente o título dentro do cabeçalho de forma simétrica
                     float top_pad_y = (top_height - title_size) * 0.5f;
                     ImGui::SetCursorPosY(top_pad_y);
-                    ImGui::SetCursorPosX(12.0f);
+                    const float headerIndentX = 1.0f;
+                    ImGui::SetCursorPosX(4.0f + headerIndentX);
+                    if (MenuTitleIcon) {
+                        const float iconScale = 1.25f;
+                        float iconSize = title_size * iconScale;
+                        if (MenuTitleIconH > 0) iconSize = ImMin(iconSize, (float)MenuTitleIconH);
+                        float yAlign = top_pad_y + (title_size - iconSize) * 0.5f;
+                        const float iconYOffset = 2.0f;
+                        ImGui::SetCursorPosY(yAlign + iconYOffset);
+                        ImGui::Image((void*)MenuTitleIcon, ImVec2(iconSize, iconSize));
+                        ImGui::SameLine(0.0f, 4.0f);
+                        ImGui::SetCursorPosY(top_pad_y);
+                    }
                     if (titleFont) ImGui::PushFont(titleFont);
                     GradientText("Saturn", start, end, title_size, titleFont);
                     if (titleFont) ImGui::PopFont();
                     // Abas à direita do título (mesma linha, com espaçamento menor)
-                    ImGui::SameLine(0.0f, 10.0f);
+                    const float tabsExtraShift = -4.0f;
+                    ImGui::SameLine(0.0f, 8.0f + tabsExtraShift);
                     // diminuir a altura das abas para ficarem simétricas com a base das letras do título
-                    float tab_pad_y = style.FramePadding.y * 0.60f; // ~40% menos altura
+                    float tab_pad_y = style.FramePadding.y * 0.60f;
                     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, tab_pad_y));
                     // centralizar verticalmente as abas dentro do cabeçalho
                     float tab_frame_h = ImGui::GetFrameHeight();
                     float tabs_y = top_pad_y + (title_size - tab_frame_h) * 0.5f;
-                    ImGui::SetCursorPosY(tabs_y);
+                    const float tabsYOffset = 3.0f;
+                    ImGui::SetCursorPosY(tabs_y + tabsYOffset);
                     // remover a linha abaixo das abas (separator/border do TabBar)
                     ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0,0,0,0));
                     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0,0,0,0));
@@ -943,25 +967,52 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                 ImGui::NextColumn();
                 ImGui::SetCursorPosY(6.f);
                 BeginSection("External Radar", ImVec2(ImGui::GetColumnWidth(), 0));
-				{
-						static const float RadarPointSizeProportionMin = 0.2f, RadarPointSizeProportionMax = 2.f;
-						static const float ProportionMin = 500.f, ProportionMax = 15000.f;
-						static const float RadarRangeMin = 100.f, RadarRangeMax = 300.f;
-						static const float AlphaMin = 0.f, AlphaMax = 1.f;
-						PutSwitch(Text::Radar::Toggle.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &RadarCFG::ShowRadar);
-						if (RadarCFG::ShowRadar)
-						{
-							PutSwitch(Text::Radar::CustomCheck.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &RadarCFG::customRadar);
-							if (RadarCFG::customRadar)
-							{
-								PutSwitch(Text::Radar::CrossLine.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &RadarCFG::ShowRadarCrossLine);
-								PutSliderFloat(Text::Radar::SizeSlider.c_str(), 5.f, &RadarCFG::RadarPointSizeProportion, &RadarPointSizeProportionMin, &RadarPointSizeProportionMax, "%.1f");
-								PutSliderFloat(Text::Radar::ProportionSlider.c_str(), 5.f, &RadarCFG::Proportion, &ProportionMin, &ProportionMax, "%.1f");
-								PutSliderFloat(Text::Radar::RangeSlider.c_str(), 5.f, &RadarCFG::RadarRange, &RadarRangeMin, &RadarRangeMax, "%.1f");
-								PutSliderFloat(Text::Radar::AlphaSlider.c_str(), 5.f, &RadarCFG::RadarBgAlpha, &AlphaMin, &AlphaMax, "%.1f");
-							}
-						}
-					}
+                {
+                        static const float RadarPointSizeProportionMin = 0.2f, RadarPointSizeProportionMax = 2.f;
+                        static const float ProportionMin = 500.f, ProportionMax = 15000.f;
+                        static const float RadarRangeMin = 100.f, RadarRangeMax = 300.f;
+                        static const float AlphaMin = 0.f, AlphaMax = 1.f;
+                        RadarCFG::ShowRadar = false;
+                        ImGui::BeginDisabled(true);
+                        PutSwitch(Text::Radar::Toggle.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &RadarCFG::ShowRadar);
+                        ImGui::EndDisabled();
+                        ImGui::SameLine(0.0f, 6.0f);
+                        {
+                            ImVec4 accent = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+                            const float iconSize = ImGui::GetFontSize() * 0.80f;
+                            const char* sym = OSImGui::FontAwesome6Available ? ICON_FA_EXCLAMATION_TRIANGLE : "-";
+                            float iconW = ImGui::CalcTextSize(sym).x * (iconSize / ImGui::GetFontSize());
+                            ImDrawList* dl = ImGui::GetWindowDrawList();
+                            ImVec2 p = ImGui::GetCursorScreenPos();
+                            p.y += (ImGui::GetTextLineHeight() - iconSize) * 0.5f;
+                            dl->AddText(ImGui::GetFont(), iconSize, p, ImGui::GetColorU32(accent), sym);
+                            ImGui::Dummy(ImVec2(iconW, iconSize));
+                            bool hovered = ImGui::IsItemHovered();
+                            ImGuiStorage* stg = ImGui::GetStateStorage();
+                            ImGuiID key = ImGui::GetID("radar-unavailable-title");
+                            float* alpha = stg->GetFloatRef(key, 0.0f);
+                            float target = hovered ? 1.0f : 0.0f;
+                            float dt = ImGui::GetIO().DeltaTime;
+                            float k = ImClamp(dt * 12.0f, 0.0f, 1.0f);
+                            *alpha = (*alpha) + (target - (*alpha)) * k;
+                            if (*alpha > 0.01f && hovered)
+                            {
+                                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, *alpha);
+                                ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.06f, 0.06f, 0.08f, 0.97f));
+                                ImGui::PushStyleColor(ImGuiCol_Border, accent);
+                                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10, 8));
+                                ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);
+                                ImGui::BeginTooltip();
+                                ImGui::TextColored(accent, "Info");
+                                ImGui::Separator();
+                                ImGui::TextUnformatted("This feature is currently unavailable as it is still under development.");
+                                ImGui::EndTooltip();
+                                ImGui::PopStyleVar(2);
+                                ImGui::PopStyleColor(2);
+                                ImGui::PopStyleVar();
+                            }
+                        }
+                    }
                     EndSection();
 
                     // Encerrar grade de 3 colunas
@@ -1198,16 +1249,15 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
 
 					BeginSection("Misc", ImVec2(ImGui::GetColumnWidth(), 0));
 					{
-						PutSwitch(Text::Misc::bmbTimer.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::bmbTimer, true, "###bmbTimerCol", reinterpret_cast<float*>(&MiscCFG::BombTimerCol));
+                        PutSwitch(Text::Misc::bmbTimer.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::bmbTimer);
 						PutSwitch(Text::Misc::SpecList.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::SpecList);
-						PutSwitch(Text::Misc::Watermark.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::WaterMark);
                         
                         
-						PutSwitch(Text::Misc::HitMerker.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::HitMarker);
+                        
 						PutSwitch(Text::Misc::BunnyHop.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::BunnyHop, false, NULL, NULL, Text::Misc::InsecureTip.c_str());
                         
 						PutSwitch("Auto Accept", 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::AutoAccept);
-						PutSwitch("Anti-afk", 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::AntiAFKKick);
+                        
 					}
 					EndSection();
 
@@ -1229,7 +1279,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                         }
                         PutSwitch(Text::Misc::SpecCheck.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &vmGlobal.workInSpec);
                         PutSwitch(Text::Misc::TeamCheck.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &vmGlobal.teamCheck);
-                        PutSwitch(Text::Misc::AntiRecord.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &vmGlobal.bypassOBS);
+                        
 
                         ApplyVM_Global(vmGlobal);
                     }

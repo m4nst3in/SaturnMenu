@@ -24,77 +24,13 @@ namespace System {
 
 namespace Misc
 {
-	HitMarker hitMarker(0, std::chrono::steady_clock::now());
-	const float HitMarker::SIZE = 10.f;
-	const float HitMarker::GAP = 3.f;
 
-	void Watermark(const CEntity& LocalPlayer) noexcept
-	{
-		if (!MiscCFG::WaterMark || (LocalPlayer.Pawn.TeamID == 0 && !MenuConfig::ShowMenu))
-			return;
-
-		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
-		ImGui::SetNextWindowPos(MenuConfig::MarkWinPos, ImGuiCond_Once);
-		ImGui::SetNextWindowBgAlpha(0.8f);
-
-		ImGui::Begin("Watermark", nullptr, windowFlags);
-
-		if (MenuConfig::MarkWinChengePos)
-		{
-			ImGui::SetWindowPos("Watermark", MenuConfig::MarkWinPos);
-			MenuConfig::MarkWinChengePos = false;
-		}
-
-		Vec3 Pos = LocalPlayer.Pawn.Pos;
-		int currentFPS = static_cast<int>(ImGui::GetIO().Framerate);
-		char fpsText[32];
-		snprintf(fpsText, sizeof(fpsText), "  FPS: %d", currentFPS);
-
-		ImGui::Text("  Saturn");
-		ImGui::Text("  Kernel CS2 cheat");
-		ImGui::Text("  Velocity: %.2f", LocalPlayer.Pawn.Speed);
-		ImGui::Text("%s", fpsText);
-		//ImGui::Text("  Pos: %.1f, %.1f, %.1f ", Pos.x, Pos.y, Pos.z);
-		ImGui::Text("                                                      ");
-
-		MenuConfig::MarkWinPos = ImGui::GetWindowPos();
-		ImGui::End();
-	}
 
     void HitSound() noexcept
     {
         // removed
     }
 
-	void HitManager(CEntity& LocalPlayer, int& PreviousTotalHits) noexcept
-	{
-        if ((!MiscCFG::HitMarker) || LocalPlayer.Controller.TeamID == 0 || MenuConfig::ShowMenu || !LocalPlayer.IsAlive())
-			return;
-
-		uintptr_t pBulletServices;
-		int totalHits;
-		memoryManager.ReadMemory(LocalPlayer.Pawn.Address + Offset.Pawn.BulletServices, pBulletServices);
-		memoryManager.ReadMemory(pBulletServices + Offset.Pawn.TotalHit, totalHits);
-
-		if (totalHits != PreviousTotalHits) {
-			if (totalHits == 0 && PreviousTotalHits != 0)
-			{
-				// `totalHits` changed from non-zero to zero, do nothing
-			}
-			else
-			{
-                
-				if (MiscCFG::HitMarker)
-				{
-					hitMarker = HitMarker(255.f, std::chrono::steady_clock::now());
-					hitMarker.Draw();
-				}
-			}
-		}
-
-		hitMarker.Update();
-		PreviousTotalHits = totalHits;
-	}
 
 	void BunnyHop(const CEntity& Local) noexcept
 	{
@@ -196,18 +132,6 @@ namespace Misc
 
  
 
-	void AntiAFKKickUpdate() noexcept
-	{
-		if (!MiscCFG::AntiAFKKick) return;
-		static DWORD64 s_lastTick = 0;
-		DWORD64 now = GetTickCount64();
-		if (now - s_lastTick >= 5000) { // fixed 5s
-			mouse_event(MOUSEEVENTF_MOVE, 1, 0, 0, 0);
-			Sleep(1);
-			mouse_event(MOUSEEVENTF_MOVE, -1, 0, 0, 0);
-			s_lastTick = now;
-		}
-	}
 
 	namespace AutoAccept
 	{

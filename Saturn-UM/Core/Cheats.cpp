@@ -595,9 +595,7 @@ void MiscFuncs(CEntity& LocalEntity)
     
     
 
-    Misc::HitManager(LocalEntity, PreviousTotalHits);
     Misc::BunnyHop(LocalEntity);
-    Misc::AntiAFKKickUpdate();
     
 }
 

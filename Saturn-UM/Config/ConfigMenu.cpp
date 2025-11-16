@@ -248,7 +248,7 @@ namespace ConfigMenu {
 		ESPConfig::BoxFilledVisColor = ImColor(0, 98, 98, 128);
 		ESPConfig::FilledVisBox = false;
 
-        MiscCFG::SpecList = false;
+        MiscCFG::SpecList = true;
         MiscCFG::BombTimerCol = ImColor(131, 137, 150, 255);
         MiscCFG::bmbTimer = true;
 
@@ -258,7 +258,7 @@ namespace ConfigMenu {
 		MenuConfig::WindowStyle = 0;
 		ESPConfig::ShowPreview = true;
 		ESPConfig::ShowHeadBox = true;
-		ESPConfig::HeadBoxColor = ImColor(131, 137, 150, 180);
+        ESPConfig::HeadBoxColor = ImColor(255, 255, 255, 255);
 
 		ESPConfig::ShowDistance = false;
 		ESPConfig::ShowBoneESP = true;
@@ -279,8 +279,8 @@ namespace ConfigMenu {
 		LegitBotConfig::AimPositionIndex = BONEINDEX::head;
 		LegitBotConfig::HitboxUpdated = false;
 
-		ESPConfig::BoxType = 0;
-        ESPConfig::BoneColor = ImColor(124, 58, 237, 220);
+		ESPConfig::BoxType = 1;
+        ESPConfig::BoneColor = ImColor(255, 255, 255, 255);
         ESPConfig::BoxColor = ImColor(124, 58, 237, 180);
         
 
@@ -302,16 +302,14 @@ namespace ConfigMenu {
 		TriggerBot::TTDtimeout = false;
 		Text::Trigger::HotKey = KeyMgr::GetKeyName(TriggerBot::HotKey);
 
-		MenuConfig::TeamCheck = true;
-		MenuConfig::BypassOBS = false;
+        MenuConfig::TeamCheck = true;
         LegitBotConfig::VisibleCheck = true;
 
 
 		MiscCFG::AutoAccept = false;
 
         
-
-        MiscCFG::AntiAFKKick = false;
+        
 
         AimControl::HotKey = 1;
         AimControl::ActivationMode = 0;
@@ -355,9 +353,7 @@ namespace ConfigMenu {
 		//CrosshairsCFG::Thickness = 1;
 		//CrosshairsCFG::TeamCheck = true;
 
-		MiscCFG::WaterMark = true;
-		MiscCFG::BunnyHop = false;
-        MiscCFG::HitMarker = false;
+        MiscCFG::BunnyHop = false;
 
 		ESPConfig::ESPenabled = true;
 		ESPConfig::DrawFov = false;
@@ -374,7 +370,7 @@ namespace ConfigMenu {
 		MenuConfig::RadarWinChengePos = true;
 		MenuConfig::SpecWinChengePos = true;
 
-		MenuConfig::HotKey = VK_END;
+        MenuConfig::HotKey = VK_INSERT;
 
 	}
 }

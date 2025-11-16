@@ -49,6 +49,8 @@ public:
 		DWORD isDefusing;
 		DWORD TotalHit;
 		DWORD Pos;
+		DWORD AbsOrigin;
+		DWORD VecOrigin;
 		DWORD CurrentArmor;
 		DWORD MaxHealth;
 		DWORD CurrentHealth;

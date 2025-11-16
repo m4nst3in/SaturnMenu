@@ -354,7 +354,7 @@ namespace OSImGui
             if (frameSkip >= 2) {
                 // Set window display affinity based on OBS bypass setting
 
-                SetWindowDisplayAffinity(Window.hWnd, MenuConfig::BypassOBS ? excludeCapture : includeCapture);
+                SetWindowDisplayAffinity(Window.hWnd, includeCapture);
 
 
                 // Use direct array access instead of creating temporary array

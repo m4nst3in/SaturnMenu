@@ -118,14 +118,14 @@ namespace Text {
     {
         inline std::string FeatureName = "Misc";
         inline std::string MenuKey = " Menu Key";
-        inline std::string HotKey = "End";
+        inline std::string HotKey = "Insert";
         inline std::string StyleList = "Style";
         inline std::string SpecCheck = "Work in Spec";
-        inline std::string BunnyHop = "Bunny Hop";
+        inline std::string BunnyHop = "Bunnyhop";
         inline std::string HitSound = "Hit Sound";
         inline std::string HitMerker = "Hit Markers";
-        inline std::string bmbTimer = "Bomb Timer";
-        inline std::string SpecList = "Spec List";
+        inline std::string bmbTimer = "C4 Timer";
+        inline std::string SpecList = "Spectator List";
         inline std::string Watermark = "Watermark";
         inline std::string TeamCheck = "Team Check";
         inline std::string AntiRecord = "Anti Record";

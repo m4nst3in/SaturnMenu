@@ -204,4 +204,7 @@ namespace Init
         }
     };
 
+    inline bool isGameWindowActive() { return Client::isGameWindowActive(); }
+    inline bool ShouldRenderESP() { return Client::ShouldRenderESP(); }
+
 }
