@@ -295,6 +295,7 @@ namespace OSImGui
                 break;
 
             ImGuiIO& io = ImGui::GetIO();
+            io.MouseDrawCursor = MenuConfig::ShowMenu;
 
             static bool keyState[256] = { true }; // Track keys
 
@@ -513,10 +514,12 @@ namespace OSImGui
         // Optimize window layering based on mouse capture
         const LONG currentExStyle = GetWindowLong(Window.hWnd, GWL_EXSTYLE);
         if (io.WantCaptureMouse) {
-            SetWindowLong(Window.hWnd, GWL_EXSTYLE, currentExStyle & (~WS_EX_LAYERED));
+            LONG newStyle = currentExStyle & (~WS_EX_LAYERED) & (~WS_EX_TRANSPARENT);
+            SetWindowLong(Window.hWnd, GWL_EXSTYLE, newStyle);
         }
         else {
-            SetWindowLong(Window.hWnd, GWL_EXSTYLE, currentExStyle | WS_EX_LAYERED);
+            LONG newStyle = currentExStyle | WS_EX_LAYERED | WS_EX_TRANSPARENT;
+            SetWindowLong(Window.hWnd, GWL_EXSTYLE, newStyle);
         }
 
         return true;

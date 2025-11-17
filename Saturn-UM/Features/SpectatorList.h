@@ -97,13 +97,14 @@ namespace SpecList
         float winW = 180.0f;
         ImVec2 nextPos = ImVec2(margin, (io.DisplaySize.y - requiredHeight) * 0.5f);
         ImGui::SetNextWindowPos(nextPos, ImGuiCond_Once);
-        ImGui::SetNextWindowSize({ winW, requiredHeight }, ImGuiCond_Always);
+        ImGui::SetNextWindowSize({ winW, requiredHeight }, ImGuiCond_Once);
         ImGui::GetStyle().WindowRounding = 8.0f;
 
         std::string title = "Spectators";
         // alpha transition based on list emptiness
         static float alpha = 0.0f;
-        float target = g_spec_data.current_spectators.empty() ? 0.0f : 1.0f;
+        bool dragging = ImGui::IsMouseDragging(0, 0.0f) && ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+        float target = dragging ? 1.0f : (g_spec_data.current_spectators.empty() ? 0.0f : 1.0f);
         float dt = io.DeltaTime;
         float k = ImClamp(dt * 12.0f, 0.0f, 1.0f);
         alpha = alpha + (target - alpha) * k;

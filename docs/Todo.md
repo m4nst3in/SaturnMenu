@@ -16,12 +16,12 @@
 - [ ] Use binds from game instead const keys
 - [x] Different config for each of weapon type
 - [ ] Make UEFI mapper
-- [ ] Make menu usable during gameplay
+- [x] Make menu usable during gameplay
 - [ ] Improve kernel driver for better performance
 
 ### Low Priority
 
-- [ ] Raycast visibility check (pull map geo from memory, not VPK files)
+- [x] Raycast visibility check (pull map geo from memory, not VPK files)
 - [x] Optimize triggerbot target detection (use hitboxes, etc.)
 - [ ] Clean up config code
 
