@@ -207,4 +207,6 @@ namespace MiscCFG
     inline bool SpecList = true;
     inline ImColor BombTimerCol = ImColor(131, 137, 150, 255);
     inline bool AutoAccept = false;
+    inline bool MovementHelper = false;
+    inline bool CounterStrafe = false;
 }

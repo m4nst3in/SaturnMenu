@@ -596,6 +596,8 @@ void MiscFuncs(CEntity& LocalEntity)
     
 
     Misc::BunnyHop(LocalEntity);
+    Misc::MovementHelper(LocalEntity);
+    
     
 }
 

@@ -6,6 +6,10 @@
 #include <random>
 #include "../Helpers/Logger.h"
 #include "../Core/Cheats.h"
+#include "..\Offsets\Offsets.h"
+#include <mutex>
+#include <atomic>
+#include <vector>
 namespace fs = std::filesystem;
 
 namespace System {
@@ -61,6 +65,56 @@ namespace Misc
 				lastJumped = currentTick;
 			}
 		}
+	}
+
+void MovementHelper(const CEntity& Local) noexcept
+{
+		if (!MiscCFG::MovementHelper || MenuConfig::ShowMenu || Local.Controller.TeamID == 0)
+			return;
+
+		static DWORD lastShotsFired = 0;
+		static bool wasLeft = false;
+		static bool wasRight = false;
+
+		if (Layout == KeyboardLayout::UNKNOWN)
+			Layout = DetectKeyboardLayout();
+		KeyLayout kl = keyLayouts.count(Layout) ? keyLayouts[Layout] : keyLayouts[KeyboardLayout::QWERTY];
+
+		HWND hwnd_cs2 = FindWindowA(NULL, "Counter-Strike 2");
+		if (!hwnd_cs2) return;
+
+		int vkLeft = VkKeyScanA(kl.left) & 0xFF;
+		int vkRight = VkKeyScanA(kl.right) & 0xFF;
+
+		bool left = GetAsyncKeyState(vkLeft);
+		bool right = GetAsyncKeyState(vkRight);
+		bool movingLeft = left && !right;
+		bool movingRight = right && !left;
+		float speed = Local.Pawn.Speed;
+
+		bool shot = Local.Pawn.ShotsFired > lastShotsFired;
+
+		if (MiscCFG::CounterStrafe)
+		{
+			if (shot)
+			{
+				if (movingLeft) { System::Key_Click_HWND(hwnd_cs2, vkRight, TRUE); }
+				else if (movingRight) { System::Key_Click_HWND(hwnd_cs2, vkLeft, TRUE); }
+			}
+
+			if (wasLeft && !left && speed > 15.f)
+			{
+				System::Key_Click_HWND(hwnd_cs2, vkRight, TRUE);
+			}
+			if (wasRight && !right && speed > 15.f)
+			{
+				System::Key_Click_HWND(hwnd_cs2, vkLeft, TRUE);
+			}
+		}
+
+		lastShotsFired = Local.Pawn.ShotsFired;
+		wasLeft = left;
+		wasRight = right;
 	}
 
 	void CleanTraces()

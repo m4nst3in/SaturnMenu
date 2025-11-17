@@ -133,6 +133,8 @@ namespace Text {
         inline std::string AntiAFK = "Anti AFK";
         inline std::string AntiAFKInterval = "Interval";
         inline std::string InsecureTip = "This option may trigger VAC Live";
+        inline std::string MovementHelper = "Movement Helper";
+        inline std::string CounterStrafe = "Counter-Strafe";
     }
 
     namespace Config

@@ -1257,6 +1257,12 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
 						PutSwitch(Text::Misc::BunnyHop.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::BunnyHop, false, NULL, NULL, Text::Misc::InsecureTip.c_str());
                         
 						PutSwitch("Auto Accept", 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::AutoAccept);
+                        PutSwitch(Text::Misc::MovementHelper.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::MovementHelper);
+                        if (MiscCFG::MovementHelper)
+                        {
+                            PutSwitch(Text::Misc::CounterStrafe.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &MiscCFG::CounterStrafe);
+                        }
+                        
                         
 					}
 					EndSection();

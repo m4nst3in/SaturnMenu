@@ -73,46 +73,46 @@ public:
 class Vec3
 {
 public:
-	float x, y, z;
+    float x, y, z;
 public:
-	Vec3() :x(0.f), y(0.f), z(0.f) {}
-	Vec3(float x_, float y_, float z_) :x(x_), y(y_), z(z_) {}
-	Vec3 operator+(Vec3 Vec3_)
-	{
-		return { x + Vec3_.x,y + Vec3_.y,z + Vec3_.z };
-	}
-	Vec3 operator+(const Vec3& Vec3_) const
-	{
-		return { x + Vec3_.x,y + Vec3_.y,z + Vec3_.z };
-	}
-	Vec3 operator-(Vec3 Vec3_)
-	{
-		return { x - Vec3_.x,y - Vec3_.y,z - Vec3_.z };
-	}
-	Vec3 operator-(const Vec3& other) const {
-		return Vec3{ x - other.x, y - other.y, z - other.z };
-	}
-	Vec3 operator*(Vec3 Vec3_)
-	{
-		return { x * Vec3_.x,y * Vec3_.y,z * Vec3_.z };
-	}
-	Vec3 operator/(Vec3 Vec3_)
-	{
-		return { x / Vec3_.x,y / Vec3_.y,z / Vec3_.z };
-	}
-	Vec3 operator*(float n)
-	{
-		return { x * n,y * n,z * n };
-	}
-	Vec3 operator/(float n)
-	{
-		return { x / n,y / n,z / n };
-	}
-	bool operator==(Vec3 Vec3_) const
-	{
-		return x == Vec3_.x && y == Vec3_.y && z == Vec3_.z;
-	}
-	bool operator!=(Vec3 Vec3_)
+    Vec3() :x(0.f), y(0.f), z(0.f) {}
+    Vec3(float x_, float y_, float z_) :x(x_), y(y_), z(z_) {}
+    Vec3 operator+(Vec3 Vec3_)
+    {
+        return { x + Vec3_.x,y + Vec3_.y,z + Vec3_.z };
+    }
+    Vec3 operator+(const Vec3& Vec3_) const
+    {
+        return { x + Vec3_.x,y + Vec3_.y,z + Vec3_.z };
+    }
+    Vec3 operator-(Vec3 Vec3_)
+    {
+        return { x - Vec3_.x,y - Vec3_.y,z - Vec3_.z };
+    }
+    Vec3 operator-(const Vec3& other) const {
+        return Vec3{ x - other.x, y - other.y, z - other.z };
+    }
+    Vec3 operator*(Vec3 Vec3_)
+    {
+        return { x * Vec3_.x,y * Vec3_.y,z * Vec3_.z };
+    }
+    Vec3 operator/(Vec3 Vec3_)
+    {
+        return { x / Vec3_.x,y / Vec3_.y,z / Vec3_.z };
+    }
+    Vec3 operator*(float n) const
+    {
+        return { x * n,y * n,z * n };
+    }
+    Vec3 operator/(float n) const
+    {
+        return { x / n,y / n,z / n };
+    }
+    bool operator==(Vec3 Vec3_) const
+    {
+        return x == Vec3_.x && y == Vec3_.y && z == Vec3_.z;
+    }
+    bool operator!=(Vec3 Vec3_)
 	{
 		return x != Vec3_.x || y != Vec3_.y || z != Vec3_.z;
 	}

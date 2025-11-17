@@ -220,6 +220,7 @@ namespace Misc
 
     
     void ExecuteCommand(const std::string& command) noexcept;
+    void MovementHelper(const CEntity& Local) noexcept;
 
 	namespace AutoAccept
 	{

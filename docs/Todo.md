@@ -8,6 +8,8 @@
 - [x] Improve ESP stability
 - [+-] Remove/add new small features on the menu, such as better config for ESP
 - [x] Indicate unsafe options (vulnerable to VAC Live)
+- [x] Movement helper
+- [ ] Smoke/molotov timer
 
 ### Medium Priority
 
@@ -20,10 +22,7 @@
 ### Low Priority
 
 - [ ] Raycast visibility check (pull map geo from memory, not VPK files)
-- [ ] Smoke check
 - [ ] Optimize triggerbot target detection (use hitboxes, etc.)
-- [ ] Grenade helper
-- [ ] Movement helper
 - [ ] Clean up config code
 
 ### Suspended
