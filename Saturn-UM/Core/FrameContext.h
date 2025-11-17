@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "Cheats.h"
+#include "EntityResult.h"
 #include "../Game/Entity.h"
 #include "../Features/Radar.h"
 namespace Core {

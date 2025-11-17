@@ -1,4 +1,8 @@
 #include "TriggerBot.h"
+#include "Aimbot.h"
+#include "../Game/Bone.h"
+#include "../Core/EntityResult.h"
+#include "../OS-ImGui/imgui/imgui.h"
 #include <chrono>
 #include <random>
 #include <thread>
@@ -177,4 +181,146 @@ bool TriggerBot::CheckWeapon(const std::string& WeaponName)
     return !(WeaponName == "smokegrenade" || WeaponName == "flashbang" || WeaponName == "hegrenade" ||
         WeaponName == "molotov" || WeaponName == "decoy" || WeaponName == "incgrenade" ||
         WeaponName == "t_knife" || WeaponName == "ct_knife" || WeaponName == "c4");
+}
+
+static inline bool withinFovPixels(const ImVec2& center, const ImVec2& p, int radius)
+{
+    float dx = p.x - center.x;
+    float dy = p.y - center.y;
+    return (dx * dx + dy * dy) <= (float)(radius * radius);
+}
+
+static inline bool boneHitInFov(const CEntity& e, int radius, const std::vector<int>& hitboxes, ImVec2 center)
+{
+    const auto& bones = e.GetBone().BonePosList;
+    if (bones.empty()) return false;
+    if (!hitboxes.empty()) {
+        for (int hb : hitboxes) {
+            if (hb < 0 || (size_t)hb >= bones.size()) continue;
+            if (withinFovPixels(center, ImVec2(bones[hb].ScreenPos.x, bones[hb].ScreenPos.y), radius)) return true;
+        }
+        return false;
+    }
+    int defaults[] = { (int)BONEINDEX::head, (int)BONEINDEX::neck_0, (int)BONEINDEX::spine_2 };
+    for (int i = 0; i < 3; ++i) {
+        int hb = defaults[i];
+        if (hb < 0 || (size_t)hb >= bones.size()) continue;
+        if (withinFovPixels(center, ImVec2(bones[hb].ScreenPos.x, bones[hb].ScreenPos.y), radius)) return true;
+    }
+    return false;
+}
+
+void TriggerBot::RunEnhanced(const CEntity& LocalEntity, int LocalPlayerControllerIndex, const std::vector<EntityResult>& entities)
+{
+    if (LocalEntity.Controller.AliveStatus == 0) { return; }
+
+    DWORD uHandle = 0;
+    bool haveHandle = memoryManager.ReadMemory<DWORD>(LocalEntity.Pawn.Address + Offset.Pawn.iIDEntIndex, uHandle) && uHandle != (DWORD)-1;
+    CEntity targetEntity;
+    bool targetValid = false;
+    if (haveHandle) {
+        DWORD64 PawnAddress = CEntity::ResolveEntityHandle(uHandle);
+        if (PawnAddress && targetEntity.UpdatePawn(PawnAddress)) {
+            targetValid = true;
+        }
+    }
+
+    ImVec2 center{ ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f };
+    std::vector<int> hbSel = AimControl::HitboxList;
+    int radius = TriggerBot::FovPixels;
+
+    auto canShoot = [&](const CEntity& tgt)->bool{
+        if (tgt.Pawn.Address == 0) return false;
+        if (MenuConfig::TeamCheck && LocalEntity.Pawn.TeamID == tgt.Pawn.TeamID) return false;
+        bool waitForNoAttack = false;
+        if (!memoryManager.ReadMemory<bool>(LocalEntity.Pawn.Address + Offset.Pawn.m_bWaitForNoAttack, waitForNoAttack)) return false;
+        if (waitForNoAttack) return false;
+        std::string currentWeapon = GetWeapon(LocalEntity);
+        if (!CheckWeapon(currentWeapon)) return false;
+        if (StopedOnly && LocalEntity.Pawn.Speed != 0) return false;
+        DWORD64 playerMask = (DWORD64(1) << LocalPlayerControllerIndex);
+        bool bIsVisible = (tgt.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & playerMask);
+        if (TTDtimeout && !bIsVisible) return false;
+        if (ScopeOnly && CheckScopeWeapon(currentWeapon)) {
+            bool isScoped = false;
+            memoryManager.ReadMemory<bool>(LocalEntity.Pawn.Address + Offset.Pawn.isScoped, isScoped);
+            if (!isScoped) return false;
+        }
+        return true;
+    };
+
+    bool inFov = false;
+    if (targetValid) {
+        inFov = boneHitInFov(targetEntity, radius, hbSel, center) && canShoot(targetEntity);
+    }
+
+    if (!inFov) {
+        const CEntity* best = nullptr;
+        float bestDist2 = (float)(radius * radius);
+        for (const auto& r : entities) {
+            if (!r.isValid) continue;
+            const CEntity& e = r.entity;
+            if (!canShoot(e)) continue;
+            const auto& bones = e.GetBone().BonePosList;
+            if (bones.empty()) continue;
+            std::vector<int> use = hbSel;
+            if (use.empty()) {
+                use = { (int)BONEINDEX::head, (int)BONEINDEX::neck_0, (int)BONEINDEX::spine_2 };
+            }
+            for (int hb : use) {
+                if (hb < 0 || (size_t)hb >= bones.size()) continue;
+                ImVec2 p{ bones[hb].ScreenPos.x, bones[hb].ScreenPos.y };
+                float dx = p.x - center.x;
+                float dy = p.y - center.y;
+                float d2 = dx * dx + dy * dy;
+                if (d2 <= bestDist2) { bestDist2 = d2; best = &e; }
+            }
+        }
+        if (best) {
+            targetEntity = *best;
+            inFov = true;
+        }
+    }
+
+    static bool g_isHolding = false;
+    static ULONGLONG g_lastInFovTick = 0;
+    ULONGLONG nowTick = GetTickCount64();
+    if (!inFov) {
+        bool continuous = (TriggerDelay == 0);
+        if (continuous && g_isHolding) {
+            if (nowTick - g_lastInFovTick <= 120) {
+                return;
+            }
+        }
+        if (g_isHolding) { mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0); g_isHolding = false; }
+        g_HasValidTarget = false;
+        g_TargetFoundTime = std::chrono::system_clock::now();
+        return;
+    }
+    g_lastInFovTick = nowTick;
+
+    if (!g_HasValidTarget) g_TargetFoundTime = std::chrono::system_clock::now();
+    g_HasValidTarget = true;
+
+    auto now = std::chrono::system_clock::now();
+    long long timeSinceLastShot = std::chrono::duration_cast<std::chrono::milliseconds>(now - g_LastShotTime).count();
+    long long timeSinceTargetFound = std::chrono::duration_cast<std::chrono::milliseconds>(now - g_TargetFoundTime).count();
+
+    bool pressed = (GetAsyncKeyState(TriggerBot::HotKey) & 0x8000) != 0;
+    bool shouldShoot = false;
+    if (TriggerBot::ActivationMode == 2) shouldShoot = true;
+    else if (TriggerBot::ActivationMode == 1) shouldShoot = TriggerBot::ToggledActive;
+    else shouldShoot = pressed;
+    bool continuous = (TriggerDelay == 0);
+    if (shouldShoot) {
+        if (continuous) {
+            if (!g_isHolding) { mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0); g_isHolding = true; }
+        } else {
+            if (timeSinceLastShot >= ShotDuration && timeSinceTargetFound >= TriggerDelay) {
+                ExecuteShot();
+            }
+        }
+    } else {
+        if (g_isHolding) { mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0); g_isHolding = false; }
+    }
 }

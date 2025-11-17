@@ -27,7 +27,7 @@ int PreviousTotalHits = 0;
 void Menu();
 void Visual(const CEntity&);
 void Radar(Base_Radar, const CEntity&);
-void Trigger(const CEntity&, const int&);
+void Trigger(const CEntity&, const int&, const std::vector<EntityResult>&);
 void AIM(const CEntity&, std::vector<Vec3>);
 void MiscFuncs(CEntity&);
 void RenderCrosshair(ImDrawList*, const CEntity&);
@@ -133,7 +133,7 @@ struct TriggerAimFeatureAdapter : Core::IFeature {
                 RCS::RCSScale.x = p.rcsYaw;
                 RCS::RCSScale.y = p.rcsPitch;
             }
-            Trigger(*local, localIndex);
+            Trigger(*local, localIndex, *ctx.entities);
             if (aimList) AIM(*local, *aimList);
             LegitBotConfig::AimBot = s.AimBot; LegitBotConfig::AimToggleMode = s.AimToggleMode; LegitBotConfig::VisibleCheck = s.VisibleCheck;
             AimControl::ScopeOnly = s.ScopeOnly; AimControl::HumanizationStrength = s.HumanizationStrength; AimControl::AimFov = s.AimFov; AimControl::AimFovMin = s.AimFovMin; AimControl::Smooth = s.Smooth; AimControl::AimBullet = s.AimBullet; AimControl::HitboxList = s.HitboxList;
@@ -522,7 +522,7 @@ void Radar(Base_Radar Radar, const CEntity& LocalEntity)
 	}
 }
 
-void Trigger(const CEntity& LocalEntity, const int& LocalPlayerControllerIndex)
+void Trigger(const CEntity& LocalEntity, const int& LocalPlayerControllerIndex, const std::vector<EntityResult>& entities)
 {
     if (!LegitBotConfig::TriggerBot) return;
     static bool prevPressed = false;
@@ -543,7 +543,7 @@ void Trigger(const CEntity& LocalEntity, const int& LocalPlayerControllerIndex)
     }
     prevPressed = pressed;
     if (active)
-        TriggerBot::Run(LocalEntity, LocalPlayerControllerIndex);
+        TriggerBot::RunEnhanced(LocalEntity, LocalPlayerControllerIndex, entities);
 }
 
 void AIM(const CEntity& LocalEntity, std::vector<Vec3> AimPosList)

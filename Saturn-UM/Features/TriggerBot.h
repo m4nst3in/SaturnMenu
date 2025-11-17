@@ -4,6 +4,8 @@
 #include "../Game/Game.h"
 #include "../Game/Entity.h"
 #include "../Core/Config.h"
+#include "../Core/EntityResult.h"
+#include <vector>
 
 namespace TriggerBot
 {
@@ -15,6 +17,7 @@ namespace TriggerBot
     inline bool StopedOnly = false;
     inline bool TTDtimeout = false;
     inline bool VisibleCheck = true;
+    inline int FovPixels = 18;
 
     // Input configuration
     inline int HotKey = VK_XBUTTON1;
@@ -27,7 +30,8 @@ namespace TriggerBot
 	inline bool g_HasValidTarget = false;
 
     // Main functions
-	void Run(const CEntity& LocalEntity, const int& LocalPlayerControllerIndex);
+    void Run(const CEntity& LocalEntity, const int& LocalPlayerControllerIndex);
+    void RunEnhanced(const CEntity& LocalEntity, int LocalPlayerControllerIndex, const std::vector<EntityResult>& entities);
 
     // Validation functions
     bool CanTrigger(const CEntity& LocalEntity, const CEntity& TargetEntity, const int& LocalPlayerControllerIndex);

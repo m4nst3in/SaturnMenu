@@ -5,17 +5,10 @@
 #include "../Features/Radar.h"
 #include "../Features/TriggerBot.h"
 #include "../Features/Misc.h"
+#include "EntityResult.h"
 #include <vector>
 
-// processed entity data and results
-struct EntityResult {
-	int entityIndex = -1;
-	CEntity entity;
-	ImVec4 espRect;
-	int distance = 0;
-	bool isInScreen = false;
-	bool isValid = false;
-};
+// processed entity data and results in Core/EntityResult.h
 
 namespace Cheats
 {

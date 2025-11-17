@@ -22,7 +22,7 @@
 ### Low Priority
 
 - [ ] Raycast visibility check (pull map geo from memory, not VPK files)
-- [ ] Optimize triggerbot target detection (use hitboxes, etc.)
+- [x] Optimize triggerbot target detection (use hitboxes, etc.)
 - [ ] Clean up config code
 
 ### Suspended
