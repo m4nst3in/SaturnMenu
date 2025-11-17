@@ -114,6 +114,7 @@ namespace GUI
     struct VM_Trigger {
         bool enabled;
         bool scopeOnly;
+        bool ignoreSmoke;
         bool stopOnly;
         bool ttdTimeout;
         int delay;
@@ -139,6 +140,7 @@ namespace GUI
             const auto& p = it->second;
             vm.enabled = p.triggerEnabled;
             vm.scopeOnly = p.t_scopeOnly;
+            vm.ignoreSmoke = p.trigIgnoreSmoke;
             vm.stopOnly = p.stopOnly;
             vm.ttdTimeout = p.ttdTimeout;
             vm.delay = p.delay;
@@ -146,6 +148,7 @@ namespace GUI
         } else {
             vm.enabled = LegitBotConfig::TriggerBot;
             vm.scopeOnly = TriggerBot::ScopeOnly;
+            vm.ignoreSmoke = TriggerBot::IgnoreSmoke;
             vm.stopOnly = TriggerBot::StopedOnly;
             vm.ttdTimeout = TriggerBot::TTDtimeout;
             vm.delay = TriggerBot::TriggerDelay;
@@ -158,6 +161,7 @@ namespace GUI
             auto& p = WeaponConfig::WeaponConfigs[WeaponConfig::SelectedWeaponKey];
             p.triggerEnabled = vm.enabled;
             p.t_scopeOnly = vm.scopeOnly;
+            p.trigIgnoreSmoke = vm.ignoreSmoke;
             p.stopOnly = vm.stopOnly;
             p.ttdTimeout = vm.ttdTimeout;
             p.delay = vm.delay;
@@ -165,6 +169,7 @@ namespace GUI
         } else {
             LegitBotConfig::TriggerBot = vm.enabled;
             TriggerBot::ScopeOnly = vm.scopeOnly;
+            TriggerBot::IgnoreSmoke = vm.ignoreSmoke;
             TriggerBot::StopedOnly = vm.stopOnly;
             TriggerBot::TTDtimeout = vm.ttdTimeout;
             TriggerBot::TriggerDelay = vm.delay;
@@ -1071,7 +1076,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                         static const float SmoothMin = 0.f, SmoothMax = 10.f;
                         static const int MinHumanize = 0;
                         static const int MaxHumanize = 15;
-                        struct VM_Aimbot { bool enabled; bool drawFov; bool visibleCheck; bool scopeOnly; int humanizationStrength; float aimFov; float aimFovMin; float smooth; int aimBullet; };
+                        struct VM_Aimbot { bool enabled; bool drawFov; bool visibleCheck; bool ignoreSmoke; bool scopeOnly; int humanizationStrength; float aimFov; float aimFovMin; float smooth; int aimBullet; };
                         VM_Aimbot vm{};
                         if (!WeaponConfig::SelectedWeaponKey.empty()) {
                             auto key = WeaponConfig::SelectedWeaponKey;
@@ -1096,6 +1101,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                             // activation mode handled via popup
                             vm.drawFov = ESPConfig::DrawFov;
                             vm.visibleCheck = p.visibleCheck;
+                            vm.ignoreSmoke = p.ignoreSmoke;
                             vm.scopeOnly = p.scopeOnly;
                             vm.humanizationStrength = p.humanizationStrength;
                             vm.aimFov = p.aimFov;
@@ -1107,6 +1113,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                             // activation mode handled via popup
                             vm.drawFov = ESPConfig::DrawFov;
                             vm.visibleCheck = LegitBotConfig::VisibleCheck;
+                            vm.ignoreSmoke = LegitBotConfig::IgnoreSmoke;
                             vm.scopeOnly = AimControl::ScopeOnly;
                             vm.humanizationStrength = AimControl::HumanizationStrength;
                             vm.aimFov = AimControl::AimFov;
@@ -1120,6 +1127,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                         
                             PutSwitch(Text::Aimbot::DrawFov.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vm.drawFov, true, "###FOVcol", reinterpret_cast<float*>(&LegitBotConfig::FovCircleColor));
                             PutSwitch(Text::Aimbot::VisCheck.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vm.visibleCheck, false, NULL, NULL, Text::Aimbot::OnTip.c_str());
+                            PutSwitch(Text::Aimbot::IgnoreSmoke.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vm.ignoreSmoke);
                             PutSwitch(Text::Aimbot::ScopeOnly.c_str(), 10.f, ImGui::GetFrameHeight() * 1.7, &vm.scopeOnly);
                             PutSliderInt(Text::Aimbot::HumanizationStrength.c_str(), 10.f, &vm.humanizationStrength, &MinHumanize, &MaxHumanize, "%d");
                             PutSliderFloat(Text::Aimbot::FovSlider.c_str(), 10.f, &vm.aimFov, &vm.aimFovMin, &FovMax, "%.1f");
@@ -1133,6 +1141,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                             
                             ESPConfig::DrawFov = vm.drawFov;
                             p.visibleCheck = vm.visibleCheck;
+                            p.ignoreSmoke = vm.ignoreSmoke;
                             p.scopeOnly = vm.scopeOnly;
                             p.humanizationStrength = vm.humanizationStrength;
                             p.aimFov = vm.aimFov;
@@ -1140,7 +1149,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                             p.smooth = vm.smooth;
                             p.aimBullet = vm.aimBullet;
                         } else {
-                            LegitBotConfig::AimBot = vm.enabled; ESPConfig::DrawFov = vm.drawFov; LegitBotConfig::VisibleCheck = vm.visibleCheck; AimControl::ScopeOnly = vm.scopeOnly; AimControl::HumanizationStrength = vm.humanizationStrength; AimControl::AimFov = vm.aimFov; AimControl::AimFovMin = vm.aimFovMin; AimControl::Smooth = vm.smooth; AimControl::AimBullet = vm.aimBullet;
+                            LegitBotConfig::AimBot = vm.enabled; ESPConfig::DrawFov = vm.drawFov; LegitBotConfig::VisibleCheck = vm.visibleCheck; LegitBotConfig::IgnoreSmoke = vm.ignoreSmoke; AimControl::ScopeOnly = vm.scopeOnly; AimControl::HumanizationStrength = vm.humanizationStrength; AimControl::AimFov = vm.aimFov; AimControl::AimFovMin = vm.aimFovMin; AimControl::Smooth = vm.smooth; AimControl::AimBullet = vm.aimBullet;
                         }
                     }
                     EndSection();
@@ -1166,6 +1175,7 @@ inline void PutSliderInt(const char* string, float CursorX, int* v, const void* 
                         {
                             
                             PutSwitch(Text::Trigger::ScopeOnly.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &vmTrig.scopeOnly);
+                            PutSwitch(Text::Trigger::IgnoreSmoke.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &vmTrig.ignoreSmoke);
                             
                             PutSwitch(Text::Trigger::StopOnly.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &vmTrig.stopOnly);
                             PutSwitch(Text::Trigger::TTDtimeout.c_str(), 5.f, ImGui::GetFrameHeight() * 1.7, &vmTrig.ttdTimeout, false, NULL, NULL, Text::Aimbot::OnTip.c_str());

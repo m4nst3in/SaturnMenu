@@ -10,6 +10,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "../OS-ImGui/imgui/imgui_internal.h"
 #include "../Features/TriggerBot.h"
+#include "../Geo/MapGeo.h"
 
 namespace Render
 {
@@ -210,34 +211,31 @@ namespace Render
 		}
 	}
 
-	inline void ShowLosLine(const CEntity& Entity, const float Length, ImColor Color, float Thickness)
-	{
-        
-			return;
-
-		const auto& bonePosList = Entity.GetBone().BonePosList;
+inline void ShowLosLine(const CEntity& Entity, const float Length, ImColor Color, float Thickness)
+{
+        const auto& bonePosList = Entity.GetBone().BonePosList;
         if (bonePosList.size() <= BONEINDEX::head)
             return;
         const BoneJointPos& head = bonePosList[BONEINDEX::head];
-		const Vec2 startPoint = head.ScreenPos;
-
-		const float degToRad = M_PI / 180.0f;
-		const float viewAngleX = Entity.Pawn.ViewAngle.x * degToRad;
-		const float viewAngleY = Entity.Pawn.ViewAngle.y * degToRad;
-
-		const float lineLength = cos(viewAngleX) * Length;
-
-		Vec3 temp;
-		temp.x = head.Pos.x + cos(viewAngleY) * lineLength;
-		temp.y = head.Pos.y + sin(viewAngleY) * lineLength;
-		temp.z = head.Pos.z - sin(viewAngleX) * Length;
-
-		Vec2 endPoint;
-		if (!gGame.View.WorldToScreen(temp, endPoint))
-			return;
-
-		Gui.Line(startPoint, endPoint, Color, Thickness);
-	}
+        const Vec2 startPoint = head.ScreenPos;
+        const float degToRad = M_PI / 180.0f;
+        const float viewAngleX = Entity.Pawn.ViewAngle.x * degToRad;
+        const float viewAngleY = Entity.Pawn.ViewAngle.y * degToRad;
+        const float lineLength = cos(viewAngleX) * Length;
+        Vec3 target;
+        target.x = head.Pos.x + cos(viewAngleY) * lineLength;
+        target.y = head.Pos.y + sin(viewAngleY) * lineLength;
+        target.z = head.Pos.z - sin(viewAngleX) * Length;
+        Vec3 endWorld = target;
+        if (gMapGeo.IsReady()) {
+            auto r = gMapGeo.Raycast(head.Pos, target);
+            if (r.hit) endWorld = r.point;
+        }
+        Vec2 endPoint;
+        if (!gGame.View.WorldToScreen(endWorld, endPoint))
+            return;
+        Gui.Line(startPoint, endPoint, Color, Thickness);
+}
 
 	inline ImVec4 Get2DBoneRect(const CEntity& Entity)
 	{

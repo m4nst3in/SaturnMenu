@@ -3,6 +3,7 @@
 #include "..\Core\Config.h"
 #include "..\Core\Cheats.h"
 #include "..\Helpers\GetWeaponIcon.h"
+#include "..\Geo\MapGeo.h"
 
 namespace ESP
 {
@@ -86,9 +87,16 @@ inline void RenderPlayerESP(const CEntity& LocalEntity, const CEntity& Entity, I
 		// Cache frequently used values
 		std::string weaponIcon = GunIcon(Entity.Pawn.WeaponName);
 		const auto ioFonts = ImGui::GetIO().Fonts->Fonts[1];
-		DWORD64 playerMask = (DWORD64(1) << LocalPlayerControllerIndex);
-		bool bIsVisible = (Entity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & playerMask);
-		bool bIsVisibleIndex = (Entity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & (DWORD64(1) << Index));
+        DWORD64 playerMask = (DWORD64(1) << LocalPlayerControllerIndex);
+        bool bIsVisible;
+        bool bIsVisibleIndex;
+        if (ESPConfig::VisibleCheck && gMapGeo.IsReady()) {
+            bIsVisible = gMapGeo.RaycastLOS(LocalEntity.Pawn.CameraPos, Entity.Pawn.Pos);
+            bIsVisibleIndex = bIsVisible;
+        } else {
+            bIsVisible = (Entity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & playerMask);
+            bIsVisibleIndex = (Entity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & (DWORD64(1) << Index));
+        }
 
         if (ESPConfig::ShowBoneESP)
         {

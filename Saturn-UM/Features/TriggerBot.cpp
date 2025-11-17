@@ -1,11 +1,13 @@
 #include "TriggerBot.h"
 #include "Aimbot.h"
+#include "Hitbox.h"
 #include "../Game/Bone.h"
 #include "../Core/EntityResult.h"
 #include "../OS-ImGui/imgui/imgui.h"
 #include <chrono>
 #include <random>
 #include <thread>
+#include "../Geo/MapGeo.h"
 
 void TriggerBot::Run(const CEntity& LocalEntity, const int& LocalPlayerControllerIndex)
 {
@@ -115,7 +117,14 @@ bool TriggerBot::CanTrigger(const CEntity& LocalEntity, const CEntity& TargetEnt
 
     // Check TTD timout
     DWORD64 playerMask = (DWORD64(1) << LocalPlayerControllerIndex);
-    bool bIsVisible = (TargetEntity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & playerMask);
+    bool bIsVisible;
+    if (LegitBotConfig::VisibleCheck && gMapGeo.IsReady()) {
+        bool los = gMapGeo.RaycastLOS(LocalEntity.Pawn.CameraPos, TargetEntity.Pawn.Pos);
+        bool maskVis = (TargetEntity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & playerMask);
+        bIsVisible = TriggerBot::IgnoreSmoke ? los : (los && maskVis);
+    } else {
+        bIsVisible = (TargetEntity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & playerMask);
+    }
     if (TTDtimeout && !bIsVisible) { return false; }
 
     // Check scope requirement
@@ -192,22 +201,7 @@ static inline bool withinFovPixels(const ImVec2& center, const ImVec2& p, int ra
 
 static inline bool boneHitInFov(const CEntity& e, int radius, const std::vector<int>& hitboxes, ImVec2 center)
 {
-    const auto& bones = e.GetBone().BonePosList;
-    if (bones.empty()) return false;
-    if (!hitboxes.empty()) {
-        for (int hb : hitboxes) {
-            if (hb < 0 || (size_t)hb >= bones.size()) continue;
-            if (withinFovPixels(center, ImVec2(bones[hb].ScreenPos.x, bones[hb].ScreenPos.y), radius)) return true;
-        }
-        return false;
-    }
-    int defaults[] = { (int)BONEINDEX::head, (int)BONEINDEX::neck_0, (int)BONEINDEX::spine_2 };
-    for (int i = 0; i < 3; ++i) {
-        int hb = defaults[i];
-        if (hb < 0 || (size_t)hb >= bones.size()) continue;
-        if (withinFovPixels(center, ImVec2(bones[hb].ScreenPos.x, bones[hb].ScreenPos.y), radius)) return true;
-    }
-    return false;
+    return Hitbox::AnyInFov(e, radius, hitboxes, center);
 }
 
 void TriggerBot::RunEnhanced(const CEntity& LocalEntity, int LocalPlayerControllerIndex, const std::vector<EntityResult>& entities)
@@ -226,7 +220,7 @@ void TriggerBot::RunEnhanced(const CEntity& LocalEntity, int LocalPlayerControll
     }
 
     ImVec2 center{ ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f };
-    std::vector<int> hbSel = AimControl::HitboxList;
+    std::vector<int> hbSel = Hitbox::TriggerList();
     int radius = TriggerBot::FovPixels;
 
     auto canShoot = [&](const CEntity& tgt)->bool{
@@ -239,7 +233,14 @@ void TriggerBot::RunEnhanced(const CEntity& LocalEntity, int LocalPlayerControll
         if (!CheckWeapon(currentWeapon)) return false;
         if (StopedOnly && LocalEntity.Pawn.Speed != 0) return false;
         DWORD64 playerMask = (DWORD64(1) << LocalPlayerControllerIndex);
-        bool bIsVisible = (tgt.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & playerMask);
+        bool bIsVisible;
+        if (LegitBotConfig::VisibleCheck && gMapGeo.IsReady()) {
+            bool los = gMapGeo.RaycastLOS(LocalEntity.Pawn.CameraPos, tgt.Pawn.Pos);
+            bool maskVis = (tgt.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & playerMask);
+            bIsVisible = TriggerBot::IgnoreSmoke ? los : (los && maskVis);
+        } else {
+            bIsVisible = (tgt.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & playerMask);
+        }
         if (TTDtimeout && !bIsVisible) return false;
         if (ScopeOnly && CheckScopeWeapon(currentWeapon)) {
             bool isScoped = false;
@@ -264,9 +265,6 @@ void TriggerBot::RunEnhanced(const CEntity& LocalEntity, int LocalPlayerControll
             const auto& bones = e.GetBone().BonePosList;
             if (bones.empty()) continue;
             std::vector<int> use = hbSel;
-            if (use.empty()) {
-                use = { (int)BONEINDEX::head, (int)BONEINDEX::neck_0, (int)BONEINDEX::spine_2 };
-            }
             for (int hb : use) {
                 if (hb < 0 || (size_t)hb >= bones.size()) continue;
                 ImVec2 p{ bones[hb].ScreenPos.x, bones[hb].ScreenPos.y };

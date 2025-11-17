@@ -11,6 +11,7 @@
 #include "../Core/Interfaces.h"
 #include "../Core/FrameContext.h"
 #include "../Core/DI.h"
+#include "../Geo/MapGeo.h"
 
 #include "../Core/Init.h"
 
@@ -167,8 +168,8 @@ void Cheats::Run()
 	if (!memoryManager.ReadMemory(gGame.GetMatrixAddress(), gGame.View.Matrix,64))
 		return;
 
-	// Update EntityList Entry
-	gGame.UpdateEntityListEntry();
+    // Update EntityList Entry
+    gGame.UpdateEntityListEntry();
 
 	DWORD64 LocalControllerAddress = 0;
 	DWORD64 LocalPawnAddress = 0;
@@ -178,10 +179,17 @@ void Cheats::Run()
 	if (!memoryManager.ReadMemory(gGame.GetLocalPawnAddress(), LocalPawnAddress))
 		return;
 
-	if (LocalPawnAddress == 0 || LocalControllerAddress == 0) {
+    if (LocalPawnAddress == 0 || LocalControllerAddress == 0) {
         g_globalVars->UpdateGlobalvars();
         cachedResults.clear();
         return;
+    }
+    static std::string s_lastMap;
+    std::string curMap = Cheats::GetCurrentMapName();
+    if (curMap != s_lastMap && !curMap.empty()) {
+        gMapGeo.Reset();
+        gMapGeo.Initialize();
+        s_lastMap = curMap;
     }
 
 	// LocalEntity
@@ -431,9 +439,19 @@ void Cheats::HandleEnts(const std::vector<EntityResult>& entities, CEntity& loca
                 if (headIt != AimControl::HitboxList.end() && static_cast<size_t>(BONEINDEX::head) < bones.size()) {
                     float distanceToSight = bones[BONEINDEX::head].ScreenPos.DistanceTo({ screenCenter.x, screenCenter.y });
                     if (distanceToSight <= aimFovRadius) {
-                        if (!LegitBotConfig::VisibleCheck ||
-                            entity.Pawn.bSpottedByMask & (DWORD64(1) << (localPlayerControllerIndex)) ||
-                            localEntity.Pawn.bSpottedByMask & (DWORD64(1) << (entityIndex))) {
+                        bool visible = true;
+                        if (LegitBotConfig::VisibleCheck) {
+                            DWORD64 maskLocal = (DWORD64(1) << (localPlayerControllerIndex));
+                            DWORD64 maskEntity = (DWORD64(1) << (entityIndex));
+                            bool maskVis = (entity.Pawn.bSpottedByMask & maskLocal) || (localEntity.Pawn.bSpottedByMask & maskEntity);
+                            if (gMapGeo.IsReady()) {
+                                bool los = gMapGeo.RaycastLOS(localEntity.Pawn.CameraPos, bones[BONEINDEX::head].Pos);
+                                visible = LegitBotConfig::IgnoreSmoke ? los : (los && maskVis);
+                            } else {
+                                visible = maskVis;
+                            }
+                        }
+                        if (visible) {
                             Vec3 pos = bones[BONEINDEX::head].Pos;
                             if (static_cast<size_t>(BONEINDEX::neck_0) < bones.size()) {
                                 Vec3 neck = bones[BONEINDEX::neck_0].Pos;
@@ -459,9 +477,19 @@ void Cheats::HandleEnts(const std::vector<EntityResult>& entities, CEntity& loca
                         float distanceToSight = bones[hitboxID].ScreenPos.DistanceTo({ screenCenter.x, screenCenter.y });
                         if (distanceToSight < minDistance && distanceToSight <= aimFovRadius) {
                             minDistance = distanceToSight;
-                            if (!LegitBotConfig::VisibleCheck ||
-                                entity.Pawn.bSpottedByMask & (DWORD64(1) << (localPlayerControllerIndex)) ||
-                                localEntity.Pawn.bSpottedByMask & (DWORD64(1) << (entityIndex))) {
+                            bool visible = true;
+                            if (LegitBotConfig::VisibleCheck) {
+                                DWORD64 maskLocal = (DWORD64(1) << (localPlayerControllerIndex));
+                                DWORD64 maskEntity = (DWORD64(1) << (entityIndex));
+                                bool maskVis = (entity.Pawn.bSpottedByMask & maskLocal) || (localEntity.Pawn.bSpottedByMask & maskEntity);
+                                if (gMapGeo.IsReady()) {
+                                    bool los = gMapGeo.RaycastLOS(localEntity.Pawn.CameraPos, bones[hitboxID].Pos);
+                                    visible = LegitBotConfig::IgnoreSmoke ? los : (los && maskVis);
+                                } else {
+                                    visible = maskVis;
+                                }
+                            }
+                            if (visible) {
                                 bestAimPos = bones[hitboxID].Pos;
                                 if (hitboxID == BONEINDEX::head && static_cast<size_t>(BONEINDEX::neck_0) < bones.size()) {
                                     Vec3 neck = bones[BONEINDEX::neck_0].Pos;

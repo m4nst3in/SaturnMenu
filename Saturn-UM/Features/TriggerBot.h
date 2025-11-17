@@ -17,6 +17,7 @@ namespace TriggerBot
     inline bool StopedOnly = false;
     inline bool TTDtimeout = false;
     inline bool VisibleCheck = true;
+    inline bool IgnoreSmoke = true;
     inline int FovPixels = 18;
 
     // Input configuration

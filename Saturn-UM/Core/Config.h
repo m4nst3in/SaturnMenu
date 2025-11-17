@@ -58,6 +58,7 @@ namespace LegitBotConfig
 	inline int  AimPosition = 0;
 	inline DWORD  AimPositionIndex = BONEINDEX::head;
     inline bool VisibleCheck = false;
+    inline bool IgnoreSmoke = true;
 	inline bool HitboxUpdated = false;
 	inline bool ShowFovLine = false;
 	inline ImColor FovCircleColor = ImColor(131, 137, 150, 180);
@@ -79,6 +80,7 @@ namespace WeaponConfig
         int activationMode = 0;
         bool toggledActive = false;
         bool visibleCheck = true;
+        bool ignoreSmoke = true;
         bool scopeOnly = false;
         int humanizationStrength = 0;
         float aimFov = 5.f;
@@ -90,6 +92,7 @@ namespace WeaponConfig
         int trigActivationMode = 0;
         bool trigToggledActive = false;
         bool t_scopeOnly = false;
+        bool trigIgnoreSmoke = true;
         bool stopOnly = false;
         bool ttdTimeout = false;
         int delay = 20;

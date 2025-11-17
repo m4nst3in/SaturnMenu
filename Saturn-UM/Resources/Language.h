@@ -66,6 +66,7 @@ namespace Text {
         inline std::string ScopeOnly = "Is Scoped";
         inline std::string BulletSlider = "Start Bullet: ";
         inline std::string IgnoreFlash = "Ignore Flash";
+        inline std::string IgnoreSmoke = "Ignore Smoke";
         inline std::string HumanizeVar = "Humanize Aimbot";
         inline std::string OnlyAuto = "Only Auto";
         inline std::string OnlyAutoTip = "Aim will only work in automatic shooting mode";
@@ -108,6 +109,7 @@ namespace Text {
         inline std::string DelaySlider = "Shot Delay:";
         inline std::string FakeShotSlider = "Shot Duration:";
         inline std::string IgnoreFlash = "Ignore Flash";
+        inline std::string IgnoreSmoke = "Ignore Smoke";
         inline std::string StopOnly = "Stop Check";
         inline std::string VisCheck = "Visible Check";
         inline std::string DelayTip = "Using it try keep your TTD above 350ms";
