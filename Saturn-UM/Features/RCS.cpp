@@ -26,6 +26,8 @@ namespace
 
 void RCS::RecoilControl(const CEntity& LocalPlayer)
 {
+    if (!LegitBotConfig::RCS)
+        return;
     // we have to be careful here, or the recoil will have big issues :v
     static Vec2 oldPunch{ 0.f, 0.f };
     static int lastShotsFired = 0;

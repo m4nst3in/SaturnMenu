@@ -252,7 +252,7 @@ void TriggerBot::RunEnhanced(const CEntity& LocalEntity, int LocalPlayerControll
 
     bool inFov = false;
     if (targetValid) {
-        inFov = boneHitInFov(targetEntity, radius, hbSel, center) && canShoot(targetEntity);
+        inFov = Hitbox::RayHits(LocalEntity, targetEntity, hbSel) && canShoot(targetEntity);
     }
 
     if (!inFov) {
@@ -264,15 +264,7 @@ void TriggerBot::RunEnhanced(const CEntity& LocalEntity, int LocalPlayerControll
             if (!canShoot(e)) continue;
             const auto& bones = e.GetBone().BonePosList;
             if (bones.empty()) continue;
-            std::vector<int> use = hbSel;
-            for (int hb : use) {
-                if (hb < 0 || (size_t)hb >= bones.size()) continue;
-                ImVec2 p{ bones[hb].ScreenPos.x, bones[hb].ScreenPos.y };
-                float dx = p.x - center.x;
-                float dy = p.y - center.y;
-                float d2 = dx * dx + dy * dy;
-                if (d2 <= bestDist2) { bestDist2 = d2; best = &e; }
-            }
+            if (Hitbox::RayHits(LocalEntity, e, hbSel)) { best = &e; break; }
         }
         if (best) {
             targetEntity = *best;
