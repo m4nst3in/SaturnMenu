@@ -1,4 +1,4 @@
-# Como Compilar o Driver DragonBurn
+# Como Compilar o Driver Saturn
 
 Existem várias formas de compilar o driver. Escolha o método mais adequado para você.
 
@@ -19,7 +19,7 @@ Existem várias formas de compilar o driver. Escolha o método mais adequado par
    - Abra o Visual Studio
    - File → New → Project
    - Procure por "Kernel Mode Driver, Empty (KMDF)" ou "Kernel Mode Driver, Empty (WDM)"
-   - Nome: `DragonBurn-kmd`
+   - Nome: `Saturn-kmd`
    - Localização: Escolha um diretório temporário (vamos copiar os arquivos depois)
 
 3. **Adicionar Arquivos do Driver**
@@ -32,7 +32,7 @@ Existem várias formas de compilar o driver. Escolha o método mais adequado par
    - Right-click no projeto → Properties
    - **Configuration Properties → General:**
      - Configuration Type: `Driver`
-     - Target Name: `DragonBurn-kmd`
+     - Target Name: `Saturn-kmd`
      - Target Extension: `.sys`
    - **Configuration Properties → Driver Settings:**
      - Driver Type: `WDM` (ou deixe o padrão)
@@ -43,7 +43,7 @@ Existem várias formas de compilar o driver. Escolha o método mais adequado par
 
 5. **Compilar**
    - Build → Build Solution (ou F7)
-   - O driver compilado estará em: `x64\Debug\DragonBurn-kmd.sys` (ou `Release`)
+   - O driver compilado estará em: `x64\Debug\Saturn-kmd.sys` (ou `Release`)
 
 ---
 
@@ -61,7 +61,7 @@ Existem várias formas de compilar o driver. Escolha o método mais adequado par
 
 2. **Navegar até o Diretório do Driver**
    ```cmd
-   cd C:\Users\m4\Documents\SaturnMenu\DragonBurn-kernel\driver
+   cd C:\Users\m4\Documents\SaturnMenu\Saturn-kernel\driver
    ```
 
 3. **Compilar**
@@ -70,8 +70,8 @@ Existem várias formas de compilar o driver. Escolha o método mais adequado par
    ```
 
 4. **Localizar o Driver Compilado**
-   - O driver estará em: `x64\Debug\DragonBurn-kmd.sys`
-   - Ou em: `x64\Release\DragonBurn-kmd.sys` (se compilou em Release)
+   - O driver estará em: `x64\Debug\Saturn-kmd.sys`
+   - Ou em: `x64\Release\Saturn-kmd.sys` (se compilou em Release)
 
 ---
 
@@ -83,7 +83,7 @@ Se você tem o WDK instalado mas prefere usar o arquivo `sources` diretamente:
 
 2. **Navegar até o Diretório**
    ```cmd
-   cd C:\Users\m4\Documents\SaturnMenu\DragonBurn-kernel\driver
+   cd C:\Users\m4\Documents\SaturnMenu\Saturn-kernel\driver
    ```
 
 3. **Compilar com build.exe**
@@ -100,11 +100,11 @@ Se você tem o WDK instalado mas prefere usar o arquivo `sources` diretamente:
 Após compilar, verifique:
 
 1. **Arquivo .sys gerado**
-   - Deve existir: `x64\Debug\DragonBurn-kmd.sys` (ou Release)
+   - Deve existir: `x64\Debug\Saturn-kmd.sys` (ou Release)
    - Tamanho típico: 20-100 KB
 
 2. **Sem erros no output**
-   - Deve mostrar: `DragonBurn-kmd.sys - 0 error(s), X warning(s)`
+   - Deve mostrar: `Saturn-kmd.sys - 0 error(s), X warning(s)`
 
 ---
 
@@ -113,14 +113,14 @@ Após compilar, verifique:
 Após compilar com sucesso, converta o .sys para array de bytes:
 
 ```cmd
-cd C:\Users\m4\Documents\SaturnMenu\DragonBurn-kernel\driver
-python convert_driver.py x64\Debug\DragonBurn-kmd.sys
+cd C:\Users\m4\Documents\SaturnMenu\Saturn-kernel\driver
+python convert_driver.py x64\Debug\Saturn-kmd.sys
 ```
 
 Ou salve em arquivo:
 
 ```cmd
-python convert_driver.py x64\Debug\DragonBurn-kmd.sys driver_array.txt
+python convert_driver.py x64\Debug\Saturn-kmd.sys driver_array.txt
 ```
 
 Isso gerará um array C++ que você pode copiar para `cfg.h`:
@@ -167,7 +167,7 @@ static std::vector<uint8_t> image = {
      (Requer reinicialização)
 
 3. **Testar o Driver**
-   - Use o `DragonBurn-kernel.exe` (mapper) para carregar o driver
+   - Use o `Saturn-km.exe` (mapper) para carregar o driver
    - Execute como Administrador
 
 ---
@@ -177,7 +177,7 @@ static std::vector<uint8_t> image = {
 Após compilar, você deve ter:
 
 ```
-DragonBurn-kernel/driver/
+Saturn-kernel/driver/
 ├── driver.h
 ├── driver.c
 ├── sources
@@ -186,8 +186,8 @@ DragonBurn-kernel/driver/
 ├── COMPILE.md
 └── x64/
     └── Debug/ (ou Release/)
-        ├── DragonBurn-kmd.sys  ← Driver compilado
-        ├── DragonBurn-kmd.pdb  ← Símbolos de debug (se Debug)
+        ├── Saturn-kmd.sys  ← Driver compilado
+        ├── Saturn-kmd.pdb  ← Símbolos de debug (se Debug)
         └── ...
 ```
 

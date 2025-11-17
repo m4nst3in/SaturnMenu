@@ -1,4 +1,4 @@
-// https://raw.githubusercontent.com/ByteCorum/DragonBurn/refs/heads/stable/DragonBurn/Resources/Resource.rc
+// https://raw.githubusercontent.com/ByteCorum/Saturn/refs/heads/stable/Saturn/Resources/Resource.rc
 //
 //______                            ______                  
 //|  _  \                           | ___ \                 
@@ -8,7 +8,7 @@
 //|___/ |_|  \__,_|\__, |\___/|_| |_\____/ \__,_|_|  |_| |_|
 //                  __/ |                                   
 //                 |___/                                    
-//https://github.com/ByteCorum/DragonBurn
+//https://github.com/ByteCorum/Saturn
 
 #include "Resource.h"
 

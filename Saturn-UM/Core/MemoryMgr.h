@@ -11,7 +11,8 @@
 #define IOCTL_GET_MODULE_BASE CTL_CODE(DRAGON_DEVICE, 0x4454, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
 #define IOCTL_GET_PID CTL_CODE(DRAGON_DEVICE, 0x4455, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
 #define IOCTL_BATCH_READ CTL_CODE(DRAGON_DEVICE, 0x4456, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
-//#define IOCTL_WRITE CTL_CODE(DRAGON_DEVICE, 0x4457, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
+#define IOCTL_BATCH_READ_DIRECT CTL_CODE(DRAGON_DEVICE, 0x4457, METHOD_OUT_DIRECT, FILE_SPECIAL_ACCESS)
+//#define IOCTL_WRITE CTL_CODE(DRAGON_DEVICE, 0x4458, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
 
 class MemoryMgr
 {
@@ -25,6 +26,8 @@ public:
     DWORD GetProcessID(const wchar_t* processName);
     //DWORD64 TraceAddress(DWORD64 baseAddress, std::vector<DWORD> offsets);
     bool BatchReadMemory(const std::vector<std::pair<DWORD64, SIZE_T>>& requests, void* output_buffer);
+    bool BatchReadMemoryDirect(const std::vector<std::pair<DWORD64, SIZE_T>>& requests, void* output_buffer);
+    SIZE_T GetModuleSize(const wchar_t* moduleName);
 
     template <typename ReadType>
     bool ReadMemory(DWORD64 address, ReadType& value, SIZE_T size = sizeof(ReadType))

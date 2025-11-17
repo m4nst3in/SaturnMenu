@@ -28,9 +28,9 @@ void RCS::RecoilControl(const CEntity& LocalPlayer)
 {
     if (!LegitBotConfig::RCS)
         return;
-    // we have to be careful here, or the recoil will have big issues :v
     static Vec2 oldPunch{ 0.f, 0.f };
     static int lastShotsFired = 0;
+    static bool prevMouseDown = false;
 
     std::string weaponName = Weapon::GetWeapon(LocalPlayer);
     WeaponRCSConfig defaultConfig = GetWeaponRCSConfig(weaponName);
@@ -54,14 +54,15 @@ void RCS::RecoilControl(const CEntity& LocalPlayer)
     }
 
     int shotsFired = LocalPlayer.Pawn.ShotsFired;
+    bool mouseDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
 
-    if (lastShotsFired == 0 && shotsFired > 0)
+    if (mouseDown && !prevMouseDown)
         oldPunch = punch;
-
-    if (shotsFired <= 0)
+    if (!mouseDown && shotsFired <= 0)
     {
         oldPunch.x = 0.f; oldPunch.y = 0.f;
         lastShotsFired = shotsFired;
+        prevMouseDown = mouseDown;
         return;
     }
 
@@ -70,17 +71,17 @@ void RCS::RecoilControl(const CEntity& LocalPlayer)
     constexpr float m_pitch = 0.022f;
 
     // calculating the control using the deltaPunch.xy * 2.f * yaw/pitch formula
-    Vec2 deltaPunch{ punch.x - oldPunch.x, punch.y - oldPunch.y };
-    int mouseX = static_cast<int>(std::round((deltaPunch.y * 2.f * yaw) / (sens * m_yaw)));
-    int mouseY = static_cast<int>(std::round((deltaPunch.x * 2.f * pitch) / (sens * m_pitch)));
-
-    if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
+    if (mouseDown && shotsFired >= RCS::RCSBullet)
     {
+        Vec2 deltaPunch{ punch.x - oldPunch.x, punch.y - oldPunch.y };
+        int mouseX = static_cast<int>(std::round((deltaPunch.y * 2.f * yaw) / (sens * m_yaw)));
+        int mouseY = static_cast<int>(std::round((deltaPunch.x * 2.f * pitch) / (sens * m_pitch)));
         mouse_event(MOUSEEVENTF_MOVE, mouseX, -mouseY, 0, 0);
         oldPunch = punch;
     }
 
     lastShotsFired = shotsFired;
+    prevMouseDown = mouseDown;
 }
 
 void RCS::UpdateAngles(const CEntity& Local, Vec2& Angles)
@@ -103,8 +104,8 @@ void RCS::UpdateAngles(const CEntity& Local, Vec2& Angles)
     }
 
     int shotsFired = Local.Pawn.ShotsFired;
-
-    if (shotsFired <= 0) {
+    bool mouseDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+    if (!mouseDown || shotsFired < RCS::RCSBullet) {
         oldPunch.x = 0.f; oldPunch.y = 0.f;
         return;
     }

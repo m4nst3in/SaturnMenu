@@ -17,7 +17,7 @@
 - [x] Different config for each of weapon type
 - [ ] Make UEFI mapper
 - [x] Make menu usable during gameplay
-- [ ] Improve kernel driver for better performance
+- [x] Improve kernel driver for better performance
 
 ### Low Priority
 

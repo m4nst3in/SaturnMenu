@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{518E0636-BA8F-459D-ACAC-81BD33475E3E}</ProjectGuid>
-    <RootNamespace>DragonBurn-kernel</RootNamespace>
+    <RootNamespace>Saturn-kernel</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -46,7 +46,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(ProjectDir)include;$(IncludePath)</IncludePath>
-    <TargetName>DragonBurn-kernel</TargetName>
+    <TargetName>Saturn-km</TargetName>
     <IntDir>$(SolutionDir)\built\cache\km</IntDir>
     <OutDir>$(SolutionDir)\built\</OutDir>
   </PropertyGroup>

@@ -16,6 +16,7 @@ typedef unsigned char BYTE;
 #define IOCTL_GET_MODULE_BASE CTL_CODE(DRAGON_DEVICE, 0x4454, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
 #define IOCTL_GET_PID CTL_CODE(DRAGON_DEVICE, 0x4455, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
 #define IOCTL_BATCH_READ CTL_CODE(DRAGON_DEVICE, 0x4456, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
+#define IOCTL_BATCH_READ_DIRECT CTL_CODE(DRAGON_DEVICE, 0x4457, METHOD_OUT_DIRECT, FILE_SPECIAL_ACCESS)
 
 // Device names
 #define DEVICE_NAME L"\\Device\\Saturn-KM"
@@ -27,6 +28,7 @@ typedef unsigned char BYTE;
 // Process cache for optimization
 static PEPROCESS cached_process = NULL;
 static HANDLE cached_pid = NULL;
+static FAST_MUTEX g_cache_mutex;
 
 #ifdef __cplusplus
 extern "C" {
@@ -220,6 +222,9 @@ NTSTATUS handle_get_pid(PIRP irp, SIZE_T* information);
 NTSTATUS handle_get_module(PIRP irp, SIZE_T* information);
 NTSTATUS handle_read(PIRP irp, SIZE_T* information);
 NTSTATUS handle_batch_read(PIRP irp, PIO_STACK_LOCATION stack_irp, SIZE_T* information);
+NTSTATUS handle_batch_read_direct(PDEVICE_OBJECT device_object, PIRP irp, PIO_STACK_LOCATION stack_irp, SIZE_T* information);
 HANDLE GetPID(const wchar_t* process_name);
 PVOID GetProcessModuleBase(HANDLE processId, const char* moduleName);
 NTSTATUS WideCharToAnsi(PWCHAR WideString, PCHAR AnsiString, ULONG AnsiStringLength);
+VOID unload(PDRIVER_OBJECT driver_object);
+PVOID GetProcessModuleInfo(HANDLE processId, const wchar_t* moduleName, SIZE_T* sizeOut);

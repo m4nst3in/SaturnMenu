@@ -134,7 +134,7 @@ int wmain(const int argc, wchar_t** argv)
                  |___/                                    
 )LOGO", 13);
 	Log::Info(cfg::name + " v" + cfg::umVersion + " & v" + cfg::kmVersion + " by " + cfg::author);
-	Log::Info("https://github.com/ByteCorum/DragonBurn");
+    Log::Info("https://github.com/ByteCorum/Saturn");
 	Log::Info("https://discord.gg/5WcvdzFybD\n");
 
 	//free --> Automatically frees mapped memory after execution. Dangerous unless the driver finishes instantly
@@ -150,8 +150,8 @@ int wmain(const int argc, wchar_t** argv)
 
 	if (legacyImg)
 	{
-		Log::Info("Enabled: Legacy DragonBurn kernel");
-		Log::Warning("Legacy DragonBurn kernel is deprecated, it's better to use new one");
+        Log::Info("Enabled: Legacy Saturn kernel");
+        Log::Warning("Legacy Saturn kernel is deprecated, it's better to use new one");
 	}
 	if (indPagesMode)
 		Log::Info("Enabled: Secure mapping and execution mode");

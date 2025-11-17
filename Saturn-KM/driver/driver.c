@@ -157,15 +157,14 @@ NTSTATUS handle_attach(PIRP irp, SIZE_T* information) {
     NTSTATUS status = PsLookupProcessByProcessId(request->process_id, &temp_process);
 
     if (NT_SUCCESS(status)) {
-        // Clear old cache if different PID
+        ExAcquireFastMutex(&g_cache_mutex);
         if (cached_process && cached_pid != request->process_id) {
             ObDereferenceObject(cached_process);
             cached_process = NULL;
         }
-
-        // Cache the new process
         cached_process = temp_process;
         cached_pid = request->process_id;
+        ExReleaseFastMutex(&g_cache_mutex);
     }
 
     *information = (NT_SUCCESS(status)) ? sizeof(Request) : 0;
@@ -195,24 +194,14 @@ NTSTATUS handle_get_module(PIRP irp, SIZE_T* information) {
         *information = 0;
         return STATUS_INVALID_PARAMETER;
     }
-
-    // Convert wide char to ANSI
-    char ansiModuleName[1024] = { 0 };
-    NTSTATUS status = WideCharToAnsi(modulePack->moduleName, ansiModuleName, sizeof(ansiModuleName));
-
-    if (NT_SUCCESS(status)) {
-        HANDLE processId = ULongToHandle(modulePack->pid);
-        // Get process module base address
-        PVOID baseAddr = GetProcessModuleBase(processId, ansiModuleName);
-        modulePack->baseAddress = (UINT64)baseAddr;
-        status = (baseAddr != NULL) ? STATUS_SUCCESS : STATUS_NOT_FOUND;
-        *information = sizeof(MODULE_PACK);
-        return status;
-    }
-    else {
-        *information = 0;
-        return status;
-    }
+    HANDLE processId = ULongToHandle(modulePack->pid);
+    SIZE_T imageSize = 0;
+    PVOID baseAddr = GetProcessModuleInfo(processId, modulePack->moduleName, &imageSize);
+    modulePack->baseAddress = (UINT64)baseAddr;
+    modulePack->size = imageSize;
+    NTSTATUS status = (baseAddr != NULL) ? STATUS_SUCCESS : STATUS_NOT_FOUND;
+    *information = sizeof(MODULE_PACK);
+    return status;
 }
 
 // Handle read request
@@ -228,8 +217,10 @@ NTSTATUS handle_read(PIRP irp, SIZE_T* information) {
 
     // Fast path: use cached process (likely case)
     if (cached_process && cached_pid == request->process_id) {
+        ExAcquireFastMutex(&g_cache_mutex);
         target_process = cached_process;
         ObReferenceObject(target_process);
+        ExReleaseFastMutex(&g_cache_mutex);
     }
     else {
         // Slow path: lookup and cache
@@ -239,14 +230,14 @@ NTSTATUS handle_read(PIRP irp, SIZE_T* information) {
             return status;
         }
 
-        // Update cache atomically
+        ExAcquireFastMutex(&g_cache_mutex);
         if (cached_process) {
             ObDereferenceObject(cached_process);
         }
-
         cached_process = target_process;
         cached_pid = request->process_id;
         ObReferenceObject(target_process);
+        ExReleaseFastMutex(&g_cache_mutex);
     }
 
     // Single validation block with early exit on most restrictive checks first
@@ -301,8 +292,10 @@ NTSTATUS handle_batch_read(PIRP irp, PIO_STACK_LOCATION stack_irp, SIZE_T* infor
     NTSTATUS status;
 
     if (cached_process && cached_pid == header->process_id) {
+        ExAcquireFastMutex(&g_cache_mutex);
         target_process = cached_process;
         ObReferenceObject(target_process);
+        ExReleaseFastMutex(&g_cache_mutex);
     }
     else {
         status = PsLookupProcessByProcessId(header->process_id, &target_process);
@@ -311,13 +304,14 @@ NTSTATUS handle_batch_read(PIRP irp, PIO_STACK_LOCATION stack_irp, SIZE_T* infor
             return status;
         }
 
+        ExAcquireFastMutex(&g_cache_mutex);
         if (cached_process) {
             ObDereferenceObject(cached_process);
         }
-
         cached_process = target_process;
         cached_pid = header->process_id;
         ObReferenceObject(target_process);
+        ExReleaseFastMutex(&g_cache_mutex);
     }
 
     // Pre-calculate pointers once
@@ -329,37 +323,40 @@ NTSTATUS handle_batch_read(PIRP irp, PIO_STACK_LOCATION stack_irp, SIZE_T* infor
 
     // Main processing loop - optimized for common case (valid requests)
     for (UINT32 i = 0; i < num_requests; ++i) {
-        PBatchReadRequest req = &requests[i];
+        ULONG_PTR addr = (ULONG_PTR)requests[i].address;
+        SIZE_T size = requests[i].size;
+        SIZE_T offset = requests[i].offset_in_buffer;
 
-        // Fast validation path - order by likelihood of failure
-        ULONG_PTR addr = (ULONG_PTR)req->address;
-        SIZE_T size = req->size;
-        SIZE_T offset = req->offset_in_buffer;
-
-        if (size > 0x10000 ||                                  // Size check first (most restrictive)
-            size == 0 ||
-            addr < 0x10000 ||                                  // Address range checks
-            addr >= 0x7FFFFFFFFFFF ||
-            (addr + size) <= addr ||                           // Overflow
-            (offset + size) > total_buffer_size) {             // Buffer bounds
-            // Zero invalid reads (only if bounds allow)
+        if (size > 0x10000 || size == 0 || addr < 0x10000 || addr >= 0x7FFFFFFFFFFF ||
+            (addr + size) <= addr || (offset + size) > total_buffer_size) {
             if ((offset + size) <= total_buffer_size) {
                 RtlZeroMemory(output_buffer + offset, size);
             }
             continue;
         }
 
-        // Optimized memory copy - no intermediate variables
+        SIZE_T run_size = size;
+        UINT32 j = i + 1;
+        while (j < num_requests) {
+            ULONG_PTR next_addr = (ULONG_PTR)requests[j].address;
+            SIZE_T next_size = requests[j].size;
+            SIZE_T next_offset = requests[j].offset_in_buffer;
+            if (next_size == 0 || next_addr != (addr + run_size) || next_offset != (offset + run_size)) break;
+            if (next_addr >= 0x7FFFFFFFFFFF || (next_addr + next_size) <= next_addr || (next_offset + next_size) > total_buffer_size) break;
+            run_size += next_size;
+            ++j;
+        }
+
         SIZE_T bytes_read;
         if (NT_SUCCESS(MmCopyVirtualMemory(target_process, (PVOID)addr,
             PsGetCurrentProcess(), output_buffer + offset,
-            size, KernelMode, &bytes_read))) {
+            run_size, KernelMode, &bytes_read))) {
             ++successful_reads;
+        } else {
+            RtlZeroMemory(output_buffer + offset, run_size);
         }
-        else {
-            // Zero failed reads
-            RtlZeroMemory(output_buffer + offset, size);
-        }
+
+        i = j - 1;
     }
 
     ObDereferenceObject(target_process);
@@ -413,23 +410,47 @@ NTSTATUS device_control(PDEVICE_OBJECT device_object, PIRP irp) {
 
     switch (stack_irp->Parameters.DeviceIoControl.IoControlCode) {
     case IOCTL_ATTACH:
+        if (stack_irp->Parameters.DeviceIoControl.InputBufferLength < sizeof(Request)) {
+            status = STATUS_BUFFER_TOO_SMALL;
+            information = 0;
+            break;
+        }
         status = handle_attach(irp, &information);
         break;
 
     case IOCTL_GET_PID:
+        if (stack_irp->Parameters.DeviceIoControl.InputBufferLength < sizeof(PID_PACK)) {
+            status = STATUS_BUFFER_TOO_SMALL;
+            information = 0;
+            break;
+        }
         status = handle_get_pid(irp, &information);
         break;
 
     case IOCTL_GET_MODULE_BASE:
+        if (stack_irp->Parameters.DeviceIoControl.InputBufferLength < sizeof(MODULE_PACK)) {
+            status = STATUS_BUFFER_TOO_SMALL;
+            information = 0;
+            break;
+        }
         status = handle_get_module(irp, &information);
         break;
 
     case IOCTL_READ:
+        if (stack_irp->Parameters.DeviceIoControl.InputBufferLength < sizeof(Request)) {
+            status = STATUS_BUFFER_TOO_SMALL;
+            information = 0;
+            break;
+        }
         status = handle_read(irp, &information);
         break;
 
     case IOCTL_BATCH_READ:
         status = handle_batch_read(irp, stack_irp, &information);
+        break;
+
+    case IOCTL_BATCH_READ_DIRECT:
+        status = handle_batch_read_direct(device_object, irp, stack_irp, &information);
         break;
 
     default:
@@ -477,10 +498,12 @@ NTSTATUS driver_main(PDRIVER_OBJECT driver_object, PUNICODE_STRING registry_path
 
     // Flag for sending small amounts of data between um/km
     SetFlag(device_object->Flags, DO_BUFFERED_IO);
+    SetFlag(device_object->Flags, DO_DIRECT_IO);
 
     driver_object->MajorFunction[IRP_MJ_CREATE] = create;
     driver_object->MajorFunction[IRP_MJ_CLOSE] = close;
     driver_object->MajorFunction[IRP_MJ_DEVICE_CONTROL] = device_control;
+    driver_object->DriverUnload = unload;
 
     // Device has been initialized final step
     ClearFlag(device_object->Flags, DO_DEVICE_INITIALIZING);
@@ -488,6 +511,22 @@ NTSTATUS driver_main(PDRIVER_OBJECT driver_object, PUNICODE_STRING registry_path
     debug_print("Driver initialized successfully.\n");
 
     return status;
+}
+
+VOID unload(PDRIVER_OBJECT driver_object) {
+    UNICODE_STRING symbolic_link = {};
+    RtlInitUnicodeString(&symbolic_link, SYMBOLIC_LINK);
+    IoDeleteSymbolicLink(&symbolic_link);
+
+    if (driver_object && driver_object->DeviceObject) {
+        IoDeleteDevice(driver_object->DeviceObject);
+    }
+
+    if (cached_process) {
+        ObDereferenceObject(cached_process);
+        cached_process = NULL;
+        cached_pid = NULL;
+    }
 }
 
 // kdmapper calls this entry point 
@@ -499,3 +538,161 @@ NTSTATUS DriverEntry() {
 
     return IoCreateDriver(&driver_name, &driver_main);
 }
+
+PVOID GetProcessModuleInfo(HANDLE processId, const wchar_t* moduleName, SIZE_T* sizeOut)
+{
+    PEPROCESS targetProcess = NULL;
+    NTSTATUS status = PsLookupProcessByProcessId(processId, &targetProcess);
+    if (!NT_SUCCESS(status) || !targetProcess) {
+        return NULL;
+    }
+
+    KAPC_STATE apcState;
+    KeStackAttachProcess(targetProcess, &apcState);
+
+    PVOID moduleBase = NULL;
+    SIZE_T imageSize = 0;
+
+    __try {
+        PPEB peb = PsGetProcessPeb(targetProcess);
+        if (!peb) {
+            __leave;
+        }
+        PPEB_LDR_DATA ldrData = peb->Ldr;
+        if (!ldrData) {
+            __leave;
+        }
+        UNICODE_STRING targetNameUnicode;
+        RtlInitUnicodeString(&targetNameUnicode, moduleName);
+
+        PLIST_ENTRY listHead = &ldrData->InLoadOrderModuleList;
+        PLIST_ENTRY listEntry = listHead->Flink;
+        while (listEntry != listHead) {
+            PLDR_DATA_TABLE_ENTRY ldrEntry = CONTAINING_RECORD(listEntry, LDR_DATA_TABLE_ENTRY, InLoadOrderLinks);
+            if (ldrEntry->BaseDllName.Buffer && ldrEntry->BaseDllName.Length > 0) {
+                if (RtlCompareUnicodeString(&ldrEntry->BaseDllName, &targetNameUnicode, TRUE) == 0) {
+                    moduleBase = ldrEntry->DllBase;
+                    imageSize = ldrEntry->SizeOfImage;
+                    break;
+                }
+            }
+            listEntry = listEntry->Flink;
+        }
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) {
+        moduleBase = NULL;
+        imageSize = 0;
+    }
+
+    KeUnstackDetachProcess(&apcState);
+    ObDereferenceObject(targetProcess);
+
+    if (sizeOut) *sizeOut = imageSize;
+    return moduleBase;
+}
+NTSTATUS handle_batch_read_direct(PDEVICE_OBJECT device_object, PIRP irp, PIO_STACK_LOCATION stack_irp, SIZE_T* information) {
+    UNREFERENCED_PARAMETER(device_object);
+    PBatchReadHeader header = (PBatchReadHeader)irp->AssociatedIrp.SystemBuffer;
+    if (!header) {
+        *information = 0;
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    UINT32 num_requests = header->num_requests;
+    if (num_requests > 0x100000 || num_requests == 0) {
+        *information = 0;
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    SIZE_T request_struct_size = sizeof(BatchReadHeader) + (num_requests * sizeof(BatchReadRequest));
+    if (stack_irp->Parameters.DeviceIoControl.InputBufferLength < request_struct_size) {
+        *information = 0;
+        return STATUS_BUFFER_TOO_SMALL;
+    }
+
+    if (!irp->MdlAddress) {
+        *information = 0;
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    BYTE* output_buffer = (BYTE*)MmGetSystemAddressForMdlSafe(irp->MdlAddress, NormalPagePriority);
+    if (!output_buffer) {
+        *information = 0;
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    SIZE_T total_buffer_size = header->total_buffer_size;
+    if (stack_irp->Parameters.DeviceIoControl.OutputBufferLength < total_buffer_size) {
+        *information = 0;
+        return STATUS_BUFFER_TOO_SMALL;
+    }
+
+    PEPROCESS target_process;
+    NTSTATUS status;
+    if (cached_process && cached_pid == header->process_id) {
+        ExAcquireFastMutex(&g_cache_mutex);
+        target_process = cached_process;
+        ObReferenceObject(target_process);
+        ExReleaseFastMutex(&g_cache_mutex);
+    } else {
+        status = PsLookupProcessByProcessId(header->process_id, &target_process);
+        if (!NT_SUCCESS(status)) {
+            *information = 0;
+            return status;
+        }
+        ExAcquireFastMutex(&g_cache_mutex);
+        if (cached_process) {
+            ObDereferenceObject(cached_process);
+        }
+        cached_process = target_process;
+        cached_pid = header->process_id;
+        ObReferenceObject(target_process);
+        ExReleaseFastMutex(&g_cache_mutex);
+    }
+
+    PBatchReadRequest requests = (PBatchReadRequest)(header + 1);
+    UINT32 successful_reads = 0;
+
+    for (UINT32 i = 0; i < num_requests; ++i) {
+        ULONG_PTR addr = (ULONG_PTR)requests[i].address;
+        SIZE_T size = requests[i].size;
+        SIZE_T offset = requests[i].offset_in_buffer;
+
+        if (size > 0x20000 || size == 0 || addr < 0x10000 || addr >= 0x7FFFFFFFFFFF ||
+            (addr + size) <= addr || (offset + size) > total_buffer_size) {
+            if ((offset + size) <= total_buffer_size) {
+                RtlZeroMemory(output_buffer + offset, size);
+            }
+            continue;
+        }
+
+        SIZE_T run_size = size;
+        UINT32 j = i + 1;
+        while (j < num_requests) {
+            ULONG_PTR next_addr = (ULONG_PTR)requests[j].address;
+            SIZE_T next_size = requests[j].size;
+            SIZE_T next_offset = requests[j].offset_in_buffer;
+            if (next_size == 0 || next_addr != (addr + run_size) || next_offset != (offset + run_size)) break;
+            if (next_addr >= 0x7FFFFFFFFFFF || (next_addr + next_size) <= next_addr || (next_offset + next_size) > total_buffer_size) break;
+            run_size += next_size;
+            ++j;
+        }
+
+        SIZE_T bytes_read;
+        if (NT_SUCCESS(MmCopyVirtualMemory(target_process, (PVOID)addr,
+            PsGetCurrentProcess(), output_buffer + offset,
+            run_size, KernelMode, &bytes_read))) {
+            ++successful_reads;
+        } else {
+            RtlZeroMemory(output_buffer + offset, run_size);
+        }
+
+        i = j - 1;
+    }
+
+    ObDereferenceObject(target_process);
+    status = successful_reads ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
+    *information = NT_SUCCESS(status) ? stack_irp->Parameters.DeviceIoControl.OutputBufferLength : 0;
+    return status;
+}
+    ExInitializeFastMutex(&g_cache_mutex);

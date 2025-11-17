@@ -272,7 +272,7 @@ ULONG64 kdmapper::MapDriver(BYTE* data, ULONG64 param1, ULONG64 param2, bool fre
 		NTSTATUS status = 0;
 		if (!intel_driver::CallKernelFunction(&status, address_of_entry_point, (PassAllocationAddressAsFirstParam ? realBase : param1), param2))
 		{
-			Log::Error("Failed to call DragonBurn kernel entry", false);
+            Log::Error("Failed to call Saturn kernel entry", false);
 			kernel_image_base = realBase;
 			break;
 		}

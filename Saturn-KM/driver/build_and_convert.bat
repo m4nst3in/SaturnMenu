@@ -31,10 +31,10 @@ if %errorlevel% neq 0 (
 
 REM Encontrar o arquivo .sys
 set DRIVER_SYS=
-if exist "x64\Debug\DragonBurn-kmd.sys" (
-    set DRIVER_SYS=x64\Debug\DragonBurn-kmd.sys
-) else if exist "x64\Release\DragonBurn-kmd.sys" (
-    set DRIVER_SYS=x64\Release\DragonBurn-kmd.sys
+if exist "x64\Debug\Saturn-kmd.sys" (
+    set DRIVER_SYS=x64\Debug\Saturn-kmd.sys
+) else if exist "x64\Release\Saturn-kmd.sys" (
+    set DRIVER_SYS=x64\Release\Saturn-kmd.sys
 ) else (
     echo ERRO: Arquivo .sys nao encontrado!
     pause

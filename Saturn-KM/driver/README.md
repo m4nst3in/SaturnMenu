@@ -1,6 +1,6 @@
-# Driver de Kernel DragonBurn
+# Driver de Kernel Saturn
 
-Este diretório contém o código fonte do driver de kernel necessário para o DragonBurn funcionar.
+Este diretório contém o código fonte do driver de kernel necessário para o Saturn funcionar.
 
 ## Características
 
@@ -34,7 +34,7 @@ Para compilar o driver, você precisa:
 3. Adicione os arquivos `driver.h` e `driver.c`
 4. Configure as propriedades do projeto:
    - **Configuration Type**: Driver
-   - **Target Name**: DragonBurn-kmd
+   - **Target Name**: Saturn-kmd
    - **Target Extension**: .sys
 5. Compile o projeto (Build Solution)
 
@@ -43,27 +43,27 @@ Para compilar o driver, você precisa:
 1. Abra o "WDK Build Environment" (x64)
 2. Navegue até o diretório do driver:
    ```cmd
-   cd DragonBurn-kernel\driver
+   cd Saturn-kernel\driver
    ```
 3. Compile:
    ```cmd
    build
    ```
 
-O driver compilado estará em: `x64\Debug\DragonBurn-kmd.sys` (ou Release)
+O driver compilado estará em: `x64\Debug\Saturn-kmd.sys` (ou Release)
 
 ## Converter para Array de Bytes
 
 Após compilar o driver, você precisa convertê-lo em um array de bytes para inserir no `cfg.h`:
 
 ```bash
-python convert_driver.py x64\Debug\DragonBurn-kmd.sys output.txt
+python convert_driver.py x64\Debug\Saturn-kmd.sys output.txt
 ```
 
 Ou simplesmente:
 
 ```bash
-python convert_driver.py DragonBurn-kmd.sys
+python convert_driver.py Saturn-kmd.sys
 ```
 
 Isso gerará um array C++ que você pode copiar para `cfg.h`:

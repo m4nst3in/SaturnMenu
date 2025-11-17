@@ -1,9 +1,9 @@
 @echo off
-REM Script de compilação do driver DragonBurn-kmd
+REM Script de compilação do driver Saturn-kmd
 REM Requer WDK Build Environment
 
 echo ========================================
-echo Compilando Driver DragonBurn-kmd
+echo Compilando Driver Saturn-kmd
 echo ========================================
 echo.
 
@@ -45,18 +45,18 @@ if %errorlevel% equ 0 (
     echo.
     
     REM Verificar se o arquivo .sys foi gerado
-    if exist "x64\Debug\DragonBurn-kmd.sys" (
-        echo Driver compilado: x64\Debug\DragonBurn-kmd.sys
-        dir /b x64\Debug\DragonBurn-kmd.sys
+    if exist "x64\Debug\Saturn-kmd.sys" (
+        echo Driver compilado: x64\Debug\Saturn-kmd.sys
+        dir /b x64\Debug\Saturn-kmd.sys
         echo.
         echo Para converter para array de bytes, execute:
-        echo   python convert_driver.py x64\Debug\DragonBurn-kmd.sys
-    ) else if exist "x64\Release\DragonBurn-kmd.sys" (
-        echo Driver compilado: x64\Release\DragonBurn-kmd.sys
-        dir /b x64\Release\DragonBurn-kmd.sys
+        echo   python convert_driver.py x64\Debug\Saturn-kmd.sys
+    ) else if exist "x64\Release\Saturn-kmd.sys" (
+        echo Driver compilado: x64\Release\Saturn-kmd.sys
+        dir /b x64\Release\Saturn-kmd.sys
         echo.
         echo Para converter para array de bytes, execute:
-        echo   python convert_driver.py x64\Release\DragonBurn-kmd.sys
+        echo   python convert_driver.py x64\Release\Saturn-kmd.sys
     ) else (
         echo AVISO: Arquivo .sys nao encontrado apos compilacao!
     )
