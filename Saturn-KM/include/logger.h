@@ -7,6 +7,14 @@
 namespace Log
 {
 	const HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	static HANDLE hPipe = INVALID_HANDLE_VALUE;
+	inline void InitPipe() {
+		if (hPipe == INVALID_HANDLE_VALUE)
+			hPipe = CreateFileA("\\\\.\\pipe\\SaturnLoaderLog", GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	}
+	inline void WritePipe(const std::string& s) {
+		if (hPipe == INVALID_HANDLE_VALUE) return; DWORD w=0; std::string line = s + '\n'; WriteFile(hPipe, line.c_str(), (DWORD)line.size(), &w, NULL);
+	}
 	const std::string LogFile = "Logs.txt";
 	const bool fullOutput = true;
 
@@ -30,6 +38,7 @@ namespace Log
 
 		SetConsoleTextAttribute(hConsole, 7);
 		std::cout << ctx << '\n';
+		InitPipe(); WritePipe(std::string("[KM][Info] ")+ctx);
 	}
 
 	inline void Warning(std::string ctx, bool pause = false)
@@ -39,6 +48,7 @@ namespace Log
 
 		SetConsoleTextAttribute(hConsole, 7);
 		std::cout << ctx << '\n';
+		InitPipe(); WritePipe(std::string("[KM][Warn] ")+ctx);
 
 		if (pause)
 		{
@@ -54,6 +64,7 @@ namespace Log
 
 		SetConsoleTextAttribute(hConsole, 7);
 		std::cout << ctx << '\n';
+		InitPipe(); WritePipe(std::string("[KM][Error] ")+ctx);
 
 		if (fatal) 
 		{
@@ -72,6 +83,7 @@ namespace Log
 
 		SetConsoleTextAttribute(hConsole, 7);
 		std::cout << ctx << '\n';
+		InitPipe(); WritePipe(std::string("[KM][Fine] ")+ctx);
 	}
 
 	inline void Debug(std::string ctx, bool write = false)
@@ -81,6 +93,7 @@ namespace Log
 
 		SetConsoleTextAttribute(hConsole, 9);
 		std::cout << line;
+		InitPipe(); WritePipe(std::string("[KM][Debug] ")+ctx);
 
 		if (write)
 			WriteLog(line);
@@ -91,6 +104,7 @@ namespace Log
 	{
 		SetConsoleTextAttribute(hConsole, color);
 		std::cout << ctx << '\n';
+		InitPipe(); WritePipe(std::string("[KM] ")+ctx);
 	}
 
 	inline void PreviousLine()

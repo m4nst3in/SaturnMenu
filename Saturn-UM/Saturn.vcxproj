@@ -80,6 +80,9 @@
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
+    <PostBuildEvent>
+      <Command>powershell -NoProfile -ExecutionPolicy Bypass -Command "Copy-Item '$(TargetPath)' -Destination '$(OutDir)Saturn-UM.bin' -Force; $dest = Join-Path '$(SolutionDir)Saturn-Loader\Assets\Payloads' 'um.bin'; New-Item -ItemType Directory -Force -Path (Split-Path $dest); Copy-Item '$(TargetPath)' $dest -Force"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -102,6 +105,9 @@
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
+    <PostBuildEvent>
+      <Command>powershell -NoProfile -ExecutionPolicy Bypass -Command "Copy-Item '$(TargetPath)' -Destination '$(OutDir)Saturn-UM.bin' -Force; $dest = Join-Path '$(SolutionDir)Saturn-Loader\Assets\Payloads' 'um.bin'; New-Item -ItemType Directory -Force -Path (Split-Path $dest); Copy-Item '$(TargetPath)' $dest -Force"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Config\ConfigMenu.h" />

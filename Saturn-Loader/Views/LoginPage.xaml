@@ -1,0 +1,17 @@
+<Page x:Class="Saturn.Loader.Views.LoginPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d">
+  <Grid>
+    <Border Style="{StaticResource CardBorder}" Width="380" HorizontalAlignment="Center" VerticalAlignment="Center" Background="{StaticResource Brush.Surface}">
+      <StackPanel>
+        <TextBlock Style="{StaticResource Heading}" Text="Sign In"/>
+        <TextBlock Text="Enter to continue" Foreground="{StaticResource Brush.TextSecondary}" Margin="0,4,0,8"/>
+        <TextBlock Text="Username" Margin="0,8,0,4" Foreground="{StaticResource Brush.TextSecondary}"/>
+        <TextBox Style="{StaticResource InputTextBox}" Tag="Username" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
+        <TextBlock Text="Password" Margin="0,12,0,4" Foreground="{StaticResource Brush.TextSecondary}"/>
+        <PasswordBox x:Name="Pwd" Style="{StaticResource InputPasswordBox}"/>
+        <Button Style="{StaticResource AccentButton}" Content="Sign In" Click="Login_Click" Margin="0,16,0,0"/>
+        <Button Style="{StaticResource LinkButton}" Content="Open website to register" Click="OpenSite_Click" Margin="0,8,0,0"/>
+        <TextBlock Text="Dev: admin / admin" Margin="0,10,0,0" Foreground="{StaticResource Brush.TextSecondary}" FontSize="11"/>
+      </StackPanel>
+    </Border>
+  </Grid>
+</Page>

@@ -1,0 +1,99 @@
+<Page x:Class="SaturnLoader.Views.SupportPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      mc:Ignorable="d" 
+      d:DesignHeight="560" d:DesignWidth="600"
+      Background="{StaticResource PrimaryDarkBrush}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="30">
+            <TextBlock Text="SUPPORT" 
+                      FontSize="28" 
+                      FontWeight="Bold" 
+                      Foreground="{StaticResource TextPrimaryBrush}"
+                      Margin="0,0,0,30"/>
+            
+            <!-- Contact Options -->
+            <Border Style="{StaticResource CardStyle}"
+                   Padding="20"
+                   Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="Contact Us" 
+                              FontSize="18" 
+                              FontWeight="SemiBold"
+                              Foreground="{StaticResource TextPrimaryBrush}"
+                              Margin="0,0,0,15"/>
+                    
+                    <Button Style="{StaticResource PrimaryButtonStyle}"
+                           Content="💬 Open Discord"
+                           Padding="20,12"
+                           Margin="0,0,0,10"
+                           Click="OpenDiscord_Click"/>
+                    
+                    <Button Style="{StaticResource PrimaryButtonStyle}"
+                           Content="📧 Send Email"
+                           Padding="20,12"
+                           Margin="0,0,0,10"
+                           Click="SendEmail_Click"/>
+                    
+                    <Button Style="{StaticResource PrimaryButtonStyle}"
+                           Content="❓ Open FAQ"
+                           Padding="20,12"
+                           Click="OpenFAQ_Click"/>
+                </StackPanel>
+            </Border>
+            
+            <!-- Send Logs -->
+            <Border Style="{StaticResource CardStyle}"
+                   Padding="20"
+                   Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="Technical Support" 
+                              FontSize="18" 
+                              FontWeight="SemiBold"
+                              Foreground="{StaticResource TextPrimaryBrush}"
+                              Margin="0,0,0,10"/>
+                    
+                    <TextBlock Text="If you're experiencing technical issues, you can send your logs directly to our support team." 
+                              FontSize="14" 
+                              Foreground="{StaticResource TextSecondaryBrush}"
+                              TextWrapping="Wrap"
+                              Margin="0,0,0,15"/>
+                    
+                    <Button Style="{StaticResource PrimaryButtonStyle}"
+                           Content="📋 Send Logs to Support"
+                           Padding="20,12"
+                           Click="SendLogs_Click"/>
+                </StackPanel>
+            </Border>
+            
+            <!-- Response Time -->
+            <Border Style="{StaticResource CardStyle}"
+                   Padding="20">
+                <StackPanel>
+                    <TextBlock Text="Response Time" 
+                              FontSize="18" 
+                              FontWeight="SemiBold"
+                              Foreground="{StaticResource TextPrimaryBrush}"
+                              Margin="0,0,0,10"/>
+                    
+                    <TextBlock Text="• Discord: Usually within 1 hour" 
+                              FontSize="14" 
+                              Foreground="{StaticResource TextSecondaryBrush}"
+                              Margin="0,0,0,5"/>
+                    
+                    <TextBlock Text="• Email: Within 24 hours" 
+                              FontSize="14" 
+                              Foreground="{StaticResource TextSecondaryBrush}"
+                              Margin="0,0,0,5"/>
+                    
+                    <TextBlock Text="• FAQ: Instant answers" 
+                              FontSize="14" 
+                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

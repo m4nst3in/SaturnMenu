@@ -70,6 +70,9 @@
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <AdditionalDependencies>version.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>powershell -NoProfile -ExecutionPolicy Bypass -Command "Copy-Item '$(TargetPath)' -Destination '$(OutDir)Saturn-KM.bin' -Force; $dest = Join-Path '$(SolutionDir)Saturn-Loader\Assets\Payloads' 'km.bin'; New-Item -ItemType Directory -Force -Path (Split-Path $dest); Copy-Item '$(TargetPath)' $dest -Force"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -89,6 +92,9 @@
       <AdditionalDependencies>version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
+    <PostBuildEvent>
+      <Command>powershell -NoProfile -ExecutionPolicy Bypass -Command "Copy-Item '$(TargetPath)' -Destination '$(OutDir)Saturn-KM.bin' -Force; $dest = Join-Path '$(SolutionDir)Saturn-Loader\Assets\Payloads' 'km.bin'; New-Item -ItemType Directory -Force -Path (Split-Path $dest); Copy-Item '$(TargetPath)' $dest -Force"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="intel_driver.cpp" />

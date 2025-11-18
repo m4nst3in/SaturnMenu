@@ -1,0 +1,78 @@
+<Window x:Class="Saturn.Loader.Views.CheatDetailsWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:svc="clr-namespace:Saturn.Loader.Services" Title="Cheat Details" Height="400" Width="560" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Background="{StaticResource Brush.Card}" WindowStyle="None">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="44"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <Border Grid.Row="0" Background="{StaticResource Brush.Surface}">
+      <Grid MouseLeftButtonDown="TitleBar_Drag">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+          <Image Source="{Binding Cheat.Icon}" Width="24" Height="24" Margin="0,0,8,0" RenderOptions.BitmapScalingMode="HighQuality"/>
+          <TextBlock Text="Cheat Details" Style="{StaticResource Heading}"/>
+          <StackPanel Orientation="Horizontal" Margin="12,0,0,0">
+            <Border Style="{StaticResource Badge}" Margin="0,0,6,0"><TextBlock Text="KD"/></Border>
+            <Border Style="{StaticResource Badge}"><TextBlock Text="UM"/></Border>
+          </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,8,0">
+          <Button Width="28" Height="28" Style="{StaticResource GhostButton}" Click="Close_Click">
+            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8BB;" FontSize="14"/>
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+    <Border Grid.Row="1" Style="{StaticResource CardBorder}" Background="{StaticResource Brush.Surface}">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="Name:" Foreground="{StaticResource Brush.TextSecondary}"/>
+        <TextBlock Grid.Row="0" Margin="60,0,0,0" Text="{Binding Cheat.Name}"/>
+        <TextBlock Grid.Row="1" Text="Expires:" Foreground="{StaticResource Brush.TextSecondary}"/>
+        <TextBlock Grid.Row="1" Margin="60,0,0,0" Text="{Binding Cheat.Expiration, StringFormat={}{0:MM/dd/yyyy}}"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0" VerticalAlignment="Center">
+          <TextBlock Text="Progress:" Foreground="{StaticResource Brush.TextSecondary}" Margin="0,0,8,0"/>
+          <StackPanel Orientation="Horizontal">
+            <Border Style="{StaticResource Badge}" Margin="0,0,6,0"><TextBlock x:Name="StepKD" Text="KD"/></Border>
+            <Border Style="{StaticResource Badge}"><TextBlock x:Name="StepUM" Text="UM"/></Border>
+          </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,12,0,0">
+          <Button Style="{StaticResource ActionAccentButton}" Content="Load KD" Click="LoadKD_Click"/>
+          <Button Style="{StaticResource ActionGhostButton}" Content="Load UM" Click="LoadUM_Click" Margin="8,0,0,0"/>
+          <Button Style="{StaticResource ActionGhostButton}" Content="Copy expiration" Click="Copy_Click" Margin="8,0,0,0"/>
+        </StackPanel>
+        <Grid Grid.Row="4" Margin="0,12,0,0">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+          <ProgressBar Grid.Row="0" IsIndeterminate="True" Visibility="Collapsed" x:Name="BusyBar"/>
+          <ListBox Grid.Row="1" MaxHeight="160" Style="{StaticResource ConsoleListBox}" ItemsSource="{Binding Entries, Source={x:Static svc:LogService.Instance}}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="{Binding Timestamp, StringFormat='[{0:HH:mm:ss}] '}" FontFamily="Consolas" FontSize="12"/>
+                  <TextBlock Text="{Binding Message}" FontFamily="Consolas" FontSize="12" TextWrapping="Wrap"/>
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Grid>
+    </Border>
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,16,16">
+      <Button Style="{StaticResource ActionGhostButton}" Content="Export logs" Click="Export_Click"/>
+      <Button Style="{StaticResource ActionAccentButton}" Content="Close" Click="Close_Click" Margin="8,0,0,0"/>
+    </StackPanel>
+  </Grid>
+</Window>

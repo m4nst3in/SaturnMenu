@@ -155,6 +155,22 @@ private:
 };
 
 inline std::shared_ptr<ImGuiSink> g_imgui_sink;
+class PipeSink : public ILogSink {
+public:
+    PipeSink() {
+        h = CreateFileA("\\\\.\\pipe\\SaturnLoaderLog", GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+    }
+    void consume(const LogMessage& m) override {
+        if (h == INVALID_HANDLE_VALUE) return;
+        SYSTEMTIME st; GetLocalTime(&st);
+        char buf[64]; sprintf_s(buf, "[%02d:%02d:%02d] ", st.wHour, st.wMinute, st.wSecond);
+        std::string line = std::string(buf) + "[" + level_name(m.level) + "] [" + m.category + "] " + m.text + "\n";
+        DWORD written = 0; WriteFile(h, line.c_str(), (DWORD)line.size(), &written, NULL);
+    }
+    ~PipeSink() { if (h != INVALID_HANDLE_VALUE) CloseHandle(h); }
+private:
+    HANDLE h = INVALID_HANDLE_VALUE;
+};
 
 inline void init_default() {
     auto& lg = Logger::instance();
@@ -163,6 +179,8 @@ inline void init_default() {
     g_imgui_sink = std::make_shared<ImGuiSink>();
     lg.add_sink(g_imgui_sink);
     lg.set_imgui_sink(g_imgui_sink);
+    // Try pipe sink (best effort)
+    lg.add_sink(std::make_shared<PipeSink>());
     lg.start();
 }
 

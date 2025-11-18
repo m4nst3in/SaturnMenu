@@ -21,12 +21,21 @@ namespace SpecList
             return 0;
 
         uintptr_t observerServices = 0;
+        static bool triedRefresh = false;
         if (!memoryManager.ReadMemory<uintptr_t>(entityPawnAddress + Offset.PlayerController.m_pObserverServices, observerServices) || !observerServices)
-            return 0;
+        {
+            if (!triedRefresh) { Offset.UpdateOffsets(); triedRefresh = true; }
+            if (!memoryManager.ReadMemory<uintptr_t>(entityPawnAddress + Offset.PlayerController.m_pObserverServices, observerServices) || !observerServices)
+                return 0;
+        }
 
         uint32_t observedTargetHandle = 0;
         if (!memoryManager.ReadMemory<uint32_t>(observerServices + Offset.PlayerController.m_hObserverTarget, observedTargetHandle) || !observedTargetHandle)
-            return 0;
+        {
+            if (!triedRefresh) { Offset.UpdateOffsets(); triedRefresh = true; }
+            if (!memoryManager.ReadMemory<uint32_t>(observerServices + Offset.PlayerController.m_hObserverTarget, observedTargetHandle) || !observedTargetHandle)
+                return 0;
+        }
 
         return CEntity::ResolveEntityHandle(observedTargetHandle);
     }
