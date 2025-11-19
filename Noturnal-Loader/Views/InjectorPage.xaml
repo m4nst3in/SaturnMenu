@@ -1,0 +1,71 @@
+<Page x:Class="Noturnal.Loader.Views.InjectorPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel>
+      <TextBlock Style="{StaticResource TextHeading}" Text="Subscription" Margin="0,0,0,12" Foreground="{StaticResource Brush.NoturnalTitleGradient}"/>
+      <StackPanel Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
+        <Border Style="{StaticResource CardBorder}">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <Rectangle Style="{StaticResource ShimmerRectangle}" Height="20" Width="280"/>
+              <Rectangle Style="{StaticResource ShimmerRectangle}" Height="14" Width="180" Margin="0,8,0,0"/>
+            </StackPanel>
+            <Rectangle Grid.Column="1" Style="{StaticResource ShimmerRectangle}" Height="28" Width="140"/>
+          </Grid>
+        </Border>
+        <Border Style="{StaticResource CardBorder}">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <Rectangle Style="{StaticResource ShimmerRectangle}" Height="20" Width="240"/>
+              <Rectangle Style="{StaticResource ShimmerRectangle}" Height="14" Width="160" Margin="0,8,0,0"/>
+            </StackPanel>
+            <Rectangle Grid.Column="1" Style="{StaticResource ShimmerRectangle}" Height="28" Width="120"/>
+          </Grid>
+        </Border>
+      </StackPanel>
+      <ItemsControl ItemsSource="{Binding Cheats}" Visibility="{Binding HasCheats, Converter={StaticResource BoolToVis}}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <VirtualizingStackPanel IsVirtualizing="True" VirtualizationMode="Standard"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Style="{StaticResource CardBorder}" MouseLeftButtonUp="Card_Click">
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                  <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Source="pack://application:,,,/Assets/cs2.png" Width="24" Height="24" Margin="0,0,8,0" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="{Binding Name}" FontSize="16"/>
+                    <Border Style="{StaticResource Badge}" Margin="8,0,0,0">
+                      <TextBlock Text="{Binding RemainingDays, StringFormat=Expires in {0}d}"/>
+                      </Border>
+                  </StackPanel>
+                  <TextBlock Text="{Binding Expiration, StringFormat=Valid until {0:MM/dd/yyyy}}" Foreground="{StaticResource Brush.TextSecondary}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal"/>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <Border Style="{StaticResource CardBorder}" Visibility="{Binding HasCheats, Converter={StaticResource NegateBoolToVis}}">
+        <StackPanel>
+          <TextBlock Style="{StaticResource TextSubheading}" Text="Nenhum cheat disponível"/>
+          <Button Style="{StaticResource LinkButton}" Content="Abrir site para compra/gestão" Click="OpenSite_Click" Margin="0,8,0,0"/>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</Page>

@@ -1,7 +1,0 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=mscorlib">
-  <sys:Double x:Key="Spacing4">4</sys:Double>
-  <sys:Double x:Key="Spacing8">8</sys:Double>
-  <sys:Double x:Key="Spacing12">12</sys:Double>
-  <sys:Double x:Key="Spacing16">16</sys:Double>
-  <sys:Double x:Key="Spacing24">24</sys:Double>
-</ResourceDictionary>

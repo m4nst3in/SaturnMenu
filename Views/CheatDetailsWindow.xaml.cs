@@ -1,7 +1,7 @@
 using System;
 using System.Windows;
 
-namespace SaturnLoader.Views
+namespace NoturnalLoader.Views
 {
     public partial class CheatDetailsWindow : Window
     {

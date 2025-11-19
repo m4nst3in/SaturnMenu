@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace SaturnLoader.Views
+namespace NoturnalLoader.Views
 {
     public partial class LoginPage : Page
     {
@@ -39,7 +39,7 @@ namespace SaturnLoader.Views
                 var user = new User
                 {
                     Username = "admin",
-                    Email = "admin@saturn.com",
+                    Email = "admin@noturnal.com",
                     IsAdmin = true,
                     CreatedAt = DateTime.Now,
                     Subscriptions = new()
@@ -80,7 +80,7 @@ namespace SaturnLoader.Views
             // Open website for registration
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
-                FileName = "https://saturn-loader.com/register",
+                FileName = "https://noturnal-loader.com/register",
                 UseShellExecute = true
             });
         }

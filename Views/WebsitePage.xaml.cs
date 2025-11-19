@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 
-namespace SaturnLoader.Views
+namespace NoturnalLoader.Views
 {
     public partial class WebsitePage : Page
     {
@@ -13,7 +13,7 @@ namespace SaturnLoader.Views
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
-                FileName = "https://saturn-loader.com",
+                FileName = "https://noturnal-loader.com",
                 UseShellExecute = true
             });
         }

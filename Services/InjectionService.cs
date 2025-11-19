@@ -5,7 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace SaturnLoader.Services
+namespace NoturnalLoader.Services
 {
     public interface IInjectionService
     {
@@ -113,7 +113,7 @@ namespace SaturnLoader.Services
         {
             _logFilePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "SaturnLoader",
+                "NoturnalLoader",
                 "logs.txt"
             );
             
@@ -155,7 +155,7 @@ namespace SaturnLoader.Services
             {
                 var exportPath = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                    $"SaturnLoader_Logs_{DateTime.Now:yyyyMMdd_HHmmss}.txt"
+                    $"NoturnalLoader_Logs_{DateTime.Now:yyyyMMdd_HHmmss}.txt"
                 );
 
                 File.WriteAllText(exportPath, GetLogsAsString());

@@ -1,4 +1,4 @@
-# Saturn Loader — Guia de Estilo
+# Noturnal Loader — Guia de Estilo
 
 ## Paleta
 - Background: #0E1116

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="https://api.iconify.design/lucide:orbit.svg?color=%238b5cf6" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Noturnal Menu | Premium CS2 Cheats</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              noturnal: {
+                50: '#f4f2ff',
+                100: '#e8e5ff',
+                200: '#d3ccff',
+                300: '#b4a6ff',
+                400: '#9376ff',
+                500: '#7645fd', // Vivid Purple
+                600: '#642ceb',
+                700: '#5420ce',
+                800: '#451aae',
+                900: '#3a168c',
+                950: '#0f0529', // Deepest Purple
+              },
+              cyan: {
+                400: '#22d3ee',
+                500: '#06b6d4',
+              },
+              dark: {
+                bg: '#020003', // Richer Black
+                card: '#0a0510',
+                border: '#1f1633'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            letterSpacing: {
+              tighter: '-0.05em',
+              tight: '-0.025em',
+            },
+            animation: {
+              'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'float': 'float 6s ease-in-out infinite',
+              'fade-in': 'fadeIn 0.5s ease-out forwards',
+              'fade-in-up': 'fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              'glow-pulse': 'glow 3s ease-in-out infinite',
+              'shimmer': 'shimmer 2.5s linear infinite',
+              'spotlight': 'spotlight 2s ease .75s 1 forwards',
+              'tilt': 'tilt 10s infinite linear',
+              'border-beam': 'border-beam 4s linear infinite',
+              'grid-move': 'grid-move 20s linear infinite',
+            },
+            keyframes: {
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-20px)' },
+              },
+              fadeIn: {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              },
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(20px) scale(0.98)' },
+                '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+              },
+              shimmer: {
+                '0%': { transform: 'translateX(-100%)' },
+                '100%': { transform: 'translateX(100%)' }
+              },
+              tilt: {
+                '0%, 50%, 100%': { transform: 'rotate(0deg)' },
+                '25%': { transform: 'rotate(0.5deg)' },
+                '75%': { transform: 'rotate(-0.5deg)' },
+              },
+              'border-beam': {
+                '100%': { 'offset-distance': '100%' },
+              },
+              'grid-move': {
+                '0%': { transform: 'translateY(0)' },
+                '100%': { transform: 'translateY(40px)' }
+              }
+            },
+            backgroundImage: {
+              'grid-white': "linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px)",
+              'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+            }
+          },
+        },
+      }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+      body {
+        background-color: #020003;
+        color: #e4e4e7;
+        font-family: 'Inter', sans-serif;
+        overflow-x: hidden;
+      }
+      
+      /* Premium Noise Texture */
+      .bg-noise {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 9998;
+        mix-blend-mode: overlay;
+      }
+
+      /* Selection Style */
+      ::selection {
+        background: rgba(118, 69, 253, 0.3);
+        color: #fff;
+        text-shadow: 0 0 10px rgba(118, 69, 253, 0.5);
+      }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #020003; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #27272a; 
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #3f3f46; 
+      }
+      
+      /* Glassmorphism Utilities */
+      .glass {
+        background: rgba(10, 5, 16, 0.6);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .glass-card {
+        background: linear-gradient(180deg, rgba(20, 20, 25, 0.7) 0%, rgba(10, 5, 16, 0.9) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      /* --- 2. Perspective Grid --- */
+      .perspective-container {
+        perspective: 1000px;
+        overflow: hidden;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 400px;
+        z-index: 0;
+        pointer-events: none;
+        mask-image: linear-gradient(to bottom, transparent 0%, black 40%, black 100%);
+      }
+
+      .perspective-grid {
+        position: absolute;
+        top: 0;
+        left: -50%;
+        width: 200%;
+        height: 100%;
+        background-image: 
+          linear-gradient(to right, rgba(118, 69, 253, 0.15) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(118, 69, 253, 0.15) 1px, transparent 1px);
+        background-size: 40px 40px;
+        transform-origin: top;
+        transform: rotateX(60deg) translateY(0);
+        animation: grid-move 10s linear infinite;
+        box-shadow: inset 0 0 100px #020003;
+      }
+
+      /* --- 3. Moving Border Beam --- */
+      .border-beam {
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        z-index: 20;
+        overflow: hidden;
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+      }
+      
+      .border-beam::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 200%;
+        height: 200%;
+        background: conic-gradient(from 0deg, transparent 0deg, transparent 80deg, #7645fd 180deg, transparent 180deg);
+        transform: translate(-50%, -50%);
+        animation: spin 4s linear infinite;
+      }
+
+      @keyframes spin {
+        from { transform: translate(-50%, -50%) rotate(0deg); }
+        to { transform: translate(-50%, -50%) rotate(360deg); }
+      }
+
+      /* --- 5. Glitch/Chromatic Aberration Hover --- */
+      .glitch-card {
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s;
+      }
+
+      .glitch-card:hover {
+        animation: glitch-anim 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+      }
+
+      .glitch-card:hover .glitch-content {
+         filter: drop-shadow(-2px 0px 0px rgba(255,0,0,0.5)) drop-shadow(2px 0px 0px rgba(0,255,255,0.5));
+      }
+
+      @keyframes glitch-anim {
+        0% { transform: translate(0) }
+        20% { transform: translate(-1px, 1px) }
+        40% { transform: translate(-1px, -1px) }
+        60% { transform: translate(1px, 1px) }
+        80% { transform: translate(1px, -1px) }
+        100% { transform: translate(0) }
+      }
+
+      /* --- 7. Liquid Neon Button --- */
+      .btn-liquid {
+        position: relative;
+        background: linear-gradient(90deg, #7645fd, #22d3ee, #7645fd);
+        background-size: 200% auto;
+        animation: liquid-flow 3s linear infinite;
+        box-shadow: 0 0 20px rgba(118, 69, 253, 0.5), inset 0 0 0 1px rgba(255,255,255,0.2);
+      }
+      
+      .btn-liquid:hover {
+        box-shadow: 0 0 40px rgba(34, 211, 238, 0.6), inset 0 0 0 1px rgba(255,255,255,0.4);
+      }
+
+      @keyframes liquid-flow {
+        0% { background-position: 0% center; }
+        100% { background-position: 200% center; }
+      }
+      
+      /* Spotlight Logic (Preserved) */
+      .spotlight-group:hover .spotlight-card::after {
+        opacity: 1;
+      }
+      
+      .spotlight-card {
+        position: relative;
+        background-color: #0a0510; 
+      }
+      
+      .spotlight-card::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(118, 69, 253, 0.08), transparent 40%);
+        z-index: 1;
+        opacity: 0;
+        transition: opacity 0.5s;
+        pointer-events: none;
+      }
+      .spotlight-card:hover::before {
+        opacity: 1;
+      }
+
+      .spotlight-card::after {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(118, 69, 253, 0.3), transparent 40%);
+        z-index: 3;
+        opacity: 0;
+        transition: opacity 0.5s;
+        pointer-events: none;
+        border-radius: inherit;
+        z-index: 0;
+        padding: 1px;
+        -webkit-mask: 
+           linear-gradient(#fff 0 0) content-box, 
+           linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+      }
+      .spotlight-card:hover::after {
+        opacity: 1;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div class="bg-noise"></div>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Windows.Controls;
 
-namespace SaturnLoader.Views
+namespace NoturnalLoader.Views
 {
     public partial class SupportPage : Page
     {
@@ -14,7 +14,7 @@ namespace SaturnLoader.Views
         {
             Process.Start(new ProcessStartInfo
             {
-                FileName = "https://discord.gg/saturn",
+                FileName = "https://discord.gg/noturnal",
                 UseShellExecute = true
             });
         }
@@ -23,7 +23,7 @@ namespace SaturnLoader.Views
         {
             Process.Start(new ProcessStartInfo
             {
-                FileName = "mailto:support@saturn-loader.com",
+                FileName = "mailto:support@noturnal-loader.com",
                 UseShellExecute = true
             });
         }
@@ -32,7 +32,7 @@ namespace SaturnLoader.Views
         {
             Process.Start(new ProcessStartInfo
             {
-                FileName = "https://saturn-loader.com/faq",
+                FileName = "https://noturnal-loader.com/faq",
                 UseShellExecute = true
             });
         }

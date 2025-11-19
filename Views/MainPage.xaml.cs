@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 
-namespace SaturnLoader.Views
+namespace NoturnalLoader.Views
 {
     public partial class MainPage : Page
     {

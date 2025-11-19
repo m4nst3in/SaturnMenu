@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 
-namespace SaturnLoader
+namespace NoturnalLoader
 {
     public partial class MainWindow : Window
     {

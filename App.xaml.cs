@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace SaturnLoader
+namespace NoturnalLoader
 {
     public partial class App : Application
     {

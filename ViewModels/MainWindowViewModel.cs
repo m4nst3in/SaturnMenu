@@ -6,10 +6,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
-using SaturnLoader.Services;
-using SaturnLoader.Views;
+using NoturnalLoader.Services;
+using NoturnalLoader.Views;
 
-namespace SaturnLoader
+namespace NoturnalLoader
 {
     public class MainWindowViewModel : INotifyPropertyChanged
     {
