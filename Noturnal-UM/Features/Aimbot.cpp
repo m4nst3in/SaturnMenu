@@ -1,256 +1,172 @@
 #include "Aimbot.h"
+#include "../Game/Entity.h"
 #include <algorithm>
-#undef max()
-#undef min()
+#undef max
+#undef min
+#include "../Core/Cheats.h"
 
-void AimControl::switchToggle()
-{
+// Helper para posição de bone pelo seu modelo CBone/BonePosList
+inline Vec3 GetBonePos(const CBone& boneData, int boneId) {
+    if (boneId < 0 || boneId >= static_cast<int>(boneData.BonePosList.size()))
+        return Vec3{0,0,0};
+    return boneData.BonePosList[boneId].Pos;
+}
+
+void AimControl::switchToggle() {
     AimControl::ToggledActive = !AimControl::ToggledActive;
 }
 
-std::pair<float, float> AimControl::CalculateTargetOffset(const Vec2& ScreenPos, int ScreenCenterX, int ScreenCenterY)
-{
-    float TargetX = 0.0f;
-    float TargetY = 0.0f;
-
-    /*x*/
-    if (ScreenPos.x != ScreenCenterX) {
-        TargetX = (ScreenPos.x > ScreenCenterX) ?
-            -(ScreenCenterX - ScreenPos.x) :
-            ScreenPos.x - ScreenCenterX;
-
-        if (TargetX + ScreenCenterX > ScreenCenterX * 2 || TargetX + ScreenCenterX < 0) {
-            TargetX = 0.0f;
-        }
-    }
-
-    /*y*/
-    if (ScreenPos.y != 0 && ScreenPos.y != ScreenCenterY) {
-        TargetY = (ScreenPos.y > ScreenCenterY) ?
-            -(ScreenCenterY - ScreenPos.y) :
-            ScreenPos.y - ScreenCenterY;
-
-        if (TargetY + ScreenCenterY > ScreenCenterY * 2 || TargetY + ScreenCenterY < 0) {
-            TargetY = 0.0f;
-        }
-    }
-
+std::pair<float, float> AimControl::CalculateTargetOffset(const Vec2& ScreenPos, int ScreenCenterX, int ScreenCenterY) {
+    float TargetX = ScreenPos.x - ScreenCenterX;
+    float TargetY = ScreenPos.y - ScreenCenterY;
     return { TargetX, TargetY };
 }
 
 std::pair<float, float> AimControl::Humanize(float TargetX, float TargetY) {
-
-    static float HumanizationAmount = HumanizationStrength*2/100;
-
-    if (HumanizationAmount <= 0.0f)
-    {
+    static float HumanizationAmount = HumanizationStrength * 2 / 100;
+    if (HumanizationAmount <= 0.0f) {
         PrevTargetX = TargetX;
         PrevTargetY = TargetY;
         return { TargetX, TargetY };
     }
-    
-    // random distributions for different types of jitter
     std::uniform_real_distribution<float> jitterDist(-10.f, 10.f);
     std::uniform_real_distribution<float> microDist(-10.f, 10.f);
     std::uniform_real_distribution<float> smoothnessDist(0.4f, 10.f);
-    
-    // calculate movement distance for dynamic adjustments
+
     float MovementDistance = std::sqrt(TargetX * TargetX + TargetY * TargetY);
-    
-    // add micro-movements (scaled by strength)
+
     float MicroJitterX = microDist(gen) * std::min(MovementDistance * 0.25f, 8.0f) * HumanizationAmount;
     float MicroJitterY = microDist(gen) * std::min(MovementDistance * 0.25f, 8.0f) * HumanizationAmount;
-    
-    // add larger jitter for longer movements (scaled by strength)
+
     float JitterScale = std::min(MovementDistance * 0.15f, 12.0f) * HumanizationAmount;
     float JitterX = jitterDist(gen) * JitterScale;
     float JitterY = jitterDist(gen) * JitterScale;
-    
-    // create slightly curved path (scaled by strength)
+
     float PerpX = -TargetY * 0.35f * jitterDist(gen) * HumanizationAmount;
     float PerpY = TargetX * 0.35f * jitterDist(gen) * HumanizationAmount;
-    
-    // apply smoothing with strength-controlled factor (more aggressive smoothing variation)
-    // at strength=0, no smoothing (immediate response)
-    // at strength=1, full smoothing range with more noticeable lag
+
     float baseSmoothFactor = smoothnessDist(gen);
     float SmoothFactor = 1.0f - ((1.0f - baseSmoothFactor) * HumanizationAmount);
     float SmoothedX = TargetX * SmoothFactor + PrevTargetX * (1.0f - SmoothFactor);
     float SmoothedY = TargetY * SmoothFactor + PrevTargetY * (1.0f - SmoothFactor);
-    
-    // reaction time simulation - occasional delayed response
+
     std::uniform_real_distribution<float> reactionDist(0.0f, 1.0f);
-    if (reactionDist(gen) < 0.15f * HumanizationAmount) { // 15% chance at full strength
-        SmoothedX = PrevTargetX; // use previous target (simulates delayed reaction)
+    if (reactionDist(gen) < 0.15f * HumanizationAmount) {
+        SmoothedX = PrevTargetX;
         SmoothedY = PrevTargetY;
     }
-    
-    // combine
+
     float HumanizedX = SmoothedX + MicroJitterX + JitterX + PerpX;
     float HumanizedY = SmoothedY + MicroJitterY + JitterY + PerpY;
-    
-    // store current targets for next frame smoothing
+
     PrevTargetX = TargetX;
     PrevTargetY = TargetY;
-    
     return { HumanizedX, HumanizedY };
 }
 
-void AimControl::AimBot(const CEntity& Local, Vec3 LocalPos,std::vector<Vec3>& AimPosList)
-{
-    
-
-    // Run independently of TriggerBot: do not gate by weapon type
-
-    
-
-    if (Local.Pawn.ShotsFired <= AimBullet - 1 && AimBullet != 0)
-    {
+// Aimbot ultra preciso, sempre gruda na cabeça visível e o mais perto do centro da tela!
+// Otimizado para usermode external tipo Noturnal.
+void AimControl::AimBot(const CEntity& Local, std::vector<std::pair<int, CEntity>>& EntityList) {
+    if (Local.Pawn.ShotsFired <= AimBullet - 1 && AimBullet != 0) {
         HasTarget = false;
+        LockedTargetId = 0;
         return;
     }
 
-    if (AimControl::ScopeOnly)
-    {
-        bool isScoped = false;
-        memoryManager.ReadMemory<bool>(Local.Pawn.Address + Offset.Pawn.isScoped, isScoped);
-        if (!isScoped)
-        {
-            HasTarget = false;
-            return;
+    bool isScoped = false;
+    memoryManager.ReadMemory<bool>(Local.Pawn.Address + Offset.Pawn.isScoped, isScoped);
+    if (AimControl::ScopeOnly && !isScoped) {
+        HasTarget = false;
+        LockedTargetId = 0;
+        return;
+    }
+
+    int localTeam = Local.Pawn.TeamID;
+    int ScreenCenterX = Gui.Window.Size.x / 2;
+    int ScreenCenterY = Gui.Window.Size.y / 2;
+
+    float BestScreenDistance = FLT_MAX;
+    const CEntity* targetEnt = nullptr;
+    Vec2 bestScreenPos{0,0};
+    Vec3 bestWorldPos{0,0,0};
+
+    // Seleção do alvo: só considera inimigos vivos e visíveis!
+    for (auto& [idx, ent] : EntityList) {
+        if (ent.Pawn.Health <= 0) continue;
+        if (!Cheats::IsFFA() && ent.Pawn.TeamID == localTeam) continue;
+        DWORD64 visibleMask = ent.Pawn.bSpottedByMask;
+        if (!(visibleMask & (1ULL << (Local.Pawn.Address & 0x3F)))) continue;
+
+        int headIdx = AimControl::HitboxList.empty() ? BONEINDEX::head : AimControl::HitboxList[0];
+        Vec3 head = GetBonePos(ent.Pawn.BoneData, headIdx);
+        Vec2 screenHead;
+        if (!gGame.View.WorldToScreen(head, screenHead)) continue;
+
+        // Pixel distance (legit + rápido!)
+        float screenDistance = std::hypot(screenHead.x - ScreenCenterX, screenHead.y - ScreenCenterY);
+
+        // Pode também checar se está dentro do AimFov transformado para radius visual (tela)
+        float aimFovRadius = AimFov * 9.0f; // ajuste para seu field of view real
+        if (screenDistance < BestScreenDistance && screenDistance <= aimFovRadius) {
+            BestScreenDistance = screenDistance;
+            targetEnt = &ent;
+            bestScreenPos = screenHead;
+            bestWorldPos = head;
         }
     }
 
-    
-
-    const int ListSize = AimPosList.size();
-    if (ListSize == 0) {
+    if (!targetEnt) {
         HasTarget = false;
+        LockedTargetId = 0;
         return;
     }
-
-    float BestNorm = MAXV;
-    int BestTargetIndex = -1;
-    Vec2 Angles{ 0, 0 };
-
-    const int ScreenCenterX = Gui.Window.Size.x / 2;
-    const int ScreenCenterY = Gui.Window.Size.y / 2;
-
-    for (int i = 0; i < ListSize; i++)
-    {
-        Vec3 OppPos = AimPosList[i] - LocalPos;
-        const float Distance = sqrt(OppPos.x * OppPos.x + OppPos.y * OppPos.y);
-        if (LegitBotConfig::RCS)
-        {
-            RCS::UpdateAngles(Local, Angles);
-
-            /*x*/
-            const float radX = Angles.x * RCS::RCSScale.x / 360.f * M_PI;
-            const float sinX = sinf(radX);
-            const float cosX = cosf(radX);
-
-            const float z = OppPos.z * cosX + Distance * sinX;
-            const float d = (Distance * cosX - OppPos.z * sinX) / Distance;
-
-            /*y*/
-            const float radY = -Angles.y * RCS::RCSScale.y / 360.f * M_PI;
-            const float sinY = sinf(radY);
-            const float cosY = cosf(radY);
-
-            const float x = (OppPos.x * cosY - OppPos.y * sinY) * d;
-            const float y = (OppPos.x * sinY + OppPos.y * cosY) * d;
-
-            OppPos = Vec3{ x, y, z };
-            AimPosList[i] = LocalPos + OppPos;
-        }
-
-        const float Yaw = atan2f(OppPos.y, OppPos.x) * 57.295779513f - Local.Pawn.ViewAngle.y;
-        const float Pitch = -atan(OppPos.z / Distance) * 57.295779513f - Local.Pawn.ViewAngle.x;
-        const float Norm = sqrt(Yaw * Yaw + Pitch * Pitch);
-
-        if (Norm < BestNorm) {
-            BestNorm = Norm;
-            BestTargetIndex = i;
-        }
-    }
-
-    if (BestNorm >= AimFov || BestNorm <= AimFovMin || BestTargetIndex == -1) {
-        HasTarget = false;
-        return;
-    }
-
-    Vec2 ScreenPos;
-    if (!gGame.View.WorldToScreen(AimPosList[BestTargetIndex], ScreenPos)) {
-        HasTarget = false;
-        return;
-    }
+    LockedTargetId = targetEnt->Pawn.Address; // trava no inimigo
 
     HasTarget = true;
 
-    auto [TargetX, TargetY] = CalculateTargetOffset(ScreenPos, ScreenCenterX, ScreenCenterY);
-
+    // Lógica de mira (snap legit/instant)
+    auto [TargetX, TargetY] = CalculateTargetOffset(bestScreenPos, ScreenCenterX, ScreenCenterY);
     TargetX /= Local.Client.Sensitivity;
     TargetY /= Local.Client.Sensitivity;
-    if (Smooth > 0.0f)
-    {
-        const float DistanceRatio = BestNorm / AimFov;
-        const float SpeedFactor = 1.0f + (1.0f - DistanceRatio);
-        const float effectiveSmooth = Smooth;
-        TargetX /= (effectiveSmooth * SpeedFactor);
-        TargetY /= (effectiveSmooth * SpeedFactor);
+
+    // Snap instantâneo se Smooth == 0, senão smooth real
+    if (Smooth > 0.0f) {
+        TargetX /= Smooth;
+        TargetY /= Smooth;
     }
 
-    if (HumanizeVar && Smooth > 0.0f)
-    {
-        auto [HumanizedX, HumanizedY] = Humanize(TargetX, TargetY);
-        TargetX = HumanizedX;
-        TargetY = HumanizedY;
+    if (HumanizeVar && Smooth > 0.0f) {
+        auto [hX, hY] = Humanize(TargetX, TargetY);
+        TargetX = hX; TargetY = hY;
     }
 
-    static DWORD lastAimTime = GetTickCount64();
-    static float accumX = 0.f;
-    static float accumY = 0.f;
+    static DWORD lastAimTime = 0;
+    static float accumX = 0.f, accumY = 0.f;
     DWORD currentTick = GetTickCount64();
 
-    if (currentTick - lastAimTime >= MenuConfig::AimDelay)
-    {
-        int outX;
-        int outY;
-        if (Smooth <= 0.0f)
-        {
-            outX = static_cast<int>(std::round(TargetX));
-            outY = static_cast<int>(std::round(TargetY));
-            accumX = 0.f;
-            accumY = 0.f;
-        }
-        else
-        {
-            accumX += TargetX;
-            accumY += TargetY;
+    // Menor delay possível para legítimo ultra rápido
+    if (currentTick - lastAimTime >= MenuConfig::AimDelay) {
+        int outX = static_cast<int>(std::round(TargetX));
+        int outY = static_cast<int>(std::round(TargetY));
+        if (Smooth > 0.0f) {
+            accumX += TargetX; accumY += TargetY;
             outX = static_cast<int>(std::round(accumX));
             outY = static_cast<int>(std::round(accumY));
-            float dynamicStep = std::clamp(BestNorm / AimFov, 0.0f, 1.0f);
-            float s_norm = std::clamp(Smooth / 5.0f, 0.0f, 1.0f);
-            int maxStep = static_cast<int>(std::round(1.0f + (1.0f - s_norm) * 4.0f + dynamicStep * 2.0f));
-            outX = std::clamp(outX, -maxStep, maxStep);
-            outY = std::clamp(outY, -maxStep, maxStep);
+            accumX -= outX;
+            accumY -= outY;
         }
-        if (outX != 0 || outY != 0)
-        {
+        if (outX || outY) {
             mouse_event(MOUSEEVENTF_MOVE, outX, outY, 0, 0);
-            if (Smooth > 0.0f)
-            {
-                accumX -= outX;
-                accumY -= outY;
-            }
         }
         lastAimTime = currentTick;
     }
 }
 
-bool AimControl::CheckAutoMode(const std::string& WeaponName)
-{
-    if (WeaponName == "deagle" || WeaponName == "elite" || WeaponName == "fiveseven" || WeaponName == "glock" || WeaponName == "awp" || WeaponName == "xm1014" || WeaponName == "mag7" || WeaponName == "sawedoff" || WeaponName == "tec9" || WeaponName == "zeus" || WeaponName == "p2000" || WeaponName == "nova" || WeaponName == "p250" || WeaponName == "ssg08" || WeaponName == "usp" || WeaponName == "revolver")
+bool AimControl::CheckAutoMode(const std::string& WeaponName) {
+    if (WeaponName == "deagle" || WeaponName == "elite" || WeaponName == "fiveseven" || WeaponName == "glock"
+        || WeaponName == "awp" || WeaponName == "xm1014" || WeaponName == "mag7" || WeaponName == "sawedoff"
+        || WeaponName == "tec9" || WeaponName == "zeus" || WeaponName == "p2000" || WeaponName == "nova"
+        || WeaponName == "p250" || WeaponName == "ssg08" || WeaponName == "usp" || WeaponName == "revolver")
         return false;
     else
         return true;

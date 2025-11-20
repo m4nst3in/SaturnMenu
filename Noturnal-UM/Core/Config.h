@@ -35,7 +35,7 @@ namespace MenuConfig
 	// 0: Window 1: Collapse
 	inline int WindowStyle = 0;
 	inline bool ShowMenu = true;
-	inline bool TeamCheck = true;
+    inline bool TeamCheck = false;
 	inline bool WorkInSpec = true;
 
 	inline ImVec2 MarkWinPos;

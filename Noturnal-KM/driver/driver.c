@@ -58,7 +58,7 @@ HANDLE GetPID(const wchar_t* process_name)
             UNICODE_STRING processNameUnicode;
             UNICODE_STRING targetNameUnicode;
             RtlInitUnicodeString(&targetNameUnicode, process_name);
-            
+
             if (RtlCompareUnicodeString(&process_info->ImageName, &targetNameUnicode, TRUE) == 0) {
                 HANDLE pid = process_info->UniqueProcessId;
                 ExFreePoolWithTag(buffer, POOL_TAG);
@@ -352,7 +352,8 @@ NTSTATUS handle_batch_read(PIRP irp, PIO_STACK_LOCATION stack_irp, SIZE_T* infor
             PsGetCurrentProcess(), output_buffer + offset,
             run_size, KernelMode, &bytes_read))) {
             ++successful_reads;
-        } else {
+        }
+        else {
             RtlZeroMemory(output_buffer + offset, run_size);
         }
 
@@ -536,6 +537,8 @@ NTSTATUS DriverEntry() {
     UNICODE_STRING driver_name = {};
     RtlInitUnicodeString(&driver_name, L"\\Driver\\Noturnal-KM");
 
+    ExInitializeFastMutex(&g_cache_mutex);
+
     return IoCreateDriver(&driver_name, &driver_main);
 }
 
@@ -634,7 +637,8 @@ NTSTATUS handle_batch_read_direct(PDEVICE_OBJECT device_object, PIRP irp, PIO_ST
         target_process = cached_process;
         ObReferenceObject(target_process);
         ExReleaseFastMutex(&g_cache_mutex);
-    } else {
+    }
+    else {
         status = PsLookupProcessByProcessId(header->process_id, &target_process);
         if (!NT_SUCCESS(status)) {
             *information = 0;
@@ -683,7 +687,8 @@ NTSTATUS handle_batch_read_direct(PDEVICE_OBJECT device_object, PIRP irp, PIO_ST
             PsGetCurrentProcess(), output_buffer + offset,
             run_size, KernelMode, &bytes_read))) {
             ++successful_reads;
-        } else {
+        }
+        else {
             RtlZeroMemory(output_buffer + offset, run_size);
         }
 
@@ -695,4 +700,3 @@ NTSTATUS handle_batch_read_direct(PDEVICE_OBJECT device_object, PIRP irp, PIO_ST
     *information = NT_SUCCESS(status) ? stack_irp->Parameters.DeviceIoControl.OutputBufferLength : 0;
     return status;
 }
-    ExInitializeFastMutex(&g_cache_mutex);

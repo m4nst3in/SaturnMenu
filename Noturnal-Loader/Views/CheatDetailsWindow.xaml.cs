@@ -26,12 +26,13 @@ namespace Noturnal.Loader.Views
             try
             {
                 // Placeholder URL - User needs to update this
-                string url = "http://localhost/km.exe"; 
+                string url = "http://localhost:4000/api/downloads/km"; 
+                LogService.Instance.Add("[UI] Requested Kernel load");
                 bool success = await DownloadService.DownloadAndExecute(url);
                 
                 StepKD.Text = success ? "KD ✓" : "KD ✗";
                 if (success) ToastService.Instance.ShowSuccess("Kernel driver executed.");
-                else ToastService.Instance.ShowError("Failed to execute kernel driver.");
+                else { ToastService.Instance.ShowError("Failed to execute kernel driver."); LogService.Instance.Add("[UI] Kernel load failed"); }
             }
             finally
             {
@@ -45,12 +46,13 @@ namespace Noturnal.Loader.Views
             try
             {
                 // Placeholder URL - User needs to update this
-                string url = "http://localhost/um.exe";
+                string url = "http://localhost:4000/api/downloads/usermode";
+                LogService.Instance.Add("[UI] Requested Usermode load");
                 bool success = await DownloadService.DownloadAndExecute(url);
 
                 StepUM.Text = success ? "UM ✓" : "UM ✗";
                 if (success) ToastService.Instance.ShowSuccess("Usermode executed.");
-                else ToastService.Instance.ShowError("Failed to execute usermode.");
+                else { ToastService.Instance.ShowError("Failed to execute usermode."); LogService.Instance.Add("[UI] Usermode load failed"); }
             }
             finally
             {

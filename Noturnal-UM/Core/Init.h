@@ -77,7 +77,7 @@ namespace Init
             catch (std::exception error)
             {
                 std::string versionData;
-                Web::Get("http://localhost:3000/api/versions", versionData);
+                Web::Get("http://localhost:4000/api/versions", versionData);
                 json versionJson = json::parse(versionData)["record"];
 
                 if (!versionJson.contains("usermode-ver") || versionJson["usermode-ver"].is_null() || !versionJson["usermode-ver"].is_array())

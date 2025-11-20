@@ -359,8 +359,8 @@ std::vector<EntityResult> Cheats::ProcessEntities(CEntity& localEntity, int& loc
 		if (!entity.IsAlive())
 			continue;
 
-		// skip teammates if team check enabled
-		if (MenuConfig::TeamCheck && entity.Controller.TeamID == localEntity.Controller.TeamID)
+		// skip teammates in non-FFA
+		if (!Cheats::IsFFA() && entity.Controller.TeamID == localEntity.Controller.TeamID)
 			continue;
 
 		// check if in screen
@@ -605,8 +605,8 @@ void AIM(const CEntity& LocalEntity, std::vector<Vec3> AimPosList)
     }
     prevPressed = pressed;
     bool aimed = false;
-    if (shouldAim && !AimPosList.empty()) {
-        AimControl::AimBot(LocalEntity, LocalEntity.Pawn.CameraPos, AimPosList);
+    if (shouldAim && !Cheats::cachedResults.empty()) {
+        AimControl::AimBot(LocalEntity, Cheats::cachedResults);
         aimed = true;
     }
     if (!aimed) {
@@ -697,4 +697,14 @@ std::string Cheats::GetCurrentMapName() {
 
     currentMap[255] = '\0';
     return std::string(currentMap);
+}
+
+bool Cheats::IsFFA()
+{
+    std::string m = Cheats::GetCurrentMapName();
+    for (auto& c : m) c = (char)tolower(c);
+    if (m.find("deathmatch") != std::string::npos) return true;
+    if (m.find("dm_") != std::string::npos) return true;
+    // Heurística simples; modos base usam mapas "de_", FFA pode manter o mesmo nome
+    return false;
 }

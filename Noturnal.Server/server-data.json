@@ -1,0 +1,17 @@
+{
+  "users": [
+    {
+      "id": "uid_1763567272652",
+      "username": "loaderuser",
+      "email": "loader@example.com",
+      "passwordHash": "$2a$10$OXTBYTXpi/.U6K59P6zBlO5zYyMe23s.0xgf.4AIhUM2pSJFTBaEe",
+      "hwid": null,
+      "subscription": {
+        "active": false,
+        "plan": null,
+        "expiresAt": null
+      }
+    }
+  ],
+  "currentUserId": "uid_1763567272652"
+}

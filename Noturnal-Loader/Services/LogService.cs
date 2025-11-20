@@ -1,5 +1,7 @@
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Windows;
 using Noturnal.Loader.Models;
 
 namespace Noturnal.Loader.Services
@@ -10,7 +12,12 @@ namespace Noturnal.Loader.Services
         public ObservableCollection<LogEntry> Entries { get; } = new ObservableCollection<LogEntry>();
         public void Add(string message)
         {
-            Entries.Add(new LogEntry { Message = message });
+            var entry = new LogEntry { Message = message };
+            var disp = Application.Current?.Dispatcher;
+            if (disp == null || disp.CheckAccess())
+                Entries.Add(entry);
+            else
+                disp.BeginInvoke(new Action(() => Entries.Add(entry)));
         }
         public void ExportToFile()
         {

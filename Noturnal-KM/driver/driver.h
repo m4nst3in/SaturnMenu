@@ -1,13 +1,32 @@
 #pragma once
 
-// Include ntdef.h first to establish basic definitions
-#include <ntdef.h>
+#if defined(_M_AMD64)
+#ifndef _AMD64_
+#define _AMD64_
+#endif
+#elif defined(_M_IX86)
+#ifndef _X86_
+#define _X86_
+#endif
+#elif defined(_M_ARM64)
+#ifndef _ARM64_
+#define _ARM64_
+#endif
+#elif defined(_M_ARM)
+#ifndef _ARM_
+#define _ARM_
+#endif
+#endif
 
-// Then include ntifs.h which should properly handle dpfilter.h
+#pragma once
+
 #include <ntifs.h>
+#include <ntddk.h>
 #include <ntintsafe.h>
 
 typedef unsigned char BYTE;
+
+typedef struct _PEB PEB, *PPEB;
 
 // IOCTL definitions (must match MemoryMgr.h)
 #define DRAGON_DEVICE 0x8000

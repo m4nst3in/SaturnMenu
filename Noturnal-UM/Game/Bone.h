@@ -185,7 +185,6 @@ struct BoneJointPos {
 class CBone {
 private:
 
-
 public:
 	std::vector<BoneJointPos> BonePosList;
 	std::vector<CBoneData> IBoneData;

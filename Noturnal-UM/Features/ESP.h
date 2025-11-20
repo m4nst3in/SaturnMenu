@@ -87,7 +87,7 @@ inline void RenderPlayerESP(const CEntity& LocalEntity, const CEntity& Entity, I
 		// Cache frequently used values
 		std::string weaponIcon = GunIcon(Entity.Pawn.WeaponName);
 		const auto ioFonts = ImGui::GetIO().Fonts->Fonts[1];
-        DWORD64 playerMask = (DWORD64(1) << LocalPlayerControllerIndex);
+        DWORD64 playerMask = (DWORD64(1) << (LocalPlayerControllerIndex & 0x3F));
         bool bIsVisible;
         bool bIsVisibleIndex;
         if (ESPConfig::VisibleCheck && gMapGeo.IsReady()) {
@@ -95,7 +95,7 @@ inline void RenderPlayerESP(const CEntity& LocalEntity, const CEntity& Entity, I
             bIsVisibleIndex = bIsVisible;
         } else {
             bIsVisible = (Entity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & playerMask);
-            bIsVisibleIndex = (Entity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & (DWORD64(1) << Index));
+            bIsVisibleIndex = (Entity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & (DWORD64(1) << (Index & 0x3F)));
         }
 
         if (ESPConfig::ShowBoneESP)

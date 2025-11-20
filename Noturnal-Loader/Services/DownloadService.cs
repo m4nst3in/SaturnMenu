@@ -6,67 +6,127 @@ using System.Threading.Tasks;
 
 namespace Noturnal.Loader.Services
 {
-    public static class DownloadService
+    public class DownloadService
     {
-        private static readonly HttpClient _client = new HttpClient();
+        public static DownloadService Instance { get; } = new DownloadService();
+        private readonly HttpClient _http = new HttpClient();
+        private const string BaseUrl = "http://localhost:4000";
+
+        public async Task<string> DownloadKernelAsync(string destinationDirectory)
+        {
+            Directory.CreateDirectory(destinationDirectory);
+            var destPath = Path.Combine(destinationDirectory, "Noturnal-km.exe");
+            using var stream = await _http.GetStreamAsync(BaseUrl + "/api/downloads/km");
+            using var file = File.Create(destPath);
+            await stream.CopyToAsync(file);
+            return destPath;
+        }
+
+        public async Task<string> DownloadUsermodeAsync(string destinationDirectory)
+        {
+            Directory.CreateDirectory(destinationDirectory);
+            var destPath = Path.Combine(destinationDirectory, "Noturnal-usermode.exe");
+            using var stream = await _http.GetStreamAsync(BaseUrl + "/api/downloads/usermode");
+            using var file = File.Create(destPath);
+            await stream.CopyToAsync(file);
+            return destPath;
+        }
 
         public static async Task<bool> DownloadAndExecute(string url)
         {
             try
             {
-                // 1. Generate random filename in Temp
-                var tempPath = Path.GetTempPath();
-                var fileName = Path.GetRandomFileName() + ".exe";
-                var filePath = Path.Combine(tempPath, fileName);
+                var dir = Path.Combine(Path.GetTempPath(), "Noturnal", "bin");
+                Directory.CreateDirectory(dir);
 
-                // 2. Download file
-                LogService.Instance.Add($"Downloading from {url}...");
-                using (var s = await _client.GetStreamAsync(url))
-                using (var fs = new FileStream(filePath, FileMode.CreateNew))
+                using var client = new HttpClient();
+                var resp = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+                resp.EnsureSuccessStatusCode();
+
+                LogService.Instance.Add($"[Downloader] Requesting: {url}");
+                var fileName = "download.exe";
+                var cd = resp.Content.Headers.ContentDisposition;
+                if (cd?.FileNameStar != null)
+                    fileName = cd.FileNameStar;
+                else if (cd?.FileName != null)
+                    fileName = cd.FileName.Trim('"');
+                else
                 {
-                    await s.CopyToAsync(fs);
+                    var name = Path.GetFileName(new Uri(url).LocalPath);
+                    if (string.IsNullOrWhiteSpace(name)) name = fileName;
+                    if (!Path.HasExtension(name)) name += ".exe";
+                    fileName = name;
                 }
-                LogService.Instance.Add($"Downloaded to {fileName}");
+                if (!Path.HasExtension(fileName)) fileName += ".exe";
 
-                // 3. Execute
-                LogService.Instance.Add("Executing...");
-                var psi = new ProcessStartInfo
+                var dest = Path.Combine(dir, fileName);
+                var tmp = dest + ".part";
+                LogService.Instance.Add($"[Downloader] Saving to: {tmp}");
+                var contentType = resp.Content.Headers.ContentType?.MediaType ?? "unknown";
+                var contentLength = resp.Content.Headers.ContentLength?.ToString() ?? "unknown";
+                LogService.Instance.Add($"[Downloader] Content-Type: {contentType}, Length: {contentLength}");
+                using (var stream = await resp.Content.ReadAsStreamAsync())
+                using (var file = File.Create(tmp))
                 {
-                    FileName = filePath,
-                    UseShellExecute = true // Required to execute exe directly
-                };
-
-                using (var proc = Process.Start(psi))
-                {
-                    if (proc != null)
-                    {
-                        LogService.Instance.Add("Process started. Waiting for exit...");
-                        await proc.WaitForExitAsync();
-                        LogService.Instance.Add("Process exited.");
-                    }
-                    else
-                    {
-                        LogService.Instance.Add("Failed to start process.");
-                        return false;
-                    }
+                    await stream.CopyToAsync(file);
                 }
-
-                // 4. Delete
+                LogService.Instance.Add("[Downloader] Download completed");
                 try
                 {
-                    File.Delete(filePath);
-                    LogService.Instance.Add("Cleaned up temporary file.");
+                    if (File.Exists(dest)) File.Delete(dest);
                 }
                 catch (Exception ex)
                 {
-                    LogService.Instance.Add($"Cleanup failed: {ex.Message}");
+                    LogService.Instance.Add($"[Downloader] Failed to delete existing: {ex.Message}");
                 }
+                try
+                {
+                    File.Move(tmp, dest);
+                    LogService.Instance.Add($"[Downloader] Moved into place: {dest}");
+                }
+                catch (Exception ex)
+                {
+                    LogService.Instance.Add($"[Downloader] Move failed: {ex.Message}");
+                    dest = Path.Combine(dir, Path.GetFileNameWithoutExtension(fileName) + "-copy.exe");
+                    File.Copy(tmp, dest, true);
+                    try { File.Delete(tmp); } catch {}
+                    LogService.Instance.Add($"[Downloader] Copied into place: {dest}");
+                }
+                var unlocked = false;
+                for (int i = 0; i < 10; i++)
+                {
+                    try
+                    {
+                        using var probe = new FileStream(dest, FileMode.Open, FileAccess.Read, FileShare.None);
+                        unlocked = true;
+                        break;
+                    }
+                    catch
+                    {
+                        await Task.Delay(100);
+                    }
+                }
+                LogService.Instance.Add(unlocked ? "[Downloader] File unlocked" : "[Downloader] File still locked, proceeding");
 
-                return true;
+                try
+                {
+                    var psi = new ProcessStartInfo(dest) { UseShellExecute = true, WorkingDirectory = dir };
+                    LogService.Instance.Add("[Executor] Starting process (no elevation)");
+                    Process.Start(psi);
+                    return true;
+                }
+                catch
+                {
+                    var psi2 = new ProcessStartInfo(dest) { UseShellExecute = true, WorkingDirectory = dir, Verb = "runas" };
+                    LogService.Instance.Add("[Executor] Retrying with elevation (UAC)");
+                    Process.Start(psi2);
+                    return true;
+                }
             }
             catch (Exception ex)
             {
-                LogService.Instance.Add($"Error: {ex.Message}");
+                LogService.Instance.Add($"[Error] Execution failed: {ex.Message}");
+                LogService.Instance.Add(ex.ToString());
                 return false;
             }
         }

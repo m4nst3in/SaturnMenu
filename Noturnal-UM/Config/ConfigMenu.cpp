@@ -302,7 +302,7 @@ namespace ConfigMenu {
 		TriggerBot::TTDtimeout = false;
 		Text::Trigger::HotKey = KeyMgr::GetKeyName(TriggerBot::HotKey);
 
-        MenuConfig::TeamCheck = true;
+        MenuConfig::TeamCheck = false;
         LegitBotConfig::VisibleCheck = true;
 
 

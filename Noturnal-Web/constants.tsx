@@ -9,7 +9,6 @@ export const PLANS = [
     features: [
       'Legit Aimbot',
       'Visuals (ESP/Chams)',
-      'Skin Changer',
       'Cloud Configs',
       'External Access'
     ],
@@ -23,10 +22,9 @@ export const PLANS = [
     features: [
       'Rage & Legit Aimbot',
       'Advanced Visuals',
-      'Inventory Changer',
       'Kernel Mode Driver (Ring 0)',
-      'HWID Spoofer included',
-      'Stream Proof'
+      'Stream Proof',
+      'Priority Support'
     ],
     driver: 'Kernel Mode',
     recommended: true
