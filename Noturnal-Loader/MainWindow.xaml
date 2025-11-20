@@ -10,7 +10,7 @@
         <Border Grid.Column="0" Background="{StaticResource Brush.Surface}" Effect="{DynamicResource ShadowEffect}" />
 
         <!-- Sidebar Content -->
-        <Grid Grid.Column="0" Padding="24,24,24,24">
+        <Grid Grid.Column="0" Margin="24,24,24,32">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -107,7 +107,7 @@
             </Border>
 
             <!-- Content Frame -->
-            <Grid Grid.Row="1" Padding="24,24,24,24">
+            <Grid Grid.Row="1" Margin="24,24,24,32">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
