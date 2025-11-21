@@ -2,7 +2,7 @@
   <ScrollViewer VerticalScrollBarVisibility="Auto">
     <StackPanel>
       <TextBlock Style="{StaticResource TextHeading}" Text="Subscription" Margin="0,0,0,12" Foreground="{StaticResource Brush.NoturnalTitleGradient}"/>
-      <StackPanel Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
+      <StackPanel Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" IsHitTestVisible="False">
         <Border Style="{StaticResource CardBorder}">
           <Grid>
             <Grid.ColumnDefinitions>
@@ -30,33 +30,38 @@
           </Grid>
         </Border>
       </StackPanel>
-      <ItemsControl ItemsSource="{Binding Cheats}" Visibility="{Binding HasCheats, Converter={StaticResource BoolToVis}}">
+      <ItemsControl x:Name="CheatsList" ItemsSource="{Binding Cheats}" Visibility="{Binding HasCheats, Converter={StaticResource BoolToVis}}" HorizontalAlignment="Stretch">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <VirtualizingStackPanel IsVirtualizing="True" VirtualizationMode="Standard"/>
           </ItemsPanelTemplate>
         </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemContainerStyle>
+          <Style TargetType="ContentPresenter">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+          </Style>
+        </ItemsControl.ItemContainerStyle>
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <Border Style="{StaticResource CardBorder}" MouseLeftButtonUp="Card_Click">
-              <Grid>
-                <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel>
-                  <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Image Source="pack://application:,,,/Assets/cs2.png" Width="24" Height="24" Margin="0,0,8,0" RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <TextBlock Text="{Binding Name}" FontSize="16"/>
-                    <Border Style="{StaticResource Badge}" Margin="8,0,0,0">
-                      <TextBlock Text="{Binding RemainingDays, StringFormat=Expires in {0}d}"/>
-                      </Border>
+            <Border Style="{StaticResource CardBorder}" HorizontalAlignment="Stretch" Cursor="Hand" MouseLeftButtonUp="Card_Click">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <StackPanel>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                      <Image Source="pack://application:,,,/Assets/cs2.png" Width="24" Height="24" Margin="0,0,8,0" RenderOptions.BitmapScalingMode="HighQuality"/>
+                      <TextBlock Text="{Binding Name}" FontSize="16"/>
+                      <Border Style="{StaticResource Badge}" Margin="8,0,0,0">
+                        <TextBlock Text="{Binding RemainingDays, StringFormat=Expires in {0}d}"/>
+                        </Border>
+                    </StackPanel>
+                    <TextBlock Text="{Binding Expiration, StringFormat=Valid until {0:MM/dd/yyyy}}" Foreground="{StaticResource Brush.TextSecondary}"/>
                   </StackPanel>
-                  <TextBlock Text="{Binding Expiration, StringFormat=Valid until {0:MM/dd/yyyy}}" Foreground="{StaticResource Brush.TextSecondary}"/>
-                </StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal"/>
-              </Grid>
-            </Border>
+                  <StackPanel Grid.Column="1" Orientation="Horizontal"/>
+                </Grid>
+              </Border>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>

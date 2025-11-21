@@ -11,11 +11,11 @@ namespace Noturnal.Loader.Views
             InitializeComponent();
             _vm = new LoginVM(user => shell.SetUser(user));
             DataContext = _vm;
+            _vm.TryAutoLogin();
         }
-        private void Login_Click(object sender, System.Windows.RoutedEventArgs e)
+        private void Pwd_PasswordChanged(object sender, System.Windows.RoutedEventArgs e)
         {
             _vm.Password = Pwd.Password;
-            _vm.LoginCommand.Execute(null);
         }
         private void OpenSite_Click(object sender, System.Windows.RoutedEventArgs e)
         {

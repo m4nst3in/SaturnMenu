@@ -26,6 +26,82 @@
         </Style.Triggers>
     </Style>
 
+    <!-- PasswordBox Style to match InputTextBox -->
+    <Style x:Key="InputPasswordBox" TargetType="PasswordBox">
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}"/>
+        <Setter Property="Background" Value="#161B22"/>
+        <Setter Property="BorderBrush" Value="#30363D"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="12,10"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="PasswordBox">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" SnapsToDevicePixels="True">
+                        <ScrollViewer x:Name="PART_ContentHost" Margin="0"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Brush.Accent}"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#1C2128"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Link Button Style -->
+    <Style x:Key="LinkButton" TargetType="Button">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Accent}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Foreground" Value="{StaticResource Brush.AccentSecondary}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Badge Style -->
+    <Style x:Key="Badge" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Brush.Accent}"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <!-- Shimmer Rectangle (placeholder) -->
+    <Style x:Key="ShimmerRectangle" TargetType="Rectangle">
+        <Setter Property="Fill" Value="{StaticResource Brush.Surface}"/>
+        <Setter Property="Opacity" Value="0.6"/>
+        <Setter Property="RadiusX" Value="4"/>
+        <Setter Property="RadiusY" Value="4"/>
+    </Style>
+
+    <!-- Console ListBox Style -->
+    <Style x:Key="ConsoleListBox" TargetType="ListBox">
+        <Setter Property="Background" Value="{StaticResource Brush.Surface}"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Outline}"/>
+        <Setter Property="Padding" Value="8"/>
+    </Style>
+
+    <!-- Action Buttons aliases -->
+    <Style x:Key="ActionAccentButton" TargetType="Button" BasedOn="{StaticResource AccentButton}"/>
+    <Style x:Key="ActionGhostButton" TargetType="Button" BasedOn="{StaticResource GhostButton}"/>
+
     <!-- Rounded Button Style - Base -->
     <Style x:Key="RoundedButton" TargetType="Button">
         <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}"/>
@@ -82,7 +158,7 @@
                                 <ColumnDefinition Width="6"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Rectangle Grid.Column="0" Width="4" Fill="{StaticResource Brush.Accent}" VerticalAlignment="Stretch" CornerRadius="2,0,0,2" Visibility="Collapsed" x:Name="ActiveBar"/>
+                            <Border Grid.Column="0" Width="4" Background="{StaticResource Brush.Accent}" VerticalAlignment="Stretch" CornerRadius="2,0,0,2" Visibility="Collapsed" x:Name="ActiveBar"/>
                             <ContentPresenter Grid.Column="1" Margin="12,0,12,0" VerticalAlignment="Center"/>
                         </Grid>
                     </Border>
@@ -222,10 +298,10 @@
         </Setter>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="BorderBrush" Value="{StaticResource Brush.AccentSecondary}"/>
+                <Setter Property="BorderBrush" Value="#3A5070"/>
                 <Setter Property="Effect">
                     <Setter.Value>
-                        <DropShadowEffect Color="#79C0FF" Opacity="0.35" ShadowDepth="0" BlurRadius="20"/>
+                        <DropShadowEffect Color="#000000" Opacity="0.18" ShadowDepth="0" BlurRadius="12"/>
                     </Setter.Value>
                 </Setter>
             </Trigger>

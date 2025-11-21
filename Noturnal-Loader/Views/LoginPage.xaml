@@ -3,12 +3,18 @@
     <Border Style="{StaticResource CardBorder}" Width="380" HorizontalAlignment="Center" VerticalAlignment="Center" Background="{StaticResource Brush.Surface}">
       <StackPanel>
         <TextBlock Style="{StaticResource Heading}" Text="Sign In"/>
+        <StackPanel Orientation="Horizontal" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
+          <ProgressBar Width="120" IsIndeterminate="True" Height="6" VerticalAlignment="Center"/>
+          <TextBlock Text="Autenticando..." Margin="8,0,0,0" Foreground="{StaticResource Brush.TextSecondary}"/>
+        </StackPanel>
+        <TextBlock Text="{Binding Status}" Foreground="{StaticResource Brush.TextSecondary}" Margin="0,4,0,8"/>
         <TextBlock Text="Enter to continue" Foreground="{StaticResource Brush.TextSecondary}" Margin="0,4,0,8"/>
         <TextBlock Text="Username" Margin="0,8,0,4" Foreground="{StaticResource Brush.TextSecondary}"/>
         <TextBox Style="{StaticResource InputTextBox}" Tag="Username" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
         <TextBlock Text="Password" Margin="0,12,0,4" Foreground="{StaticResource Brush.TextSecondary}"/>
-        <PasswordBox x:Name="Pwd" Style="{StaticResource InputPasswordBox}"/>
-        <Button Style="{StaticResource AccentButton}" Content="Sign In" Click="Login_Click" Margin="0,16,0,0"/>
+        <PasswordBox x:Name="Pwd" Style="{StaticResource InputPasswordBox}" PasswordChanged="Pwd_PasswordChanged"/>
+        <CheckBox Content="Remember me" IsChecked="{Binding RememberMe}" Margin="0,8,0,0" Foreground="{StaticResource Brush.TextSecondary}"/>
+        <Button Style="{StaticResource AccentButton}" Content="Sign In" Command="{Binding LoginCommand}" Margin="0,16,0,0"/>
         <Button Style="{StaticResource LinkButton}" Content="Open website to register" Click="OpenSite_Click" Margin="0,8,0,0"/>
         <TextBlock Text="Dev: admin / admin" Margin="0,10,0,0" Foreground="{StaticResource Brush.TextSecondary}" FontSize="11"/>
       </StackPanel>

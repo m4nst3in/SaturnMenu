@@ -13,7 +13,9 @@ namespace Noturnal.Loader.ViewModels
         public event PropertyChangedEventHandler? PropertyChanged;
         private readonly Frame _frame;
         public User CurrentUser { get; set; } = new User();
-        private string _selectedTab = "Injector";
+        private string _selectedTab = "Login";
+        private bool _isLoggedIn;
+        public bool IsLoggedIn { get => _isLoggedIn; private set { _isLoggedIn = value; OnPropertyChanged(nameof(IsLoggedIn)); NavigateInjectorCommand.RaiseCanExecuteChanged(); NavigateWebsiteCommand.RaiseCanExecuteChanged(); NavigateConfigCommand.RaiseCanExecuteChanged(); NavigateSupportCommand.RaiseCanExecuteChanged(); } }
         public string SelectedTab { get => _selectedTab; set { _selectedTab = value; OnPropertyChanged(nameof(SelectedTab)); } }
         public ObservableCollection<Toast> Toasts { get; } = ToastService.Instance.Toasts;
         public RelayCommand NavigateInjectorCommand { get; }
@@ -24,10 +26,10 @@ namespace Noturnal.Loader.ViewModels
         public ShellVM(Frame frame)
         {
             _frame = frame;
-            NavigateInjectorCommand = new RelayCommand(() => { SelectedTab = "Injector"; _frame.Navigate(new Views.InjectorPage()); });
-            NavigateWebsiteCommand = new RelayCommand(() => { SelectedTab = "Website"; _frame.Navigate(new Views.WebsitePage()); });
-            NavigateConfigCommand = new RelayCommand(() => { SelectedTab = "Settings"; _frame.Navigate(new Views.ConfigPage()); });
-            NavigateSupportCommand = new RelayCommand(() => { SelectedTab = "Support"; _frame.Navigate(new Views.SupportPage()); });
+            NavigateInjectorCommand = new RelayCommand(() => { SelectedTab = "Injector"; _frame.Navigate(new Views.InjectorPage()); }, () => IsLoggedIn);
+            NavigateWebsiteCommand = new RelayCommand(() => { SelectedTab = "Website"; _frame.Navigate(new Views.WebsitePage()); }, () => IsLoggedIn);
+            NavigateConfigCommand = new RelayCommand(() => { SelectedTab = "Settings"; _frame.Navigate(new Views.ConfigPage()); }, () => IsLoggedIn);
+            NavigateSupportCommand = new RelayCommand(() => { SelectedTab = "Support"; _frame.Navigate(new Views.SupportPage()); }, () => IsLoggedIn);
             _frame.Navigate(new Views.LoginPage(this));
         }
         public void SetUser(User user)
@@ -35,6 +37,7 @@ namespace Noturnal.Loader.ViewModels
             CurrentUser = user;
             OnPropertyChanged(nameof(CurrentUser));
             ToastService.Instance.ShowSuccess("Welcome, " + user.DisplayName + ".");
+            IsLoggedIn = true;
             SelectedTab = "Injector";
             _frame.Navigate(new Views.InjectorPage());
         }

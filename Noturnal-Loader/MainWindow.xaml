@@ -1,4 +1,4 @@
-<Window x:Class="Noturnal.Loader.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Noturnal" Height="700" Width="1000" WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" WindowStyle="None" UseLayoutRounding="True" SnapsToDevicePixels="True" Background="{StaticResource Brush.Background}">
+<Window x:Class="Noturnal.Loader.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Noturnal" Height="600" Width="800" WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" WindowStyle="None" UseLayoutRounding="True" SnapsToDevicePixels="True" Background="{StaticResource Brush.Background}">
     <Grid>
         <!-- Main Layout: Sidebar + Content -->
         <Grid.ColumnDefinitions>
@@ -7,7 +7,11 @@
         </Grid.ColumnDefinitions>
 
         <!-- Sidebar Background -->
-        <Border Grid.Column="0" Background="{StaticResource Brush.Surface}" Effect="{DynamicResource ShadowEffect}" />
+        <Border Grid.Column="0" Background="{StaticResource Brush.Surface}">
+            <Border.Effect>
+                <DropShadowEffect Color="#000000" Opacity="0.15" BlurRadius="8" ShadowDepth="0"/>
+            </Border.Effect>
+        </Border>
 
         <!-- Sidebar Content -->
         <Grid Grid.Column="0" Margin="24,24,24,32">
@@ -23,38 +27,38 @@
                     <Image Source="Assets/logo.png" Width="48" Height="48" Margin="0,0,12,0" RenderOptions.BitmapScalingMode="HighQuality" Stretch="Uniform"/>
                     <TextBlock Text="Noturnal" FontSize="28" FontWeight="Bold" Foreground="{StaticResource Brush.NoturnalTitleGradient}" VerticalAlignment="Center"/>
                 </StackPanel>
-                <TextBlock Text="Mod Menu Loader" FontSize="12" Foreground="{StaticResource Brush.TextSecondary}" Margin="0,0,0,8"/>
+                
                 <Border Height="1" Background="{StaticResource Brush.Outline}" Margin="-4,0,-4,0"/>
             </StackPanel>
 
             <!-- Navigation Menu -->
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                <StackPanel Orientation="Vertical" Spacing="8">
-                    <Button Tag="Injector" Style="{StaticResource NavButton}" Command="{Binding NavigateInjectorCommand}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="" FontSize="20" Width="24" TextAlignment="Center"/>
-                            <TextBlock Text="Injector" FontSize="14" VerticalAlignment="Center"/>
+                <StackPanel Orientation="Vertical">
+                    <Button Tag="Injector" Style="{StaticResource NavButton}" Command="{Binding NavigateInjectorCommand}" IsEnabled="{Binding IsLoggedIn}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE896;" FontSize="20" Width="24" TextAlignment="Center"/>
+                            <TextBlock Text="Injector" FontSize="14" VerticalAlignment="Center" Margin="12,0,0,0"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Tag="Website" Style="{StaticResource NavButton}" Command="{Binding NavigateWebsiteCommand}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="" FontSize="20" Width="24" TextAlignment="Center"/>
-                            <TextBlock Text="Website" FontSize="14" VerticalAlignment="Center"/>
+                    <Button Tag="Website" Style="{StaticResource NavButton}" Command="{Binding NavigateWebsiteCommand}" IsEnabled="{Binding IsLoggedIn}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE774;" FontSize="20" Width="24" TextAlignment="Center"/>
+                            <TextBlock Text="Website" FontSize="14" VerticalAlignment="Center" Margin="12,0,0,0"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Tag="Settings" Style="{StaticResource NavButton}" Command="{Binding NavigateConfigCommand}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="" FontSize="20" Width="24" TextAlignment="Center"/>
-                            <TextBlock Text="Settings" FontSize="14" VerticalAlignment="Center"/>
+                    <Button Tag="Settings" Style="{StaticResource NavButton}" Command="{Binding NavigateConfigCommand}" IsEnabled="{Binding IsLoggedIn}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE713;" FontSize="20" Width="24" TextAlignment="Center"/>
+                            <TextBlock Text="Settings" FontSize="14" VerticalAlignment="Center" Margin="12,0,0,0"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Tag="Support" Style="{StaticResource NavButton}" Command="{Binding NavigateSupportCommand}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="" FontSize="20" Width="24" TextAlignment="Center"/>
-                            <TextBlock Text="Support" FontSize="14" VerticalAlignment="Center"/>
+                    <Button Tag="Support" Style="{StaticResource NavButton}" Command="{Binding NavigateSupportCommand}" IsEnabled="{Binding IsLoggedIn}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE897;" FontSize="20" Width="24" TextAlignment="Center"/>
+                            <TextBlock Text="Support" FontSize="14" VerticalAlignment="Center" Margin="12,0,0,0"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -88,21 +92,9 @@
             </Grid.RowDefinitions>
 
             <!-- Title Bar -->
-            <Border Grid.Row="0" Background="{StaticResource Brush.Background}" BorderBrush="{StaticResource Brush.Outline}" BorderThickness="0,0,0,1">
-                <Grid Padding="24,0,24,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Welcome" FontSize="24" FontWeight="Bold" VerticalAlignment="Center" Foreground="{StaticResource Brush.TextPrimary}"/>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <Button Width="36" Height="36" Style="{StaticResource GhostButton}" Click="Minimize_Click">
-                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="" FontSize="16"/>
-                        </Button>
-                        <Button Width="36" Height="36" Style="{StaticResource GhostButton}" Click="Close_Click">
-                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="" FontSize="16"/>
-                        </Button>
-                    </StackPanel>
+            <Border Grid.Row="0" x:Name="TitleBar" Background="{StaticResource Brush.Background}" BorderBrush="{StaticResource Brush.Outline}" BorderThickness="0,0,0,1" Padding="24,0,24,0">
+                <Grid>
+                    <TextBlock Text="{Binding SelectedTab}" FontSize="24" FontWeight="Bold" VerticalAlignment="Center" Foreground="{StaticResource Brush.TextPrimary}"/>
                 </Grid>
             </Border>
 
