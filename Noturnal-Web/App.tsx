@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
@@ -9,6 +8,9 @@ import { Wiki } from './pages/Wiki';
 import { Auth } from './pages/Auth';
 import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
+import { Configs } from './pages/Configs';
+import { Support } from './pages/Support';
+import { Watchtower } from './pages/Watchtower';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocialProof } from './components/SocialProof';
 
@@ -36,6 +38,9 @@ const AppRoutes: React.FC = () => {
       <Route path="/" element={<Home />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/wiki" element={<Wiki />} />
+      <Route path="/configs" element={<Configs />} />
+      <Route path="/support" element={<Support />} />
+      <Route path="/watchtower" element={<Watchtower />} />
       <Route path="/auth" element={<Auth />} />
       <Route 
         path="/dashboard" 

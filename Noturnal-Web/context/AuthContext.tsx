@@ -61,7 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const resetHwid = async () => {
     if (!state.user) return;
-    const updatedUser = await api.resetHwid();
+    const updatedUser = await api.resetHwid(state.user);
     localStorage.setItem('noturnal_user', JSON.stringify(updatedUser));
     setState({ ...state, user: updatedUser });
   };

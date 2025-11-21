@@ -1,15 +1,16 @@
-
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Shield, Target, Eye, Play, Terminal, Cpu, Zap, Lock, Ghost, Activity, Cloud, Layers } from 'lucide-react';
+import { ChevronRight, Shield, Target, Eye, Play, Terminal, Cpu, Zap, Lock, Ghost, Activity, Cloud, Layers, Check, X, AlertCircle, Minus } from 'lucide-react';
 import { ParticleBackground } from '../components/ParticleBackground';
 import { ImguiPreviewModal } from '../components/ImguiPreviewModal';
 import { TextScramble } from '../components/TextScramble';
 import { MatrixSidebar } from '../components/MatrixSidebar';
+import { useSound } from '../hooks/useSound';
 
 export const Home: React.FC = () => {
   const [showPreview, setShowPreview] = React.useState(false);
   const cardsRef = useRef<HTMLDivElement>(null);
+  const { playSound } = useSound();
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -35,6 +36,15 @@ export const Home: React.FC = () => {
       <MatrixSidebar />
 
       <ParticleBackground />
+
+      {/* Feature 10: Video Background - Using a high-quality abstract tech loop via CSS overlay or if available, video tag. 
+          Since I cannot fetch external assets reliably without URL, I will use a CSS-based complex animated gradient that simulates a video loop.
+      */}
+      <div className="absolute inset-0 z-0 opacity-20 mix-blend-screen pointer-events-none overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(118,69,253,0.2),transparent_70%)] animate-pulse-slow"></div>
+          {/* Abstract Grid Overlay */}
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+      </div>
 
       {/* Aurora Effect */}
       <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-noturnal-600/20 rounded-full blur-[120px] pointer-events-none animate-pulse-slow mix-blend-screen"></div>
@@ -70,12 +80,15 @@ export const Home: React.FC = () => {
 
           {/* Buttons - Liquid Neon Effect */}
           <div className="mt-12 flex flex-col sm:flex-row justify-center gap-5 animate-fade-in-up opacity-0 [animation-delay:400ms]">
-            <Link to="/pricing" className="btn-liquid group relative px-8 py-4 text-white rounded-full font-bold text-sm tracking-wide overflow-hidden transition-transform hover:scale-105">
+            <Link to="/pricing" onClick={() => playSound('click')} className="btn-liquid group relative px-8 py-4 text-white rounded-full font-bold text-sm tracking-wide overflow-hidden transition-transform hover:scale-105">
               <span className="relative z-10 flex items-center gap-2">
                 Get Access <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </span>
             </Link>
-            <button onClick={() => setShowPreview(true)} className="px-8 py-4 bg-white/5 border border-white/10 text-white rounded-full font-bold text-sm tracking-wide hover:bg-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2 backdrop-blur-sm hover:shadow-[0_0_30px_rgba(118,69,253,0.15)]">
+            <button 
+              onClick={() => { playSound('click'); setShowPreview(true); }} 
+              className="px-8 py-4 bg-white/5 border border-white/10 text-white rounded-full font-bold text-sm tracking-wide hover:bg-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2 backdrop-blur-sm hover:shadow-[0_0_30px_rgba(118,69,253,0.15)]"
+            >
               <Terminal className="w-4 h-4 text-noturnal-400" />
               Simulate Menu
             </button>
@@ -231,6 +244,60 @@ export const Home: React.FC = () => {
             </div>
 
           </div>
+        </div>
+      </div>
+
+      {/* Comparison Section ("Nós vs Eles") */}
+      <div className="py-24 relative z-10 border-t border-white/5 bg-[#050505]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+           <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">The <span className="text-noturnal-400">Hierarchy</span></h2>
+              <p className="text-gray-400 max-w-2xl mx-auto">Why elite players choose Noturnal over risk-prone public cheats.</p>
+           </div>
+
+           <div className="overflow-x-auto">
+             <div className="min-w-[800px]">
+               <div className="grid grid-cols-4 gap-4 text-sm">
+                 {/* Header */}
+                 <div className="p-4"></div>
+                 <div className="p-4 text-center font-bold text-gray-500 uppercase tracking-widest">Public Free Cheats</div>
+                 <div className="p-4 text-center font-bold text-gray-500 uppercase tracking-widest">Other Paid Providers</div>
+                 <div className="p-4 text-center font-bold text-white uppercase tracking-widest bg-noturnal-900/20 rounded-t-xl border-x border-t border-noturnal-500/30 relative overflow-hidden">
+                    <span className="relative z-10">Noturnal Premium</span>
+                    <div className="absolute inset-0 bg-noturnal-600/10 animate-pulse"></div>
+                 </div>
+
+                 {/* Rows */}
+                 {[
+                   { feat: 'Detection Status', free: 'Detected (Daily)', other: 'Partial / Risks', us: 'Undetected (Kernel)' },
+                   { feat: 'Performance Impact', free: 'High Lag / Crashes', other: 'Medium Impact', us: 'Zero Impact (Optimized)' },
+                   { feat: 'Support', free: 'None', other: 'Ticket (Slow)', us: '24/7 Live Agent' },
+                   { feat: 'Setup Difficulty', free: 'Complex', other: 'Moderate', us: '1-Click Load' },
+                   { feat: 'Config Cloud', free: 'No', other: 'Local Files', us: 'Cloud Config Sync' },
+                 ].map((row, i) => (
+                   <React.Fragment key={i}>
+                     <div className="p-6 flex items-center font-bold text-gray-300 bg-white/5 rounded-xl border border-white/5">{row.feat}</div>
+                     
+                     <div className="p-6 flex flex-col items-center justify-center text-center bg-[#0a0a0c] border border-white/5 rounded-xl">
+                        <AlertCircle className="w-6 h-6 text-red-500 mb-2" />
+                        <span className="text-gray-500 text-xs">{row.free}</span>
+                     </div>
+                     
+                     <div className="p-6 flex flex-col items-center justify-center text-center bg-[#0a0a0c] border border-white/5 rounded-xl">
+                        <Minus className="w-6 h-6 text-yellow-500 mb-2" />
+                        <span className="text-gray-400 text-xs">{row.other}</span>
+                     </div>
+                     
+                     <div className="p-6 flex flex-col items-center justify-center text-center bg-noturnal-900/10 border-x border-noturnal-500/20 relative">
+                        {i === 4 && <div className="absolute bottom-0 left-0 w-full h-1 bg-noturnal-500 rounded-full shadow-[0_0_10px_#7645fd]"></div>}
+                        <Check className="w-8 h-8 text-green-400 mb-2 drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]" />
+                        <span className="text-white font-bold text-xs">{row.us}</span>
+                     </div>
+                   </React.Fragment>
+                 ))}
+               </div>
+             </div>
+           </div>
         </div>
       </div>
 

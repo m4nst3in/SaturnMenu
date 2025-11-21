@@ -94,19 +94,21 @@ void AimControl::AimBot(const CEntity& Local, std::vector<std::pair<int, CEntity
     for (auto& [idx, ent] : EntityList) {
         if (ent.Pawn.Health <= 0) continue;
         if (!Cheats::IsFFA() && ent.Pawn.TeamID == localTeam) continue;
-        DWORD64 visibleMask = ent.Pawn.bSpottedByMask;
-        if (!(visibleMask & (1ULL << (Local.Pawn.Address & 0x3F)))) continue;
 
         int headIdx = AimControl::HitboxList.empty() ? BONEINDEX::head : AimControl::HitboxList[0];
         Vec3 head = GetBonePos(ent.Pawn.BoneData, headIdx);
         Vec2 screenHead;
         if (!gGame.View.WorldToScreen(head, screenHead)) continue;
 
-        // Pixel distance (legit + rápido!)
+        bool visible = true;
+
         float screenDistance = std::hypot(screenHead.x - ScreenCenterX, screenHead.y - ScreenCenterY);
 
-        // Pode também checar se está dentro do AimFov transformado para radius visual (tela)
-        float aimFovRadius = AimFov * 9.0f; // ajuste para seu field of view real
+        constexpr float DEG_TO_RAD = 3.14159265358979323846f / 180.f;
+        float halfWindowSize = Gui.Window.Size.x / 2.f;
+        float staticFovTan = tan(90.0f * DEG_TO_RAD / 2.f);
+        float aimFovTan = tan(AimControl::AimFov * DEG_TO_RAD / 2.f);
+        float aimFovRadius = (aimFovTan / staticFovTan) * halfWindowSize;
         if (screenDistance < BestScreenDistance && screenDistance <= aimFovRadius) {
             BestScreenDistance = screenDistance;
             targetEnt = &ent;

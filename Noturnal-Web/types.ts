@@ -15,6 +15,13 @@ export interface User {
     plan: PlanType | null;
     expiresAt: string | null;
   };
+  gamification?: {
+    level: number;
+    xp: number;
+    nextLevelXp: number;
+    rank: string;
+    badges: string[];
+  };
 }
 
 export interface AuthState {
@@ -33,4 +40,45 @@ export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
   timestamp: number;
+}
+
+export type ConfigType = 'LEGIT' | 'RAGE' | 'SEMI' | 'HVH';
+
+export interface ConfigItem {
+  id: string;
+  name: string;
+  author: string;
+  authorId: string;
+  type: ConfigType;
+  price: number; // 0 = Free
+  downloads: number;
+  rating: number;
+  shareCode: string;
+  description: string;
+  lastUpdated: string;
+  verified: boolean;
+}
+
+// Support System Types
+export type TicketStatus = 'OPEN' | 'ANSWERED' | 'CLOSED';
+export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type TicketCategory = 'GENERAL' | 'TECHNICAL' | 'BILLING' | 'BUG_REPORT';
+
+export interface TicketMessage {
+  id: string;
+  sender: 'user' | 'admin' | 'system';
+  text: string;
+  timestamp: string;
+}
+
+export interface Ticket {
+  id: string;
+  userId: string;
+  subject: string;
+  category: TicketCategory;
+  priority: TicketPriority;
+  status: TicketStatus;
+  createdAt: string;
+  lastUpdated: string;
+  messages: TicketMessage[];
 }

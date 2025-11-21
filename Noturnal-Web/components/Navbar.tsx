@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, LogOut, Bell, User, Sparkles, Orbit } from 'lucide-react';
+import { Menu, X, LogOut, User, Sparkles, Orbit, Activity, Box, Cloud } from 'lucide-react';
+import { useSound } from '../hooks/useSound';
 
 export const Navbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const location = useLocation();
+  const { playSound } = useSound();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,7 +34,7 @@ export const Navbar: React.FC = () => {
           
           {/* Logo Section */}
           <div className="flex items-center gap-3 shrink-0">
-            <Link to="/" className="flex items-center gap-2 group">
+            <Link to="/" className="flex items-center gap-2 group" onMouseEnter={() => playSound('hover')}>
               <div className="relative flex items-center justify-center">
                  <div className="absolute inset-0 bg-noturnal-500 blur-lg opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
                  <Orbit className={`text-noturnal-400 transition-all duration-500 ${scrolled ? 'w-5 h-5' : 'w-6 h-6'} group-hover:rotate-180`} />
@@ -46,11 +47,12 @@ export const Navbar: React.FC = () => {
           
           {/* Desktop Navigation */}
           <div className={`hidden md:flex items-center ${scrolled ? 'gap-1' : 'gap-8'}`}>
-            {['/', '/pricing', '/wiki'].map((path) => (
+            {['/', '/pricing', '/configs', '/wiki', '/support'].map((path) => (
               <Link 
                 key={path}
                 to={path} 
-                className={`relative text-sm font-medium transition-colors duration-300
+                onMouseEnter={() => playSound('hover')}
+                className={`relative text-sm font-medium transition-colors duration-300 flex items-center gap-1
                   ${scrolled 
                     ? `px-4 py-1.5 rounded-full ${isActive(path) ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`
                     : `${isActive(path) ? 'text-white' : 'text-gray-400 hover:text-white'}`
@@ -63,19 +65,11 @@ export const Navbar: React.FC = () => {
                 )}
               </Link>
             ))}
-            {isAuthenticated && (
-               <Link 
-                 to="/dashboard"
-                 className={`relative text-sm font-medium transition-colors duration-300
-                  ${scrolled 
-                    ? `px-4 py-1.5 rounded-full ${isActive('/dashboard') ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`
-                    : `${isActive('/dashboard') ? 'text-white' : 'text-gray-400 hover:text-white'}`
-                  }
-                `}
-               >
-                 Dashboard
-               </Link>
-            )}
+            
+            {/* Hidden / Extra Features Links */}
+            <Link to="/watchtower" onMouseEnter={() => playSound('hover')} className={`relative text-sm font-medium transition-colors duration-300 ${scrolled ? 'p-2 rounded-full hover:bg-white/5' : ''}`}>
+               <Activity className="w-4 h-4 text-red-400" />
+            </Link>
           </div>
 
           {/* Right Actions */}
@@ -84,7 +78,8 @@ export const Navbar: React.FC = () => {
                <div className="flex items-center gap-2">
                  <div className="h-4 w-px bg-white/10 mx-1"></div>
                  
-                 <Link to="/profile" className="group flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-white/5 transition-all border border-transparent hover:border-white/5">
+                 {/* User Symbol acts as Dashboard Access */}
+                 <Link to="/dashboard" onMouseEnter={() => playSound('hover')} className="group flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-white/5 transition-all border border-transparent hover:border-white/5">
                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-noturnal-500 to-noturnal-800 p-[1px]">
                       <div className="w-full h-full rounded-full bg-dark-bg flex items-center justify-center group-hover:bg-transparent transition-colors">
                          <User className="w-3 h-3 text-white" />
@@ -93,12 +88,12 @@ export const Navbar: React.FC = () => {
                     {!scrolled && <span className="text-xs font-medium text-gray-300">{user?.username}</span>}
                  </Link>
                  
-                 <button onClick={logout} className="text-gray-500 hover:text-red-400 transition-colors p-1.5 rounded-full hover:bg-red-500/10">
+                 <button onClick={() => { playSound('click'); logout(); }} className="text-gray-500 hover:text-red-400 transition-colors p-1.5 rounded-full hover:bg-red-500/10">
                    <LogOut className="w-4 h-4" />
                  </button>
                </div>
             ) : (
-              <Link to="/auth" className={`group relative rounded-full font-semibold text-xs overflow-hidden transition-all
+              <Link to="/auth" onMouseEnter={() => playSound('hover')} className={`group relative rounded-full font-semibold text-xs overflow-hidden transition-all
                 ${scrolled 
                   ? "bg-white text-black px-4 py-1.5 hover:scale-105" 
                   : "bg-noturnal-600 text-white px-6 py-2.5 hover:bg-noturnal-500 shadow-[0_0_20px_rgba(118,69,253,0.3)]"
@@ -114,7 +109,7 @@ export const Navbar: React.FC = () => {
           {/* Mobile Toggle */}
           <div className="md:hidden flex items-center">
             <button
-              onClick={() => setIsOpen(!isOpen)}
+              onClick={() => { playSound('click'); setIsOpen(!isOpen); }}
               className="text-gray-400 hover:text-white p-1"
             >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -128,11 +123,15 @@ export const Navbar: React.FC = () => {
             <div className="space-y-1">
               <Link to="/" className="block px-4 py-3 rounded-xl hover:bg-white/5 text-gray-300 text-sm font-medium" onClick={() => setIsOpen(false)}>Home</Link>
               <Link to="/pricing" className="block px-4 py-3 rounded-xl hover:bg-white/5 text-gray-300 text-sm font-medium" onClick={() => setIsOpen(false)}>Pricing</Link>
+              <Link to="/configs" className="block px-4 py-3 rounded-xl hover:bg-white/5 text-gray-300 text-sm font-medium" onClick={() => setIsOpen(false)}>Configs</Link>
               <Link to="/wiki" className="block px-4 py-3 rounded-xl hover:bg-white/5 text-gray-300 text-sm font-medium" onClick={() => setIsOpen(false)}>Wiki</Link>
+              <Link to="/support" className="block px-4 py-3 rounded-xl hover:bg-white/5 text-gray-300 text-sm font-medium" onClick={() => setIsOpen(false)}>Support</Link>
+              <Link to="/watchtower" className="block px-4 py-3 rounded-xl hover:bg-white/5 text-red-400 text-sm font-medium" onClick={() => setIsOpen(false)}>Watchtower Status</Link>
               {isAuthenticated ? (
                 <>
                   <div className="h-px bg-white/5 my-2 mx-4"></div>
                   <Link to="/dashboard" className="block px-4 py-3 rounded-xl hover:bg-white/5 text-gray-300 text-sm font-medium" onClick={() => setIsOpen(false)}>Dashboard</Link>
+                  <Link to="/profile" className="block px-4 py-3 rounded-xl hover:bg-white/5 text-gray-300 text-sm font-medium" onClick={() => setIsOpen(false)}>Profile</Link>
                   <button onClick={() => { logout(); setIsOpen(false); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-red-500/10 text-red-400 text-sm font-medium">Logout</button>
                 </>
               ) : (

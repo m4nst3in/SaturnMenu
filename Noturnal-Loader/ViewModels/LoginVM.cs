@@ -53,15 +53,30 @@ namespace Noturnal.Loader.ViewModels
             if (IsLoading) return;
             if (CredentialStore.TryGet(out var u, out var p))
             {
+                if (string.IsNullOrWhiteSpace(u) || string.IsNullOrWhiteSpace(p))
+                {
+                    CredentialStore.Clear();
+                    return;
+                }
                 try
                 {
                     IsLoading = true; Status = "Autenticando...";
                     Username = u; Password = p; RememberMe = true;
                     var res = await AuthService.Instance.LoginAsync(u, p);
-                    if (res.user != null) System.Windows.Application.Current.Dispatcher.Invoke(() => _onLogin(res.user));
-                    else { Status = res.error ?? "Falha no login."; ToastService.Instance.ShowError(Status); }
+                    if (res.user != null)
+                    {
+                        System.Windows.Application.Current.Dispatcher.Invoke(() => _onLogin(res.user));
+                    }
+                    else
+                    {
+                        // Em auto-login não exibir erro para não poluir a UI na inicialização
+                        // Se credenciais inválidas, limpar o store para evitar repetição do erro
+                        if ((res.error ?? "").ToLowerInvariant().Contains("invalid credentials"))
+                            CredentialStore.Clear();
+                        Status = "";
+                    }
                 }
-                catch { Status = "Erro de rede ao autenticar."; ToastService.Instance.Show("Erro de rede ao autenticar."); }
+                catch { Status = ""; }
                 finally { IsLoading = false; }
             }
         }

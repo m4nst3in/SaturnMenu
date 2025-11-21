@@ -122,10 +122,10 @@ namespace ESPConfig
     
 	inline bool ArmorBar = false;
     
-	inline bool ShowHeadBox = true;
-	inline bool ShowPreview = true;
-	inline bool VisibleCheck = false;
-	inline bool FilledBox = false;
+    inline bool ShowHeadBox = true;
+    inline bool ShowPreview = true;
+    inline bool VisibleCheck = false;
+    inline bool FilledBox = false;
 	inline bool FilledVisBox = false;
 	inline bool MultiColor = false;
 	inline bool OutLine = true;
@@ -144,11 +144,12 @@ namespace ESPConfig
     inline ImColor BoxColor = ImColor(124, 58, 237, 180);
     
     inline ImColor HeadBoxColor = ImColor(255, 255, 255, 255);
-	inline ImColor VisibleColor = ImColor(59, 71, 148, 180);
-	inline ImColor FilledColor = ImColor(59, 71, 148, 128);
-	inline ImColor BoxFilledVisColor = ImColor(0, 98, 98, 128);
-	inline ImColor FilledColor2 = ImColor(59, 71, 148, 128);
+    inline ImColor VisibleColor = ImColor(59, 71, 148, 180);
+    inline ImColor FilledColor = ImColor(59, 71, 148, 128);
+    inline ImColor BoxFilledVisColor = ImColor(0, 98, 98, 128);
+    inline ImColor FilledColor2 = ImColor(59, 71, 148, 128);
 
+    
     inline bool ShowOutOfFOVArrow = false;
     inline float OutOfFOVRadiusFactor = 0.45f;
     inline ImColor OutOfFOVArrowColor = ImColor(255, 180, 50, 230);

@@ -33,6 +33,36 @@ int __cdecl IsDriverReady()
     return g_driverReady ? 1 : 0;
 }
 
+int __cdecl QueryDriverStatus()
+{
+    const wchar_t* devName = L"\\\\.\\Noturnal-KM";
+    const DWORD IOCTL_QUERY_STATUS = (0x8000 << 16) | (0x4458 << 2) | 0x00000003; // FILE_SPECIAL_ACCESS + METHOD_BUFFERED
+    HANDLE h = CreateFileW(devName, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (h == INVALID_HANDLE_VALUE) {
+        return 0;
+    }
+    DWORD inout = 0; DWORD ret = 0;
+    BOOL ok = DeviceIoControl(h, IOCTL_QUERY_STATUS, &inout, sizeof(inout), &inout, sizeof(inout), &ret, NULL);
+    CloseHandle(h);
+    if (ok && inout == 1) {
+        g_driverReady = true;
+        return 1;
+    }
+    return 0;
+}
+
+unsigned int __cdecl GetDriverVersion()
+{
+    const wchar_t* devName = L"\\\\.\\Noturnal-KM";
+    const DWORD IOCTL_GET_VERSION = (0x8000 << 16) | (0x4459 << 2) | 0x00000003;
+    HANDLE h = CreateFileW(devName, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (h == INVALID_HANDLE_VALUE) return 0;
+    DWORD ver = 0; DWORD ret = 0;
+    BOOL ok = DeviceIoControl(h, IOCTL_GET_VERSION, &ver, sizeof(ver), &ver, sizeof(ver), &ret, NULL);
+    CloseHandle(h);
+    return ok ? ver : 0;
+}
+
 int __cdecl LoadKernelFromMemory(const unsigned char* payload, int size, void* statusOut)
 {
     log("LoadKernelFromMemory called");

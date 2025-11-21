@@ -7,3 +7,5 @@ extern "C" __declspec(dllexport) int __cdecl LoadKernelFromMemory(const unsigned
 typedef void (__cdecl *log_cb)(const char* msg);
 extern "C" __declspec(dllexport) void __cdecl SetLogger(log_cb cb);
 extern "C" __declspec(dllexport) int __cdecl RunExeFromMemory(const unsigned char* exe, int size, const wchar_t* hostPath);
+extern "C" __declspec(dllexport) int __cdecl QueryDriverStatus();
+extern "C" __declspec(dllexport) unsigned int __cdecl GetDriverVersion();

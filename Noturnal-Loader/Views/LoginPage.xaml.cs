@@ -1,5 +1,7 @@
 using System.Windows.Controls;
+using System.Linq;
 using Noturnal.Loader.ViewModels;
+using System.Windows;
 
 namespace Noturnal.Loader.Views
 {
@@ -12,6 +14,9 @@ namespace Noturnal.Loader.Views
             _vm = new LoginVM(user => shell.SetUser(user));
             DataContext = _vm;
             _vm.TryAutoLogin();
+            #if !DEBUG
+            DevHint.Visibility = Visibility.Collapsed;
+            #endif
         }
         private void Pwd_PasswordChanged(object sender, System.Windows.RoutedEventArgs e)
         {

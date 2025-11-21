@@ -77,12 +77,6 @@ namespace MyConfigSaver
         ConfigData["ESP"]["BoxColor"]["g"]=         ESPConfig::BoxColor.Value.y;
         ConfigData["ESP"]["BoxColor"]["b"]=         ESPConfig::BoxColor.Value.z;
         ConfigData["ESP"]["BoxColor"]["a"]=         ESPConfig::BoxColor.Value.w;
-
-        
-
-        
-
-        
         
         ConfigData["ESP"]["VisibleColor"]["r"]=     ESPConfig::VisibleColor.Value.x;
         ConfigData["ESP"]["VisibleColor"]["g"]=     ESPConfig::VisibleColor.Value.y;
@@ -308,6 +302,8 @@ namespace MyConfigSaver
             ESPConfig::BoxColor.Value.y = ReadData(ConfigData["ESP"], { "BoxColor","g" }, 0.f);
             ESPConfig::BoxColor.Value.z = ReadData(ConfigData["ESP"], { "BoxColor","b" }, 0.f);
             ESPConfig::BoxColor.Value.w = ReadData(ConfigData["ESP"], { "BoxColor","a" }, 255.f);
+
+            
 
             
 

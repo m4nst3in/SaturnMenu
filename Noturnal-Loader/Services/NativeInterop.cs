@@ -11,6 +11,8 @@ namespace Noturnal.Loader.Services
         [DllImport("NoturnalNative.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int IsDriverReady();
         [DllImport("NoturnalNative.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int QueryDriverStatus();
+        [DllImport("NoturnalNative.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int LoadKernelFromMemory(byte[] payload, int size, System.IntPtr statusOut);
         [DllImport("NoturnalNative.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
         public static extern int RunExeFromMemory(byte[] exe, int size, string hostPath);

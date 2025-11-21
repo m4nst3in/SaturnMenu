@@ -39,7 +39,19 @@ namespace Noturnal.Loader.Services
                 var dir = Path.Combine(Path.GetTempPath(), "Noturnal", "bin");
                 Directory.CreateDirectory(dir);
 
-                using var client = new HttpClient();
+                using var handler = new HttpClientHandler();
+                handler.ServerCertificateCustomValidationCallback = (req, cert, chain, errors) => {
+                    try {
+                        if (cert == null) return false;
+                        var pub = cert.GetPublicKey();
+                        using var sha = System.Security.Cryptography.SHA256.Create();
+                        var hash = System.BitConverter.ToString(sha.ComputeHash(pub)).Replace("-", "").ToLowerInvariant();
+                        if (!string.IsNullOrEmpty(SecurityConfig.PinnedPublicKeyHash))
+                            return hash == SecurityConfig.PinnedPublicKeyHash;
+                        return true;
+                    } catch { return false; }
+                };
+                using var client = new HttpClient(handler);
                 var resp = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
                 resp.EnsureSuccessStatusCode();
 
@@ -107,6 +119,31 @@ namespace Noturnal.Loader.Services
                     }
                 }
                 LogService.Instance.Add(unlocked ? "[Downloader] File unlocked" : "[Downloader] File still locked, proceeding");
+
+                // Validar hash/assinatura fornecidos pelo servidor
+                try {
+                    var headers = resp.Headers;
+                    var sig = headers.Contains("X-Signature") ? string.Join("", headers.GetValues("X-Signature")) : "";
+                    var h = headers.Contains("X-Content-SHA256") ? string.Join("", headers.GetValues("X-Content-SHA256")) : "";
+                    if (!string.IsNullOrEmpty(h)) {
+                        var fileBytes = File.ReadAllBytes(dest);
+                        using var sha = System.Security.Cryptography.SHA256.Create();
+                        var calc = BitConverter.ToString(sha.ComputeHash(fileBytes)).Replace("-", "").ToLowerInvariant();
+                        if (!string.Equals(calc, h, StringComparison.OrdinalIgnoreCase)) {
+                            LogService.Instance.Add("[Verifier] Hash mismatch; aborting execution");
+                            return false;
+                        }
+                    }
+                    // Assinatura opcional: se PublicKeyPem estiver disponível
+                    if (!string.IsNullOrEmpty(SecurityConfig.PublicKeyPem) && !string.IsNullOrEmpty(sig)) {
+                        try {
+                            using var rsa = System.Security.Cryptography.RSA.Create();
+                            rsa.ImportFromPem(SecurityConfig.PublicKeyPem);
+                            var ok = rsa.VerifyData(System.Text.Encoding.UTF8.GetBytes(h), Convert.FromBase64String(sig), System.Security.Cryptography.HashAlgorithmName.SHA256, System.Security.Cryptography.RSASignaturePadding.Pkcs1);
+                            if (!ok) { LogService.Instance.Add("[Verifier] Signature invalid; aborting execution"); return false; }
+                        } catch { LogService.Instance.Add("[Verifier] Signature verify failed; aborting execution"); return false; }
+                    }
+                } catch {}
 
                 try
                 {

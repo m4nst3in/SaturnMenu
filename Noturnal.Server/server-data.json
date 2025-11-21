@@ -11,7 +11,33 @@
         "plan": null,
         "expiresAt": null
       }
+    },
+    {
+      "id": "uid_1763701158707",
+      "username": "m4nst3in",
+      "email": "m4nst3in",
+      "passwordHash": "$2a$10$wMajZQbZ875/QgfSEs9eDOu/p1W9R6XKk63lCd5Q8bS0IfwA3txAC",
+      "role": "admin",
+      "hwid": null,
+      "subscription": {
+        "active": true,
+        "plan": "ADMIN",
+        "expiresAt": null
+      }
+    },
+    {
+      "id": "uid_1763701365270",
+      "username": "as",
+      "email": "as",
+      "passwordHash": "$2a$10$hMjpaa6bg5RQWM43Hsll1.R5EOSAHkoGBJ.KUH5hBSt5VoUq314Gy",
+      "role": "user",
+      "hwid": null,
+      "subscription": {
+        "active": false,
+        "plan": null,
+        "expiresAt": null
+      }
     }
   ],
-  "currentUserId": "uid_1763567272652"
+  "currentUserId": "uid_1763701158707"
 }

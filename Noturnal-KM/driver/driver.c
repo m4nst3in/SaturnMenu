@@ -454,6 +454,29 @@ NTSTATUS device_control(PDEVICE_OBJECT device_object, PIRP irp) {
         status = handle_batch_read_direct(device_object, irp, stack_irp, &information);
         break;
 
+    case IOCTL_QUERY_STATUS:
+        if (stack_irp->Parameters.DeviceIoControl.InputBufferLength < sizeof(ULONG)) {
+            status = STATUS_BUFFER_TOO_SMALL;
+            information = 0;
+            break;
+        }
+        *(ULONG*)irp->AssociatedIrp.SystemBuffer = 1; // driver up
+        status = STATUS_SUCCESS;
+        information = sizeof(ULONG);
+        break;
+
+    case IOCTL_GET_VERSION:
+        if (stack_irp->Parameters.DeviceIoControl.InputBufferLength < sizeof(ULONG)) {
+            status = STATUS_BUFFER_TOO_SMALL;
+            information = 0;
+            break;
+        }
+        // Version code: 0x00010000 for 1.0.0
+        *(ULONG*)irp->AssociatedIrp.SystemBuffer = 0x00010000;
+        status = STATUS_SUCCESS;
+        information = sizeof(ULONG);
+        break;
+
     default:
         status = STATUS_INVALID_DEVICE_REQUEST;
         information = 0;

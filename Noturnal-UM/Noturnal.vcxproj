@@ -172,6 +172,8 @@
     <ClCompile Include="Config\ConfigSaver.cpp" />
     <ClCompile Include="Core\Cheats.cpp" />
     <ClCompile Include="Core\GlobalVars.cpp" />
+    <ClCompile Include="Core\GLTFLoader.cpp" />
+    <ClCompile Include="Core\Renderer3D.cpp" />
     <ClCompile Include="Features\Aimbot.cpp" />
     <ClCompile Include="Features\Misc.cpp" />
     <ClCompile Include="Features\Radar.cpp" />

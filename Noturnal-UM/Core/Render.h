@@ -54,10 +54,18 @@ namespace Render
 
 	}
 
-	inline void DrawFovCircle(ImDrawList* drawList, const CEntity& LocalEntity) noexcept
-	{
-		if (!ESPConfig::DrawFov)
-			return;
+inline void DrawFovCircle(ImDrawList* drawList, const CEntity& LocalEntity) noexcept
+{
+    if (!ESPConfig::DrawFov)
+        return;
+
+    HWND hwnd_cs2 = FindWindowA(NULL, "Counter-Strike 2");
+    if (!hwnd_cs2)
+        return;
+    if (IsIconic(hwnd_cs2))
+        return;
+    if (GetForegroundWindow() != hwnd_cs2)
+        return;
 
 		constexpr float DEG_TO_RAD = M_PI / 180.f;
 		constexpr float STATIC_FOV = 90.0f;
@@ -123,10 +131,18 @@ namespace Render
 		Gui.Line({ StartX, StartY }, { EndX, EndY }, Color, Thickness);
 	}
 
-	inline void DrawFov(const CEntity& LocalEntity, float Size, ImColor Color, float Thickness)
-	{
-		if (!LegitBotConfig::ShowFovLine || MenuConfig::ShowMenu)
-			return;
+inline void DrawFov(const CEntity& LocalEntity, float Size, ImColor Color, float Thickness)
+{
+    if (!LegitBotConfig::ShowFovLine || MenuConfig::ShowMenu)
+        return;
+
+    HWND hwnd_cs2 = FindWindowA(NULL, "Counter-Strike 2");
+    if (!hwnd_cs2)
+        return;
+    if (IsIconic(hwnd_cs2))
+        return;
+    if (GetForegroundWindow() != hwnd_cs2)
+        return;
 
 		constexpr float DEG_TO_RAD = M_PI / 180.0f;
 		const Vec2 Pos = Gui.Window.Size * 0.5f;

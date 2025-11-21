@@ -72,7 +72,7 @@ void TriggerBot::Run(const CEntity& LocalEntity, const int& LocalPlayerControlle
 bool TriggerBot::CanTrigger(const CEntity& LocalEntity, const CEntity& TargetEntity, const int& LocalPlayerControllerIndex)
 {
     if (TargetEntity.Pawn.Address == 0) return false;
-    if (!Cheats::IsFFA() && LocalEntity.Pawn.TeamID == TargetEntity.Pawn.TeamID) return false;
+    
 
     bool waitForNoAttack = false;
     if (!memoryManager.ReadMemory<bool>(LocalEntity.Pawn.Address + Offset.Pawn.m_bWaitForNoAttack, waitForNoAttack)) return false;
@@ -81,17 +81,7 @@ bool TriggerBot::CanTrigger(const CEntity& LocalEntity, const CEntity& TargetEnt
     if (!CheckWeapon(currentWeapon)) return false;
     if (StopedOnly && LocalEntity.Pawn.Speed != 0) return false;
 
-    // Visibilidade e local varável = true (raytrace + mask)
-    DWORD64 playerMask = (DWORD64(1) << (LocalPlayerControllerIndex & 0x3F));
-    bool maskVis = (TargetEntity.Pawn.bSpottedByMask & playerMask) || (LocalEntity.Pawn.bSpottedByMask & playerMask);
-    bool los = false;
-    if (gMapGeo.IsReady())
-        los = gMapGeo.RaycastLOS(LocalEntity.Pawn.CameraPos, TargetEntity.Pawn.Pos);
-    else
-        los = true; // fallback: se não disponível, não bloqueia
-
-    bool visFinal = (IgnoreSmoke) ? (los || maskVis) : (los && maskVis);
-    if (!visFinal) return false;
+    bool visFinal = true;
     if (ScopeOnly && CheckScopeWeapon(currentWeapon)) {
         bool isScoped = false;
         memoryManager.ReadMemory<bool>(LocalEntity.Pawn.Address + Offset.Pawn.isScoped, isScoped);
@@ -155,8 +145,6 @@ void TriggerBot::RunEnhanced(const CEntity& LocalEntity, int LocalPlayerControll
     else shouldShoot = pressed;
 
     if (!shouldShoot) {
-        if (GetAsyncKeyState(VK_LBUTTON) < 0)
-            mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
         g_HasValidTarget = false;
         return;
     }
@@ -172,7 +160,6 @@ void TriggerBot::RunEnhanced(const CEntity& LocalEntity, int LocalPlayerControll
     {
         if (!r.isValid) continue;
         const CEntity& e = r.entity;
-        if (!Cheats::IsFFA() && LocalEntity.Pawn.TeamID == e.Pawn.TeamID) continue;
         if (e.Pawn.Health <= 0) continue;
         const auto& bones = e.GetBone().BonePosList;
         for (int hitbox : hitboxes) {
@@ -181,15 +168,7 @@ void TriggerBot::RunEnhanced(const CEntity& LocalEntity, int LocalPlayerControll
             float dist = std::hypot(bone.ScreenPos.x - center.x, bone.ScreenPos.y - center.y);
             if (dist > pixelRadius || dist >= bestDist) continue;
 
-            DWORD64 maskLocal = (DWORD64(1) << (LocalPlayerControllerIndex & 0x3F));
-            bool maskVis = (e.Pawn.bSpottedByMask & maskLocal) || (LocalEntity.Pawn.bSpottedByMask & maskLocal);
-
-            bool los = false;
-            if (gMapGeo.IsReady())
-                los = gMapGeo.RaycastLOS(LocalEntity.Pawn.CameraPos, bone.Pos);
-
-            bool visFinal = (IgnoreSmoke) ? (los || maskVis) : (los && maskVis);
-            if (!visFinal) continue;
+            
 
             if (!CanTrigger(LocalEntity, e, LocalPlayerControllerIndex)) continue;
 
@@ -211,7 +190,5 @@ void TriggerBot::RunEnhanced(const CEntity& LocalEntity, int LocalPlayerControll
         }
     } else {
         g_HasValidTarget = false;
-        if (GetAsyncKeyState(VK_LBUTTON) < 0)
-            mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
     }
 }
